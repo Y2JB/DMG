@@ -35,6 +35,7 @@ namespace DMG
             ushort[] breakpoints = new ushort[64];
             breakpoints[0] = 0xC;
             breakpoints[1] = 0x13;
+            breakpoints[2] = 0x28;
 
             while (cpu.IsHalted == false)
             {

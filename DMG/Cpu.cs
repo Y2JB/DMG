@@ -71,8 +71,8 @@ namespace DMG
             //H = 0x01;
             //L = 0x4d;
 
-            //PC = 0x100;   // Game code start
-            //PC = 0x00;      // Boot ROM
+            //PC = 0x100;       // Game code start
+            //PC = 0x00;        // Boot ROM
             //SP = 0xFFFE;
         }
 
@@ -95,6 +95,13 @@ namespace DMG
 
             instruction.Handler(operandValue);
 
+        }
+
+
+        void StackPush(ushort value)
+        {
+            SP -= 2;
+            memory.WriteShort(SP, value);
         }
 
 
@@ -211,14 +218,15 @@ namespace DMG
             instructions[0x04] = new Instruction("INC b", 0x04, 0, (v) => this.INC_b());
             instructions[0x06] = new Instruction("LD b n", 0x06, 1, (v) => this.LD_b_n((byte)v));
             instructions[0x0C] = new Instruction("INC c", 0x0C, 0, (v) => this.INC_c());
-
             instructions[0x0E] = new Instruction("LD c n", 0x0E, 1, (v) => this.LD_c_n((byte)v));
+            instructions[0x11] = new Instruction("LD DE nn", 0x11, 2, (v) => this.LD_de_nn(v));
             instructions[0x14] = new Instruction("INC d", 0x14, 0, (v) => this.INC_d());
             instructions[0x16] = new Instruction("LD d n", 0x16, 1, (v) => this.LD_d_n((byte)v));
+            instructions[0x1A] = new Instruction("LD A (de)", 0x1A, 0, (v) => this.LD_a_dep());
             instructions[0x1C] = new Instruction("INC e", 0x1C, 0, (v) => this.INC_e());
             instructions[0x1E] = new Instruction("LD e n", 0x1E, 1, (v) => this.LD_e_n((byte)v));
             instructions[0x20] = new Instruction("JR NZ n", 0x20, 1, (v) => this.JR_NZ_n((sbyte)v));
-            instructions[0x21] = new Instruction("LD hl nn", 0x21, 2, (v) => this.LD_hl(v));
+            instructions[0x21] = new Instruction("LD hl nn", 0x21, 2, (v) => this.LD_hl_nn(v));
             instructions[0x24] = new Instruction("INC h", 0x24, 0, (v) => this.INC_h());
             instructions[0x26] = new Instruction("LD h n", 0x26, 1, (v) => this.LD_h_n((byte)v));
             instructions[0x2C] = new Instruction("INC l", 0x2C, 0, (v) => this.INC_l());
@@ -226,13 +234,131 @@ namespace DMG
             instructions[0x31] = new Instruction("LD sp nn", 0x31, 2, (v) => this.LD_sp_nn(v));
             instructions[0x32] = new Instruction("LDD hl a", 0x32, 0, (v) => this.LDD_hl_a());
             instructions[0x3C] = new Instruction("INC a", 0x3C, 0, (v) => this.INC_a());
-            instructions[0x3E] = new Instruction("LD a n", 0x3E, 0, (v) => this.LD_a_n((byte) v));
+            instructions[0x3E] = new Instruction("LD a n", 0x3E, 1, (v) => this.LD_a_n((byte) v));
+
+            instructions[0x40] = new Instruction("LD b b", 0x40, 0, (v) => this.LD_b_b());
+            instructions[0x41] = new Instruction("LD b c", 0x41, 0, (v) => this.LD_b_c());
+            instructions[0x42] = new Instruction("LD b d", 0x42, 0, (v) => this.LD_b_d());
+            instructions[0x43] = new Instruction("LD b e", 0x43, 0, (v) => this.LD_b_e());
+            instructions[0x44] = new Instruction("LD b h", 0x44, 0, (v) => this.LD_b_h());
+            instructions[0x45] = new Instruction("LD b l", 0x45, 0, (v) => this.LD_b_l());
+            instructions[0x46] = new Instruction("LD b (hl)", 0x46, 0, (v) => this.LD_b_hlp());
+            instructions[0x47] = new Instruction("LD b a", 0x47, 0, (v) => this.LD_b_a());
+
+            instructions[0x48] = new Instruction("LD c b", 0x48, 0, (v) => this.LD_c_b());
+            instructions[0x49] = new Instruction("LD c c", 0x49, 0, (v) => this.LD_c_c());
+            instructions[0x4A] = new Instruction("LD c d", 0x4A, 0, (v) => this.LD_c_d());
+            instructions[0x4B] = new Instruction("LD c e", 0x4B, 0, (v) => this.LD_c_e());
+            instructions[0x4C] = new Instruction("LD c h", 0x4C, 0, (v) => this.LD_c_h());
+            instructions[0x4D] = new Instruction("LD c l", 0x4D, 0, (v) => this.LD_c_l());
+            instructions[0x4E] = new Instruction("LD c (hl)", 0x4E, 0, (v) => this.LD_c_hlp());
+            instructions[0x4F] = new Instruction("LD c a", 0x4F, 0, (v) => this.LD_c_a());
+
+            instructions[0x50] = new Instruction("LD d b", 0x50, 0, (v) => this.LD_d_b());
+            instructions[0x51] = new Instruction("LD d c", 0x51, 0, (v) => this.LD_d_c());
+            instructions[0x52] = new Instruction("LD d d", 0x52, 0, (v) => this.LD_d_d());
+            instructions[0x53] = new Instruction("LD d e", 0x53, 0, (v) => this.LD_d_e());
+            instructions[0x54] = new Instruction("LD d h", 0x54, 0, (v) => this.LD_d_h());
+            instructions[0x55] = new Instruction("LD d l", 0x55, 0, (v) => this.LD_d_l());
+            instructions[0x56] = new Instruction("LD d (hl)", 0x56, 0, (v) => this.LD_d_hlp());
+            instructions[0x57] = new Instruction("LD d a", 0x57, 0, (v) => this.LD_d_a());
+
+            instructions[0x58] = new Instruction("LD e b", 0x58, 0, (v) => this.LD_e_b());
+            instructions[0x59] = new Instruction("LD e c", 0x59, 0, (v) => this.LD_e_c());
+            instructions[0x5A] = new Instruction("LD e d", 0x5A, 0, (v) => this.LD_e_d());
+            instructions[0x5B] = new Instruction("LD e e", 0x5B, 0, (v) => this.LD_e_e());
+            instructions[0x5C] = new Instruction("LD e h", 0x5C, 0, (v) => this.LD_e_h());
+            instructions[0x5D] = new Instruction("LD e l", 0x5D, 0, (v) => this.LD_e_l());
+            instructions[0x5E] = new Instruction("LD e (hl)", 0x5E, 0, (v) => this.LD_e_hlp());
+            instructions[0x5F] = new Instruction("LD e a", 0x5F, 0, (v) => this.LD_e_a());
+
+            instructions[0x60] = new Instruction("LD h b", 0x60, 0, (v) => this.LD_h_b());
+            instructions[0x61] = new Instruction("LD h c", 0x61, 0, (v) => this.LD_h_c());
+            instructions[0x62] = new Instruction("LD h d", 0x62, 0, (v) => this.LD_h_d());
+            instructions[0x63] = new Instruction("LD h e", 0x63, 0, (v) => this.LD_h_e());
+            instructions[0x64] = new Instruction("LD h h", 0x64, 0, (v) => this.LD_h_h());
+            instructions[0x65] = new Instruction("LD h l", 0x65, 0, (v) => this.LD_h_l());
             instructions[0x66] = new Instruction("LD h (hl)", 0x66, 0, (v) => this.LD_h_hlp());
+            instructions[0x67] = new Instruction("LD h a", 0x67, 0, (v) => this.LD_h_a());
+
+            instructions[0x68] = new Instruction("LD l b", 0x68, 0, (v) => this.LD_l_b());
+            instructions[0x69] = new Instruction("LD l c", 0x69, 0, (v) => this.LD_l_c());
+            instructions[0x6A] = new Instruction("LD l d", 0x6A, 0, (v) => this.LD_l_d());
+            instructions[0x6B] = new Instruction("LD l e", 0x6B, 0, (v) => this.LD_l_e());
+            instructions[0x6C] = new Instruction("LD l h", 0x6C, 0, (v) => this.LD_l_h());
+            instructions[0x6D] = new Instruction("LD l l", 0x6D, 0, (v) => this.LD_l_l());
+            instructions[0x6E] = new Instruction("LD l (hl)", 0x6E, 0, (v) => this.LD_l_hlp());
+            instructions[0x6F] = new Instruction("LD l a", 0x6F, 0, (v) => this.LD_l_a());
+
+            instructions[0x70] = new Instruction("LD (hl) b", 0x70, 0, (v) => this.LD_hlp_b());
+            instructions[0x71] = new Instruction("LD (hl) c", 0x71, 0, (v) => this.LD_hlp_b());
+            instructions[0x72] = new Instruction("LD (hl) d", 0x72, 0, (v) => this.LD_hlp_b());
+            instructions[0x73] = new Instruction("LD (hl) e", 0x73, 0, (v) => this.LD_hlp_b());
+            instructions[0x74] = new Instruction("LD (hl) h", 0x74, 0, (v) => this.LD_hlp_b());
+            instructions[0x75] = new Instruction("LD (hl) l", 0x75, 0, (v) => this.LD_hlp_b());
+            instructions[0x76] = new Instruction("HALT", 0x76, 0, (v) => this.HALT());
+            instructions[0x77] = new Instruction("LD (hl) a", 0x77, 0, (v) => this.LD_hlp_a());
+
+            instructions[0x78] = new Instruction("LD a b", 0x78, 0, (v) => this.LD_a_b());
+            instructions[0x79] = new Instruction("LD a c", 0x79, 0, (v) => this.LD_a_c());
+            instructions[0x7A] = new Instruction("LD a d", 0x7A, 0, (v) => this.LD_a_d());
+            instructions[0x7B] = new Instruction("LD a e", 0x7B, 0, (v) => this.LD_a_e());
+            instructions[0x7C] = new Instruction("LD a h", 0x7C, 0, (v) => this.LD_a_h());
+            instructions[0x7D] = new Instruction("LD a l", 0x7D, 0, (v) => this.LD_a_l());
+            instructions[0x7E] = new Instruction("LD a (hl)", 0x7E, 0, (v) => this.LD_a_hlp());
+            instructions[0x7F] = new Instruction("LD a a", 0x7F, 0, (v) => this.LD_a_a());
+
             instructions[0x80] = new Instruction("ADD a b", 0x80, 0, (v) => this.ADD_a_b());
+            instructions[0x81] = new Instruction("ADD a c", 0x81, 0, (v) => this.ADD_a_c());
+            instructions[0x82] = new Instruction("ADD a d", 0x82, 0, (v) => this.ADD_a_d());
+            instructions[0x83] = new Instruction("ADD a e", 0x83, 0, (v) => this.ADD_a_e());
+            instructions[0x84] = new Instruction("ADD a h", 0x84, 0, (v) => this.ADD_a_h());
+            instructions[0x85] = new Instruction("ADD a l", 0x85, 0, (v) => this.ADD_a_l());
+            instructions[0x86] = new Instruction("ADD a (hl)", 0x86, 0, (v) => this.ADD_a_hlp());
+            instructions[0x87] = new Instruction("ADD a a", 0x87, 0, (v) => this.ADD_a_a());
+
+            instructions[0x90] = new Instruction("SUB a b", 0x90, 0, (v) => this.SUB_a_b());
+            instructions[0x91] = new Instruction("SUB a c", 0x91, 0, (v) => this.SUB_a_c());
+            instructions[0x92] = new Instruction("SUB a d", 0x92, 0, (v) => this.SUB_a_d());
+            instructions[0x93] = new Instruction("SUB a e", 0x93, 0, (v) => this.SUB_a_e());
+            instructions[0x94] = new Instruction("SUB a h", 0x94, 0, (v) => this.SUB_a_h());
+            instructions[0x95] = new Instruction("SUB a l", 0x95, 0, (v) => this.SUB_a_l());
+            instructions[0x96] = new Instruction("SUB a (hl)", 0x96, 0, (v) => this.SUB_a_hlp());
+            instructions[0x97] = new Instruction("SUB a a", 0x97, 0, (v) => this.SUB_a_a());
+
+            instructions[0xA0] = new Instruction("AND b", 0xA0, 0, (v) => this.AND_b());
+            instructions[0xA1] = new Instruction("AND c", 0xA1, 0, (v) => this.AND_c());
+            instructions[0xA2] = new Instruction("AND d", 0xA2, 0, (v) => this.AND_d());
+            instructions[0xA3] = new Instruction("AND e", 0xA3, 0, (v) => this.AND_e());
+            instructions[0xA4] = new Instruction("AND h", 0xA4, 0, (v) => this.AND_h());
+            instructions[0xA5] = new Instruction("AND l", 0xA5, 0, (v) => this.AND_l());
+            instructions[0xA6] = new Instruction("AND (hl)", 0xA6, 0, (v) => this.AND_hlp());
+            instructions[0xA7] = new Instruction("AND a", 0xA7, 0, (v) => this.AND_a());
+
+            instructions[0xA8] = new Instruction("XOR b", 0xA8, 0, (v) => this.XOR_b());
+            instructions[0xA9] = new Instruction("XOR c", 0xA9, 0, (v) => this.XOR_c());
+            instructions[0xAA] = new Instruction("XOR d", 0xAA, 0, (v) => this.XOR_d());
+            instructions[0xAB] = new Instruction("XOR e", 0xAB, 0, (v) => this.XOR_e());
+            instructions[0xAC] = new Instruction("XOR h", 0xAC, 0, (v) => this.XOR_h());
+            instructions[0xAD] = new Instruction("XOR l", 0xAD, 0, (v) => this.XOR_l());
+            instructions[0xAE] = new Instruction("XOR (hl)", 0xAE, 0, (v) => this.XOR_hlp());
             instructions[0xAF] = new Instruction("XOR a", 0xAF, 0, (v) => this.XOR_a());
+
+            instructions[0xB0] = new Instruction("OR b", 0xB0, 0, (v) => this.OR_b());
+            instructions[0xB1] = new Instruction("OR c", 0xB1, 0, (v) => this.OR_c());
+            instructions[0xB2] = new Instruction("OR d", 0xB2, 0, (v) => this.OR_d());
+            instructions[0xB3] = new Instruction("OR e", 0xB3, 0, (v) => this.OR_e());
+            instructions[0xB4] = new Instruction("OR h", 0xB4, 0, (v) => this.OR_h());
+            instructions[0xB5] = new Instruction("OR l", 0xB5, 0, (v) => this.OR_l());
+            instructions[0xB6] = new Instruction("OR (hl)", 0xB6, 0, (v) => this.OR_hlp());
+            instructions[0xB7] = new Instruction("OR a", 0xB7, 0, (v) => this.OR_a());
+
             instructions[0xC3] = new Instruction("JP nn", 0xC3, 2, (v) => this.JP_nn(v));
             instructions[0xCB] = new Instruction("Extended Opcode", 0xCB, 1, (v) => this.extended((byte)v));
+            instructions[0xCD] = new Instruction("CALL nn", 0xCd, 2, (v) => this.CALL_nn(v));
+            instructions[0xE0] = new Instruction("LD (0xFF00 + n) a", 0xE0, 1, (v) => this.LD_ff_n_a((byte) v));
             instructions[0xE2] = new Instruction("LD (0xFF00 + C) a", 0xE2, 0, (v) => this.LD_ff_c_a());
+            instructions[0xF3] = new Instruction("DI", 0xF3, 0, (v) => this.DI());
 
 
             // Check we don't have repeat id's (we made a type in the table above)

@@ -15,7 +15,7 @@ namespace DMG
 	// FE00 FE9F    Sprite attribute table(OAM)
 	// FEA0 FEFF    Not Usable
 	// FF00 FF7F    I/O Registers
-	// FF80 FFFE    High RAM (HRAM)
+	// FF80 FFFE    High RAM (HRAM) - Zero Page (takes fewer cycles to execute stuff), typically contains the stack
 	// FFFF FFFF    Interrupts Enable Register(IE)
 
 
@@ -26,9 +26,9 @@ namespace DMG
 		private byte[] Ram { get; set; }
 		private byte[] VRam { get; set; }
 		private byte[] Io { get; set; }
-		
-
-		private Random rnd = new Random();
+		private byte[] HRam { get; set; }
+	
+		//private Random rnd = new Random();
 
 
 		// Memory on the Gameboy is mapped. A memory read to a specific address can read the cart, ram, IO, OAM etc depending on the address
@@ -39,36 +39,46 @@ namespace DMG
 			Ram = new byte[0x2000];
 			VRam = new byte[0x2000];
 			Io = new Byte[0x100];
+			HRam = new Byte[0x80];
 		}
 
 		public byte ReadByte(ushort address)
 		{
-            if(address <= 0xFF)
-            {
-                // When the system boots, the bootrom (scrolling Nintendo logo) is executed starting from address 0.
-                // Bootrom is 256 bytes. At the end of the boot sequence, it writ4es to a special register to disable the boot rom page and
-                // this makes the first 256 bytes of the cart rom readable
-                if(true)
-                {
-                    return BootstrapRom.ReadByte(address);
+			if (address <= 0xFF)
+			{
+				// When the system boots, the bootrom (scrolling Nintendo logo) is executed starting from address 0.
+				// Bootrom is 256 bytes. At the end of the boot sequence, it writ4es to a special register to disable the boot rom page and
+				// this makes the first 256 bytes of the cart rom readable
+				if (true)
+				{
+					return BootstrapRom.ReadByte(address);
 				}
-                else
-                {
+				else
+				{
 					return GameRom.ReadByte(address);
 				}
-            }
+			}
 			if (address <= 0x7fff)
 				return GameRom.ReadByte(address);
 
 
 			else if (address >= 0xC000 && address <= 0xDFFF)
+			{
 				return Ram[address - 0xC000];
-
+			}
 			else if (address >= 0x8000 && address <= 0x9FFF)
+			{
 				return VRam[address - 0x8000];
+			}
 
-			else if (address >= 0xff00 && address <= 0xff7f)
-				return Io[address - 0xff00];
+			else if (address >= 0xFF00 && address <= 0xFF7F)
+			{
+				return Io[address - 0xFF00];
+			}
+			else if (address >= 0xFF80 && address <= 0xFFFE)
+			{
+				return HRam[address - 0xFF80];
+			}
 
 			/*
 			else if (address >= 0xA000 && address <= 0xBFFF)
@@ -132,6 +142,7 @@ namespace DMG
 			throw new ArgumentException("Invalid memory read");
 		}
 
+
 		public ushort ReadShort(ushort address)
 		{
 			// NB: Little Endian
@@ -156,11 +167,17 @@ namespace DMG
 			{
 				Io[address - 0xFF00] = value;
 			}
+			else if (address >= 0xFF80 && address <= 0xFFFE)
+			{
+				HRam[address - 0xFF80] = value;
+			}
 			else
 			{
 				Console.WriteLine(String.Format("Invalid memory write addr 0x{0:X4} val 0x{1:X2}", address, value));
 				throw new ArgumentException("Invalid memory write");
 			}
+
+
 
 
 			/*
@@ -216,7 +233,7 @@ namespace DMG
 			else if (address == 0xffff) interrupt.enable = value;
             */
 
-			
+
 		}
 
 
@@ -225,6 +242,9 @@ namespace DMG
 			WriteByte(address, (byte)(value & 0x00ff));
 			WriteByte((ushort)(address + 1), (byte)((value & 0xff00) >> 8));
 		}
+
+
+
 	}
         
 			    
