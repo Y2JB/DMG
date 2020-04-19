@@ -3,11 +3,30 @@
 
 namespace DMG
 {
+
+	// Gameboy Memory Map
+	// 0000	3FFF	16KB ROM bank 00
+	// 4000	7FFF	16KB ROM Bank 01~NN
+	// 8000	9FFF	8KB Video RAM(VRAM)
+	// A000 BFFF    8KB External RAM(cart ram extension)
+	// C000 CFFF    4KB Work RAM(WRAM) bank 0	
+	// D000 DFFF    4KB Work RAM(WRAM) bank 1~N
+	// E000 FDFF    Mirror of C000 ~DDFF(ECHO RAM)
+	// FE00 FE9F    Sprite attribute table(OAM)
+	// FEA0 FEFF    Not Usable
+	// FF00 FF7F    I/O Registers
+	// FF80 FFFE    High RAM (HRAM)
+	// FFFF FFFF    Interrupts Enable Register(IE)
+
+
 	public class Memory : IMemoryReaderWriter
 	{
 		private IMemoryReader GameRom { get; set; }
 		private IMemoryReader BootstrapRom { get; set; }
 		private byte[] Ram { get; set; }
+		private byte[] VRam { get; set; }
+		private byte[] Io { get; set; }
+		
 
 		private Random rnd = new Random();
 
@@ -18,6 +37,8 @@ namespace DMG
 			GameRom = rom;
 			BootstrapRom = bootstrap;
 			Ram = new byte[0x2000];
+			VRam = new byte[0x2000];
+			Io = new Byte[0x100];
 		}
 
 		public byte ReadByte(ushort address)
@@ -40,8 +61,14 @@ namespace DMG
 				return GameRom.ReadByte(address);
 
 
-			throw new ArgumentException("Invalid memory read");
+			else if (address >= 0xC000 && address <= 0xDFFF)
+				return Ram[address - 0xC000];
 
+			else if (address >= 0x8000 && address <= 0x9FFF)
+				return VRam[address - 0x8000];
+
+			else if (address >= 0xff00 && address <= 0xff7f)
+				return Io[address - 0xff00];
 
 			/*
 			else if (address >= 0xA000 && address <= 0xBFFF)
@@ -101,6 +128,8 @@ namespace DMG
 
 			return 0;
             */
+
+			throw new ArgumentException("Invalid memory read");
 		}
 
 		public ushort ReadShort(ushort address)
@@ -118,8 +147,23 @@ namespace DMG
 			else if (address >= 0xE000 && address <= 0xFDFF)
 				Ram[address - 0xe000] = value;
 
+			else if (address >= 0x8000 && address <= 0x9fff)
+			{
+				VRam[address - 0x8000] = value;
+				//if (address <= 0x97ff) updateTile(address, value);
+			}
+			else if (address >= 0xFF00 && address <= 0xFF7F)
+			{
+				Io[address - 0xFF00] = value;
+			}
+			else
+			{
+				Console.WriteLine(String.Format("Invalid memory write addr 0x{0:X4} val 0x{1:X2}", address, value));
+				throw new ArgumentException("Invalid memory write");
+			}
 
-            /*
+
+			/*
 
 			if (address >= 0xa000 && address <= 0xbfff)
 				sram[address - 0xa000] = value;
@@ -171,7 +215,10 @@ namespace DMG
 			else if (address == 0xff0f) interrupt.flags = value;
 			else if (address == 0xffff) interrupt.enable = value;
             */
+
+			
 		}
+
 
 		public void WriteShort(ushort address, ushort value)
 		{

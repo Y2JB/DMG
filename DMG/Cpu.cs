@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace DMG
 {
@@ -61,18 +62,18 @@ namespace DMG
 
         public void Reset()
         {
-            A = 0x01;
-            F = 0xb0;
-            B = 0x00;
-            C = 0x13;
-            D = 0x00;
-            E = 0xd8;
-            H = 0x01;
-            L = 0x4d;
+            //A = 0x01;
+            //F = 0xb0;
+            //B = 0x00;
+            //C = 0x13;
+            //D = 0x00;
+            //E = 0xd8;
+            //H = 0x01;
+            //L = 0x4d;
 
             //PC = 0x100;   // Game code start
-            PC = 0x00;      // Boot ROM
-            SP = 0xFFFE;
+            //PC = 0x00;      // Boot ROM
+            //SP = 0xFFFE;
         }
 
 
@@ -151,24 +152,87 @@ namespace DMG
         }
 
 
+        public void OutputState()
+        {
+            Console.ForegroundColor = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ConsoleColor.Black : ConsoleColor.White;
+
+            Console.SetCursorPosition(0, 5);
+            Console.Write("                    ");
+            Console.SetCursorPosition(0, 5);
+            Console.Write(String.Format("A: 0x{0:X2}", A));
+            if (ZeroFlag) Console.Write(" Z");
+            if (CarryFlag) Console.Write(" C");
+            if (HalfCarryFlag) Console.Write(" H");
+            if (NegativeFlag) Console.Write(" N");
+
+            Console.SetCursorPosition(0, 6);
+            Console.Write(String.Format("B: 0x{0:X2}", B));
+            Console.SetCursorPosition(0, 7);
+            Console.Write(String.Format("C: 0x{0:X2}", C));
+            Console.SetCursorPosition(0, 8);
+            Console.Write(String.Format("D: 0x{0:X2}", D));
+            Console.SetCursorPosition(0, 9);
+            Console.Write(String.Format("E: 0x{0:X2}", E));
+            Console.SetCursorPosition(0, 10);
+            Console.Write(String.Format("H: 0x{0:X2}", H));
+            Console.SetCursorPosition(0, 11);
+            Console.Write(String.Format("L: 0x{0:X2}", L));
+            Console.SetCursorPosition(0, 12);
+            Console.Write(String.Format("SP: 0x{0:X2}", SP));
+            Console.SetCursorPosition(0, 13);
+            Console.Write(String.Format("PC: 0x{0:X2}", PC));
+
+            Console.SetCursorPosition(20, 5);
+            Console.Write(String.Format("AF: 0x{0:X4}", AF));
+            Console.SetCursorPosition(20, 6);
+            Console.Write(String.Format("BC: 0x{0:X4}", BC));
+            Console.SetCursorPosition(20, 7);
+            Console.Write(String.Format("DE: 0x{0:X4}", DE));
+            Console.SetCursorPosition(20, 8);
+            Console.Write(String.Format("HL: 0x{0:X4}", HL));
+
+
+            var ins = instructions[memory.ReadByte(PC)];
+            if (ins != null)
+            {
+                Console.SetCursorPosition(0, 20);
+                Console.Write(String.Format("Instruction: {0}                                ", ins.Name));
+            }
+            else
+            {
+                Console.Write("                                 ");
+            }
+        }
+
+
         void RegisterInstructionHandlers()
         {
             instructions[0x00] = new Instruction("NOP", 0x00, 0, (v) => this.NOP());
+            instructions[0x04] = new Instruction("INC b", 0x04, 0, (v) => this.INC_b());
             instructions[0x06] = new Instruction("LD b n", 0x06, 1, (v) => this.LD_b_n((byte)v));
+            instructions[0x0C] = new Instruction("INC c", 0x0C, 0, (v) => this.INC_c());
+
             instructions[0x0E] = new Instruction("LD c n", 0x0E, 1, (v) => this.LD_c_n((byte)v));
             instructions[0x14] = new Instruction("INC d", 0x14, 0, (v) => this.INC_d());
             instructions[0x16] = new Instruction("LD d n", 0x16, 1, (v) => this.LD_d_n((byte)v));
+            instructions[0x1C] = new Instruction("INC e", 0x1C, 0, (v) => this.INC_e());
             instructions[0x1E] = new Instruction("LD e n", 0x1E, 1, (v) => this.LD_e_n((byte)v));
-            instructions[0x20] = new Instruction("JR NZ n", 0x20, 1, (v) => this.JR_NZ_n((byte)v));
+            instructions[0x20] = new Instruction("JR NZ n", 0x20, 1, (v) => this.JR_NZ_n((sbyte)v));
             instructions[0x21] = new Instruction("LD hl nn", 0x21, 2, (v) => this.LD_hl(v));
+            instructions[0x24] = new Instruction("INC h", 0x24, 0, (v) => this.INC_h());
             instructions[0x26] = new Instruction("LD h n", 0x26, 1, (v) => this.LD_h_n((byte)v));
+            instructions[0x2C] = new Instruction("INC l", 0x2C, 0, (v) => this.INC_l());
             instructions[0x2E] = new Instruction("LD l n", 0x2E, 1, (v) => this.LD_l_n((byte)v));
             instructions[0x31] = new Instruction("LD sp nn", 0x31, 2, (v) => this.LD_sp_nn(v));
             instructions[0x32] = new Instruction("LDD hl a", 0x32, 0, (v) => this.LDD_hl_a());
+            instructions[0x3C] = new Instruction("INC a", 0x3C, 0, (v) => this.INC_a());
+            instructions[0x3E] = new Instruction("LD a n", 0x3E, 0, (v) => this.LD_a_n((byte) v));
             instructions[0x66] = new Instruction("LD h (hl)", 0x66, 0, (v) => this.LD_h_hlp());
+            instructions[0x80] = new Instruction("ADD a b", 0x80, 0, (v) => this.ADD_a_b());
             instructions[0xAF] = new Instruction("XOR a", 0xAF, 0, (v) => this.XOR_a());
             instructions[0xC3] = new Instruction("JP nn", 0xC3, 2, (v) => this.JP_nn(v));
             instructions[0xCB] = new Instruction("Extended Opcode", 0xCB, 1, (v) => this.extended((byte)v));
+            instructions[0xE2] = new Instruction("LD (0xFF00 + C) a", 0xE2, 0, (v) => this.LD_ff_c_a());
 
 
             // Check we don't have repeat id's (we made a type in the table above)
@@ -179,7 +243,7 @@ namespace DMG
 
                 if (instruction.OpCode != i)
                 {
-                    throw new ArgumentException("Bad extended opcode");
+                    throw new ArgumentException("Bad opcode");
                 }
 
                 for (int j = 0; j < 255; j++)
