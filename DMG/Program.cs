@@ -33,9 +33,8 @@ namespace DMG
             Console.Write(String.Format("[S]tep - [R]un - Rese[t] - [D]isplay - E[x]it"));
 
             ushort[] breakpoints = new ushort[64];
-            breakpoints[0] = 0xC;
-            breakpoints[1] = 0x13;
-            breakpoints[2] = 0x28;
+            breakpoints[0] = 0xFC;
+            breakpoints[1] = 0x40;
 
             while (cpu.IsHalted == false)
             {

@@ -59,6 +59,23 @@ namespace DMG
         }
 
 
+        byte Dec(byte value)
+        {
+            if ((byte)(value & 0x0f) != 0) ClearFlag(Flags.HalfCarry);
+            else SetFlag(Flags.HalfCarry);
+
+            value--;
+
+            if (value == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
+            SetFlag(Flags.Negative);
+
+            return value;
+        }
+
+
+
         byte Add(byte lhs, byte rhs)
         {
             UInt16 result = (UInt16)(lhs + rhs);
@@ -97,21 +114,66 @@ namespace DMG
         }
 
 
-        
+        void Cmp(byte value)
+        {
+            if (A == value) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
+            if (value > A) SetFlag(Flags.Carry);
+            else ClearFlag(Flags.Carry);
+
+            if ((byte)(value & 0x0F) > (byte)(A & 0x0F)) SetFlag(Flags.HalfCarry);
+            else ClearFlag(Flags.HalfCarry);
+
+            SetFlag(Flags.Negative);
+        }
+
 
         // ********************
         // Instruction Handlers 
         // ********************
 
+        // 0x00
         void NOP()
         {
         }
 
+
+        // 0x03
+        void INC_bc()
+        {
+            BC++;
+        }
+
+        // 0x06
         void LD_b_n(byte n)
         {
             B = n;
         }
 
+        // 0x08
+        void LD_nn_sp(ushort nn)
+        {
+            memory.WriteShort(nn, SP);
+        }
+
+        // 0x38
+        void JR_C_n(sbyte n)
+        {
+            if (CarryFlag)
+            {
+                int pc = (int)(PC) + n;
+                PC = (ushort)pc;
+            }
+        }
+
+        // 0x3B
+        void DEC_sp()
+        {
+            SP--;
+        }
+
+        // 0x3C
         void INC_a()
         {
             A = Inc(A);
@@ -122,9 +184,28 @@ namespace DMG
             B = Inc(B);
         }
 
+        // 0x05
+        void DEC_b()
+        {
+            B = Dec(B);
+        }
+
+        // 0x0B
+        void DEC_bc()
+        {
+            BC--;
+        }
+
+        // 0x0C
         void INC_c()
         {
             C = Inc(C);
+        }
+
+        // 0x0D
+        void DEC_c()
+        {
+            C = Dec(C);
         }
 
         void INC_d()
@@ -132,16 +213,73 @@ namespace DMG
             D = Inc(D);
         }
 
+        // 0x15
+        void DEC_d()
+        {
+            D = Dec(D);
+        }
+
+        // 0x1B
+        void DEC_de()
+        {
+            DE--;
+        }
+
+        // 0x1C
         void INC_e()
         {
             E = Inc(E);
         }
 
+        // 0x22
+        void LDI_hlp_a()
+        {
+            memory.WriteByte(HL, A);
+            HL++;
+        }
+
+        // 0x23       
+        void INC_hl()
+        {
+            HL++;
+        }
+
+        // 0x24
         void INC_h()
         {
             H = Inc(H);
         }
 
+        // 0x25
+        void DEC_h()
+        {
+            H = Dec(H);
+        }
+
+        // 0x28
+        void JR_Z_n(sbyte n)
+        {
+            if (ZeroFlag)
+            {
+                int pc = (int)(PC) + n;
+                PC = (ushort)pc;
+            }
+        }
+
+        // 0x2A
+        void LDI_a_hlp()
+        {
+            A = memory.ReadByte(HL);
+            HL++;
+        }
+
+        // 0x2B
+        void DEC_hl()
+        {
+            HL--;
+        }
+
+        // 0x2C
         void INC_l()
         {
             L = Inc(L);
@@ -157,21 +295,59 @@ namespace DMG
             DE = nn;
         }
 
+        // 0x13       
+        void INC_de()
+        {
+            DE++;
+        }
+
         void LD_d_n(byte n)
         {
             D = n;
         }
 
+        // 0x17
+        void RLA()
+        {
+            int carry = CarryFlag ? 1 : 0;
+
+            if ((A & 0x80) != 0) SetFlag(Flags.Carry);
+            else ClearFlag(Flags.Carry);
+
+            A <<= 1;
+            A += (byte) carry;
+
+            ClearFlag(Flags.HalfCarry);
+            ClearFlag(Flags.Negative);
+            ClearFlag(Flags.Zero);
+        }
+
+        // 0x18
+        void JR_n(sbyte n)
+        {
+            int pc = (int)(PC) + n;
+            PC = (ushort)pc;
+        }
+
+        // 0x1A
         void LD_a_dep()
         {
             A = memory.ReadByte(DE);
         }
 
+        // 0x1D
+        void DEC_e()
+        {
+            E = Dec(E);
+        }
+
+        // 0x1E
         void LD_e_n(byte n)
         {
             E = n;
         }
 
+        // 0x20
         void JR_NZ_n(sbyte n)
         {
             if(ZeroFlag == false)
@@ -186,9 +362,33 @@ namespace DMG
             H = n;
         }
 
+        // 0x2D
+        void DEC_l()
+        {
+            L = Dec(L);
+        }
+
+        // 0x2E
         void LD_l_n(byte n)
         {
             L = n;
+        }
+
+
+        // 0x30
+        void JR_NC_n(sbyte n)
+        {
+            if (CarryFlag)
+            {
+                //ticks += 8;
+            }
+            else
+            {
+                int pc = (int)(PC) + n;
+                PC = (ushort)pc;
+
+                //ticks += 12;
+            }
         }
 
         void LD_sp_nn(ushort nn)
@@ -203,6 +403,31 @@ namespace DMG
             HL--;
         }
 
+        // 0x33       
+        void INC_sp()
+        {
+            SP++;
+        }
+
+        // 0x34
+        void INC_hlp()
+        {
+            memory.WriteByte(HL, Inc(memory.ReadByte(HL)));
+        }
+
+        // 0x35
+        void DEC_hlp()
+        {
+            memory.WriteByte(HL, Dec(memory.ReadByte(HL)));
+        }
+
+        // 0x3D
+        void DEC_a()
+        {
+            A = Dec(A);
+        }
+
+        // 0x3E
         void LD_a_n(byte n)
         {
             A = n;
@@ -836,18 +1061,95 @@ namespace DMG
             Or(A);
         }
 
+        // 0xB8
+        void CP_b()
+        {
+            Cmp(B);
+        }
 
+        // 0xB9
+        void CP_c()
+        {
+            Cmp(C);
+        }
 
+        // 0xBA
+        void CP_d()
+        {
+            Cmp(D);
+        }
+
+        // 0xBB
+        void CP_e()
+        {
+            Cmp(E);
+        }
+
+        // 0xBC
+        void CP_h()
+        {
+            Cmp(H);
+        }
+
+        // 0xBD
+        void CP_l()
+        {
+            Cmp(L);
+        }
+
+        // 0xBE
+        void CP_hlp()
+        {
+            Cmp(memory.ReadByte(HL));
+        }
+
+        // 0xBF
+        void CP_a()
+        {
+            Cmp(A);
+        }
+
+        //0xC1
+        void POP_bc()
+        {
+            BC = StackPop();
+        }
 
         void JP_nn(ushort nn)
         {
             PC = nn;
         }
 
+
+        // 0xC5
+        void PUSH_bc()
+        {
+            StackPush(BC);
+        }
+
+        // 0xCD
         void CALL_nn(ushort nn)
         {
-            StackPush(C);
+            StackPush(PC);
             PC = nn;
+        }
+
+        // 0xC9
+        void RET()
+        {
+            PC = StackPop();
+        }
+
+        //0xD1
+        void POP_de()
+        {
+            DE = StackPop();
+        }
+
+        // 0xD5
+        void PUSH_de()
+        {
+            StackPush(DE);
         }
 
         void LD_hl_nn(ushort nn)
@@ -860,6 +1162,12 @@ namespace DMG
             memory.WriteByte((ushort)((ushort)0xFF00 + (ushort)n), A);
         }
 
+        // 0xE1
+        void POP_hl()
+        {
+            HL = StackPop();
+        }
+
         // 0xE2
         void LD_ff_c_a()
         {
@@ -867,11 +1175,51 @@ namespace DMG
         }
 
 
+        // 0xE5
+        void PUSH_hl()
+        {
+            StackPush(HL);
+        }
+
+        // 0xEA
+        void LD_nn_a(ushort nn)
+        {
+            memory.WriteByte(nn, A);
+        }
+
+        // 0xF1
+        void POP_af()
+        {
+            AF = StackPop();
+        }
+
         // F3
         void DI()
         {
             // TODO DISABLE INTERUPTS!!!!
             throw new NotImplementedException();
+        }
+
+
+        // 0xF5
+        void PUSH_af()
+        {
+            StackPush(AF);
+        }
+
+        // 0xFE
+        void CP_n(byte n)
+        {
+            SetFlag(Flags.Negative);
+
+            if (A == n) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
+            if (n > A) SetFlag(Flags.Carry);
+            else ClearFlag(Flags.Carry);
+
+            if ((n & 0x0f) > (A & 0x0f)) SetFlag(Flags.HalfCarry);
+            else ClearFlag(Flags.HalfCarry);
         }
     }
 }

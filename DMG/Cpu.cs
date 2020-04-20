@@ -105,6 +105,16 @@ namespace DMG
         }
 
 
+        ushort StackPop()
+        {
+            ushort value = memory.ReadShort(SP);
+
+            SP += 2;
+
+            return value;
+        }
+
+
         bool ZeroFlag
         {
             get
@@ -215,25 +225,50 @@ namespace DMG
         void RegisterInstructionHandlers()
         {
             instructions[0x00] = new Instruction("NOP", 0x00, 0, (v) => this.NOP());
+            instructions[0x03] = new Instruction("INC bc", 0x03, 0, (v) => this.INC_bc());
             instructions[0x04] = new Instruction("INC b", 0x04, 0, (v) => this.INC_b());
+            instructions[0x05] = new Instruction("DEC b", 0x05, 0, (v) => this.DEC_b());
             instructions[0x06] = new Instruction("LD b n", 0x06, 1, (v) => this.LD_b_n((byte)v));
+            instructions[0x08] = new Instruction("LD nn sp", 0x08, 2, (v) => this.LD_nn_sp(v));
+            instructions[0x0B] = new Instruction("DEC bc", 0x0B, 0, (v) => this.DEC_bc());
             instructions[0x0C] = new Instruction("INC c", 0x0C, 0, (v) => this.INC_c());
+            instructions[0x0D] = new Instruction("DEC c", 0x0D, 0, (v) => this.DEC_c());
             instructions[0x0E] = new Instruction("LD c n", 0x0E, 1, (v) => this.LD_c_n((byte)v));
             instructions[0x11] = new Instruction("LD DE nn", 0x11, 2, (v) => this.LD_de_nn(v));
+            instructions[0x13] = new Instruction("INC de", 0x13, 0, (v) => this.INC_de());
             instructions[0x14] = new Instruction("INC d", 0x14, 0, (v) => this.INC_d());
+            instructions[0x15] = new Instruction("DEC d", 0x15, 0, (v) => this.DEC_d());
             instructions[0x16] = new Instruction("LD d n", 0x16, 1, (v) => this.LD_d_n((byte)v));
+            instructions[0x17] = new Instruction("RLA", 0x17, 0, (v) => this.RLA());
+            instructions[0x18] = new Instruction("JR n", 0x18, 1, (v) => this.JR_n((sbyte) v));
             instructions[0x1A] = new Instruction("LD A (de)", 0x1A, 0, (v) => this.LD_a_dep());
+            instructions[0x1B] = new Instruction("DEC de", 0x1B, 0, (v) => this.DEC_de());
             instructions[0x1C] = new Instruction("INC e", 0x1C, 0, (v) => this.INC_e());
+            instructions[0x1D] = new Instruction("DEC e", 0x1D, 0, (v) => this.DEC_e());
             instructions[0x1E] = new Instruction("LD e n", 0x1E, 1, (v) => this.LD_e_n((byte)v));
             instructions[0x20] = new Instruction("JR NZ n", 0x20, 1, (v) => this.JR_NZ_n((sbyte)v));
             instructions[0x21] = new Instruction("LD hl nn", 0x21, 2, (v) => this.LD_hl_nn(v));
+            instructions[0x22] = new Instruction("LDI (hl) a", 0x22, 0, (v) => this.LDI_hlp_a());
+            instructions[0x23] = new Instruction("INC hl", 0x23, 0, (v) => this.INC_hl());
             instructions[0x24] = new Instruction("INC h", 0x24, 0, (v) => this.INC_h());
+            instructions[0x25] = new Instruction("DEC h", 0x25, 0, (v) => this.DEC_h());
             instructions[0x26] = new Instruction("LD h n", 0x26, 1, (v) => this.LD_h_n((byte)v));
+            instructions[0x28] = new Instruction("JR Z n", 0x28, 1, (v) => this.JR_Z_n((sbyte)v));
+            instructions[0x2A] = new Instruction("LDI a (hl)", 0x2A, 0, (v) => this.LDI_a_hlp());
+            instructions[0x2B] = new Instruction("DEC hl", 0x2B, 0, (v) => this.DEC_hl());
             instructions[0x2C] = new Instruction("INC l", 0x2C, 0, (v) => this.INC_l());
+            instructions[0x2D] = new Instruction("DEC l", 0x2D, 0, (v) => this.DEC_l());
             instructions[0x2E] = new Instruction("LD l n", 0x2E, 1, (v) => this.LD_l_n((byte)v));
+            instructions[0x30] = new Instruction("JR NC n", 0x30, 1, (v) => this.JR_NC_n((sbyte)v));
             instructions[0x31] = new Instruction("LD sp nn", 0x31, 2, (v) => this.LD_sp_nn(v));
             instructions[0x32] = new Instruction("LDD hl a", 0x32, 0, (v) => this.LDD_hl_a());
+            instructions[0x33] = new Instruction("INC sp", 0x33, 0, (v) => this.INC_sp());
+            instructions[0x34] = new Instruction("INC (hl)", 0x34, 0, (v) => this.INC_hlp());
+            instructions[0x35] = new Instruction("DEC (hl)", 0x35, 0, (v) => this.DEC_hlp());
+            instructions[0x38] = new Instruction("JR C n", 0x38, 1, (v) => this.JR_C_n((sbyte)v));
+            instructions[0x3B] = new Instruction("DEC sp", 0x3B, 0, (v) => this.DEC_sp());
             instructions[0x3C] = new Instruction("INC a", 0x3C, 0, (v) => this.INC_a());
+            instructions[0x3D] = new Instruction("DEC a", 0x3D, 0, (v) => this.DEC_a());
             instructions[0x3E] = new Instruction("LD a n", 0x3E, 1, (v) => this.LD_a_n((byte) v));
 
             instructions[0x40] = new Instruction("LD b b", 0x40, 0, (v) => this.LD_b_b());
@@ -353,12 +388,32 @@ namespace DMG
             instructions[0xB6] = new Instruction("OR (hl)", 0xB6, 0, (v) => this.OR_hlp());
             instructions[0xB7] = new Instruction("OR a", 0xB7, 0, (v) => this.OR_a());
 
+            instructions[0xB8] = new Instruction("CP b", 0xB8, 0, (v) => this.CP_b());
+            instructions[0xB9] = new Instruction("CP c", 0xB9, 0, (v) => this.CP_c());
+            instructions[0xBA] = new Instruction("CP d", 0xBA, 0, (v) => this.CP_d());
+            instructions[0xBB] = new Instruction("CP e", 0xBB, 0, (v) => this.CP_e());
+            instructions[0xBC] = new Instruction("CP h", 0xBC, 0, (v) => this.CP_h());
+            instructions[0xBD] = new Instruction("CP l", 0xBD, 0, (v) => this.CP_l());
+            instructions[0xBE] = new Instruction("CP (hl)", 0xBE, 0, (v) => this.CP_hlp());
+            instructions[0xBF] = new Instruction("CP a", 0xBF, 0, (v) => this.CP_a());
+
+            instructions[0xC1] = new Instruction("POP bc", 0xC1, 0, (v) => this.POP_bc());
             instructions[0xC3] = new Instruction("JP nn", 0xC3, 2, (v) => this.JP_nn(v));
+            instructions[0xC5] = new Instruction("PUSH bc", 0xC5, 0, (v) => this.PUSH_bc());
+            instructions[0xC9] = new Instruction("RET", 0xC9, 0, (v) => this.RET());
+            instructions[0xD1] = new Instruction("POP de", 0xD1, 0, (v) => this.POP_de());
+            instructions[0xD5] = new Instruction("PUSH de", 0xD5, 0, (v) => this.PUSH_de());
             instructions[0xCB] = new Instruction("Extended Opcode", 0xCB, 1, (v) => this.extended((byte)v));
-            instructions[0xCD] = new Instruction("CALL nn", 0xCd, 2, (v) => this.CALL_nn(v));
+            instructions[0xCD] = new Instruction("CALL nn", 0xCD, 2, (v) => this.CALL_nn(v));
             instructions[0xE0] = new Instruction("LD (0xFF00 + n) a", 0xE0, 1, (v) => this.LD_ff_n_a((byte) v));
+            instructions[0xE1] = new Instruction("POP hl", 0xE1, 0, (v) => this.POP_hl());
             instructions[0xE2] = new Instruction("LD (0xFF00 + C) a", 0xE2, 0, (v) => this.LD_ff_c_a());
+            instructions[0xE5] = new Instruction("PUSH hl", 0xE5, 0, (v) => this.PUSH_hl());
+            instructions[0xEA] = new Instruction("LD nn a", 0xEA, 2, (v) => this.LD_nn_a(v));
+            instructions[0xF1] = new Instruction("POP af", 0xF1, 0, (v) => this.POP_af());
             instructions[0xF3] = new Instruction("DI", 0xF3, 0, (v) => this.DI());
+            instructions[0xF5] = new Instruction("PUSH af", 0xF5, 0, (v) => this.PUSH_af());
+            instructions[0xFE] = new Instruction("CP n", 0xFE, 1, (v) => this.CP_n((byte) v));
 
 
             // Check we don't have repeat id's (we made a type in the table above)
@@ -390,77 +445,149 @@ namespace DMG
 
         void RegisterExtendedInstructionHandlers()
         {
-            extendedInstructions[0x40] = new ExtendedInstruction("bit 0 b", 0x40, () => this.BIT_0_b());
-            extendedInstructions[0x41] = new ExtendedInstruction("bit 0 c", 0x41, () => this.BIT_0_c());
-            extendedInstructions[0x42] = new ExtendedInstruction("bit 0 d", 0x42, () => this.BIT_0_d());
-            extendedInstructions[0x43] = new ExtendedInstruction("bit 0 e", 0x43, () => this.BIT_0_e());
-            extendedInstructions[0x44] = new ExtendedInstruction("bit 0 h", 0x44, () => this.BIT_0_h());
-            extendedInstructions[0x45] = new ExtendedInstruction("bit 0 l", 0x45, () => this.BIT_0_l());
-            extendedInstructions[0x46] = new ExtendedInstruction("bit 0 $(HL)", 0x46, () => this.BIT_0_hlp());
-            extendedInstructions[0x47] = new ExtendedInstruction("bit 0 a", 0x47, () => this.BIT_0_a());
+            extendedInstructions[0x00] = new ExtendedInstruction("RLC b", 0x00, () => this.RLC_b());
+            extendedInstructions[0x01] = new ExtendedInstruction("RLC c", 0x01, () => this.RLC_c());
+            extendedInstructions[0x02] = new ExtendedInstruction("RLC d", 0x02, () => this.RLC_d());
+            extendedInstructions[0x03] = new ExtendedInstruction("RLC e", 0x03, () => this.RLC_e());
+            extendedInstructions[0x04] = new ExtendedInstruction("RLC h", 0x04, () => this.RLC_h());
+            extendedInstructions[0x05] = new ExtendedInstruction("RLC l", 0x05, () => this.RLC_l());
+            extendedInstructions[0x06] = new ExtendedInstruction("RLC hlp", 0x06, () => this.RLC_hlp());
+            extendedInstructions[0x07] = new ExtendedInstruction("RLC a", 0x07, () => this.RLC_a());
 
-            extendedInstructions[0x48] = new ExtendedInstruction("bit 1 b", 0x48, () => this.BIT_1_b());
-            extendedInstructions[0x49] = new ExtendedInstruction("bit 1 c", 0x49, () => this.BIT_1_c());
-            extendedInstructions[0x4A] = new ExtendedInstruction("bit 1 d", 0x4A, () => this.BIT_1_d());
-            extendedInstructions[0x4B] = new ExtendedInstruction("bit 1 e", 0x4B, () => this.BIT_1_e());
-            extendedInstructions[0x4C] = new ExtendedInstruction("bit 1 h", 0x4C, () => this.BIT_1_h());
-            extendedInstructions[0x4D] = new ExtendedInstruction("bit 1 l", 0x4D, () => this.BIT_1_l());
-            extendedInstructions[0x4E] = new ExtendedInstruction("bit 1 $(HL)", 0x4E, () => this.BIT_1_hlp());
-            extendedInstructions[0x4F] = new ExtendedInstruction("bit 1 a", 0x4F, () => this.BIT_1_a());
+            extendedInstructions[0x08] = new ExtendedInstruction("RRC b", 0x08, () => this.RRC_b());
+            extendedInstructions[0x09] = new ExtendedInstruction("RRC c", 0x09, () => this.RRC_c());
+            extendedInstructions[0x0A] = new ExtendedInstruction("RRC d", 0x0A, () => this.RRC_d());
+            extendedInstructions[0x0B] = new ExtendedInstruction("RRC e", 0x0B, () => this.RRC_e());
+            extendedInstructions[0x0C] = new ExtendedInstruction("RRC h", 0x0C, () => this.RRC_h());
+            extendedInstructions[0x0D] = new ExtendedInstruction("RRC l", 0x0D, () => this.RRC_l());
+            extendedInstructions[0x0E] = new ExtendedInstruction("RRC hlp", 0x0E, () => this.RRC_hlp());
+            extendedInstructions[0x0F] = new ExtendedInstruction("RRC a", 0x0F, () => this.RRC_a());
 
-            extendedInstructions[0x50] = new ExtendedInstruction("bit 2 b", 0x50, () => this.BIT_2_b());
-            extendedInstructions[0x51] = new ExtendedInstruction("bit 2 c", 0x51, () => this.BIT_2_c());
-            extendedInstructions[0x52] = new ExtendedInstruction("bit 2 d", 0x52, () => this.BIT_2_d());
-            extendedInstructions[0x53] = new ExtendedInstruction("bit 2 e", 0x53, () => this.BIT_2_e());
-            extendedInstructions[0x54] = new ExtendedInstruction("bit 2 h", 0x54, () => this.BIT_2_h());
-            extendedInstructions[0x55] = new ExtendedInstruction("bit 2 l", 0x55, () => this.BIT_2_l());
-            extendedInstructions[0x56] = new ExtendedInstruction("bit 2 $(HL)", 0x56, () => this.BIT_2_hlp());
-            extendedInstructions[0x57] = new ExtendedInstruction("bit 2 a", 0x57, () => this.BIT_2_a());
+            extendedInstructions[0x10] = new ExtendedInstruction("RL b", 0x10, () => this.RL_b());
+            extendedInstructions[0x11] = new ExtendedInstruction("RL c", 0x11, () => this.RL_c());
+            extendedInstructions[0x12] = new ExtendedInstruction("RL d", 0x12, () => this.RL_d());
+            extendedInstructions[0x13] = new ExtendedInstruction("RL e", 0x13, () => this.RL_e());
+            extendedInstructions[0x14] = new ExtendedInstruction("RL h", 0x14, () => this.RL_h());
+            extendedInstructions[0x15] = new ExtendedInstruction("RL l", 0x15, () => this.RL_l());
+            extendedInstructions[0x16] = new ExtendedInstruction("RL hlp", 0x16, () => this.RL_hlp());
+            extendedInstructions[0x17] = new ExtendedInstruction("RL a", 0x17, () => this.RL_a());
 
-            extendedInstructions[0x58] = new ExtendedInstruction("bit 3 b", 0x58, () => this.BIT_3_b());
-            extendedInstructions[0x59] = new ExtendedInstruction("bit 3 c", 0x59, () => this.BIT_3_c());
-            extendedInstructions[0x5A] = new ExtendedInstruction("bit 3 d", 0x5A, () => this.BIT_3_d());
-            extendedInstructions[0x5B] = new ExtendedInstruction("bit 3 e", 0x5B, () => this.BIT_3_e());
-            extendedInstructions[0x5C] = new ExtendedInstruction("bit 3 h", 0x5C, () => this.BIT_3_h());
-            extendedInstructions[0x5D] = new ExtendedInstruction("bit 3 l", 0x5D, () => this.BIT_3_l());
-            extendedInstructions[0x5E] = new ExtendedInstruction("bit 3 $(HL)", 0x5E, () => this.BIT_3_hlp());
-            extendedInstructions[0x5F] = new ExtendedInstruction("bit 3 a", 0x5F, () => this.BIT_3_a());
+            extendedInstructions[0x18] = new ExtendedInstruction("RR b", 0x18, () => this.RR_b());
+            extendedInstructions[0x19] = new ExtendedInstruction("RR c", 0x19, () => this.RR_c());
+            extendedInstructions[0x1A] = new ExtendedInstruction("RR d", 0x1A, () => this.RR_d());
+            extendedInstructions[0x1B] = new ExtendedInstruction("RR e", 0x1B, () => this.RR_e());
+            extendedInstructions[0x1C] = new ExtendedInstruction("RR h", 0x1C, () => this.RR_h());
+            extendedInstructions[0x1D] = new ExtendedInstruction("RR l", 0x1D, () => this.RR_l());
+            extendedInstructions[0x1E] = new ExtendedInstruction("RR hlp", 0x1E, () => this.RR_hlp());
+            extendedInstructions[0x1F] = new ExtendedInstruction("RR a", 0x1F, () => this.RR_a());
 
-            extendedInstructions[0x60] = new ExtendedInstruction("bit 4 b", 0x60, () => this.BIT_4_b());
-            extendedInstructions[0x61] = new ExtendedInstruction("bit 4 c", 0x61, () => this.BIT_4_c());
-            extendedInstructions[0x62] = new ExtendedInstruction("bit 4 d", 0x62, () => this.BIT_4_d());
-            extendedInstructions[0x63] = new ExtendedInstruction("bit 4 e", 0x63, () => this.BIT_4_e());
-            extendedInstructions[0x64] = new ExtendedInstruction("bit 4 h", 0x64, () => this.BIT_4_h());
-            extendedInstructions[0x65] = new ExtendedInstruction("bit 4 l", 0x65, () => this.BIT_4_l());
-            extendedInstructions[0x66] = new ExtendedInstruction("bit 4 $(HL)", 0x66, () => this.BIT_4_hlp());
-            extendedInstructions[0x67] = new ExtendedInstruction("bit 4 a", 0x67, () => this.BIT_4_a());
+            extendedInstructions[0x20] = new ExtendedInstruction("SLA b", 0x20, () => this.SLA_b());
+            extendedInstructions[0x21] = new ExtendedInstruction("SLA c", 0x21, () => this.SLA_c());
+            extendedInstructions[0x22] = new ExtendedInstruction("SLA d", 0x22, () => this.SLA_d());
+            extendedInstructions[0x23] = new ExtendedInstruction("SLA e", 0x23, () => this.SLA_e());
+            extendedInstructions[0x24] = new ExtendedInstruction("SLA h", 0x24, () => this.SLA_h());
+            extendedInstructions[0x25] = new ExtendedInstruction("SLA l", 0x25, () => this.SLA_l());
+            extendedInstructions[0x26] = new ExtendedInstruction("SLA hlp", 0x26, () => this.SLA_hlp());
+            extendedInstructions[0x27] = new ExtendedInstruction("SLA a", 0x27, () => this.SLA_a());
 
-            extendedInstructions[0x68] = new ExtendedInstruction("bit 5 b", 0x68, () => this.BIT_5_b());
-            extendedInstructions[0x69] = new ExtendedInstruction("bit 5 c", 0x69, () => this.BIT_5_c());
-            extendedInstructions[0x6A] = new ExtendedInstruction("bit 5 d", 0x6A, () => this.BIT_5_d());
-            extendedInstructions[0x6B] = new ExtendedInstruction("bit 5 e", 0x6B, () => this.BIT_5_e());
-            extendedInstructions[0x6C] = new ExtendedInstruction("bit 5 h", 0x6C, () => this.BIT_5_h());
-            extendedInstructions[0x6D] = new ExtendedInstruction("bit 5 l", 0x6D, () => this.BIT_5_l());
-            extendedInstructions[0x6E] = new ExtendedInstruction("bit 5 $(HL)", 0x6E, () => this.BIT_5_hlp());
-            extendedInstructions[0x6F] = new ExtendedInstruction("bit 5 a", 0x6F, () => this.BIT_5_a());
+            extendedInstructions[0x28] = new ExtendedInstruction("SRA b", 0x28, () => this.SRA_b());
+            extendedInstructions[0x29] = new ExtendedInstruction("SRA c", 0x29, () => this.SRA_c());
+            extendedInstructions[0x2A] = new ExtendedInstruction("SRA d", 0x2A, () => this.SRA_d());
+            extendedInstructions[0x2B] = new ExtendedInstruction("SRA e", 0x2B, () => this.SRA_e());
+            extendedInstructions[0x2C] = new ExtendedInstruction("SRA h", 0x2C, () => this.SRA_h());
+            extendedInstructions[0x2D] = new ExtendedInstruction("SRA l", 0x2D, () => this.SRA_l());
+            extendedInstructions[0x2E] = new ExtendedInstruction("SRA hlp", 0x2E, () => this.SRA_hlp());
+            extendedInstructions[0x2F] = new ExtendedInstruction("SRA a", 0x2F, () => this.SRA_a());
 
-            extendedInstructions[0x70] = new ExtendedInstruction("bit 6 b", 0x70, () => this.BIT_6_b());
-            extendedInstructions[0x71] = new ExtendedInstruction("bit 6 c", 0x71, () => this.BIT_6_c());
-            extendedInstructions[0x72] = new ExtendedInstruction("bit 6 d", 0x72, () => this.BIT_6_d());
-            extendedInstructions[0x73] = new ExtendedInstruction("bit 6 e", 0x73, () => this.BIT_6_e());
-            extendedInstructions[0x74] = new ExtendedInstruction("bit 6 h", 0x74, () => this.BIT_6_h());
-            extendedInstructions[0x75] = new ExtendedInstruction("bit 6 l", 0x75, () => this.BIT_6_l());
-            extendedInstructions[0x76] = new ExtendedInstruction("bit 6 $(HL)", 0x76, () => this.BIT_6_hlp());
-            extendedInstructions[0x77] = new ExtendedInstruction("bit 6 a", 0x77, () => this.BIT_6_a());
+            extendedInstructions[0x30] = new ExtendedInstruction("SWAP b", 0x30, () => this.SWAP_b());
+            extendedInstructions[0x31] = new ExtendedInstruction("SWAP c", 0x31, () => this.SWAP_c());
+            extendedInstructions[0x32] = new ExtendedInstruction("SWAP d", 0x32, () => this.SWAP_d());
+            extendedInstructions[0x33] = new ExtendedInstruction("SWAP e", 0x33, () => this.SWAP_e());
+            extendedInstructions[0x34] = new ExtendedInstruction("SWAP h", 0x34, () => this.SWAP_h());
+            extendedInstructions[0x35] = new ExtendedInstruction("SWAP l", 0x35, () => this.SWAP_l());
+            extendedInstructions[0x36] = new ExtendedInstruction("SWAP hlp", 0x36, () => this.SWAP_hlp());
+            extendedInstructions[0x37] = new ExtendedInstruction("SWAP a", 0x37, () => this.SWAP_a());
 
-            extendedInstructions[0x78] = new ExtendedInstruction("bit 7 b", 0x78, () => this.BIT_7_b());
-            extendedInstructions[0x79] = new ExtendedInstruction("bit 7 c", 0x79, () => this.BIT_7_c());
-            extendedInstructions[0x7A] = new ExtendedInstruction("bit 7 d", 0x7A, () => this.BIT_7_d());
-            extendedInstructions[0x7B] = new ExtendedInstruction("bit 7 e", 0x7B, () => this.BIT_7_e());
-            extendedInstructions[0x7C] = new ExtendedInstruction("bit 7 h", 0x7C, () => this.BIT_7_h());
-            extendedInstructions[0x7D] = new ExtendedInstruction("bit 7 l", 0x7D, () => this.BIT_7_l());
-            extendedInstructions[0x7E] = new ExtendedInstruction("bit 7 $(HL)", 0x7E, () => this.BIT_7_hlp());
-            extendedInstructions[0x7F] = new ExtendedInstruction("bit 7 a", 0x7F, () => this.BIT_7_a());
+            extendedInstructions[0x38] = new ExtendedInstruction("SRL b", 0x38, () => this.SRL_b());
+            extendedInstructions[0x39] = new ExtendedInstruction("SRL c", 0x39, () => this.SRL_c());
+            extendedInstructions[0x3A] = new ExtendedInstruction("SRL d", 0x3A, () => this.SRL_d());
+            extendedInstructions[0x3B] = new ExtendedInstruction("SRL e", 0x3B, () => this.SRL_e());
+            extendedInstructions[0x3C] = new ExtendedInstruction("SRL h", 0x3C, () => this.SRL_h());
+            extendedInstructions[0x3D] = new ExtendedInstruction("SRL l", 0x3D, () => this.SRL_l());
+            extendedInstructions[0x3E] = new ExtendedInstruction("SRL hlp", 0x3E, () => this.SRL_hlp());
+            extendedInstructions[0x3F] = new ExtendedInstruction("SRL a", 0x3F, () => this.SRL_a());
+
+            extendedInstructions[0x40] = new ExtendedInstruction("BIT 0 b", 0x40, () => this.BIT_0_b());
+            extendedInstructions[0x41] = new ExtendedInstruction("BIT 0 c", 0x41, () => this.BIT_0_c());
+            extendedInstructions[0x42] = new ExtendedInstruction("BIT 0 d", 0x42, () => this.BIT_0_d());
+            extendedInstructions[0x43] = new ExtendedInstruction("BIT 0 e", 0x43, () => this.BIT_0_e());
+            extendedInstructions[0x44] = new ExtendedInstruction("BIT 0 h", 0x44, () => this.BIT_0_h());
+            extendedInstructions[0x45] = new ExtendedInstruction("BIT 0 l", 0x45, () => this.BIT_0_l());
+            extendedInstructions[0x46] = new ExtendedInstruction("BIT 0 $(HL)", 0x46, () => this.BIT_0_hlp());
+            extendedInstructions[0x47] = new ExtendedInstruction("BIT 0 a", 0x47, () => this.BIT_0_a());
+
+            extendedInstructions[0x48] = new ExtendedInstruction("BIT 1 b", 0x48, () => this.BIT_1_b());
+            extendedInstructions[0x49] = new ExtendedInstruction("BIT 1 c", 0x49, () => this.BIT_1_c());
+            extendedInstructions[0x4A] = new ExtendedInstruction("BIT 1 d", 0x4A, () => this.BIT_1_d());
+            extendedInstructions[0x4B] = new ExtendedInstruction("BIT 1 e", 0x4B, () => this.BIT_1_e());
+            extendedInstructions[0x4C] = new ExtendedInstruction("BIT 1 h", 0x4C, () => this.BIT_1_h());
+            extendedInstructions[0x4D] = new ExtendedInstruction("BIT 1 l", 0x4D, () => this.BIT_1_l());
+            extendedInstructions[0x4E] = new ExtendedInstruction("BIT 1 $(HL)", 0x4E, () => this.BIT_1_hlp());
+            extendedInstructions[0x4F] = new ExtendedInstruction("BIT 1 a", 0x4F, () => this.BIT_1_a());
+
+            extendedInstructions[0x50] = new ExtendedInstruction("BIT 2 b", 0x50, () => this.BIT_2_b());
+            extendedInstructions[0x51] = new ExtendedInstruction("BIT 2 c", 0x51, () => this.BIT_2_c());
+            extendedInstructions[0x52] = new ExtendedInstruction("BIT 2 d", 0x52, () => this.BIT_2_d());
+            extendedInstructions[0x53] = new ExtendedInstruction("BIT 2 e", 0x53, () => this.BIT_2_e());
+            extendedInstructions[0x54] = new ExtendedInstruction("BIT 2 h", 0x54, () => this.BIT_2_h());
+            extendedInstructions[0x55] = new ExtendedInstruction("BIT 2 l", 0x55, () => this.BIT_2_l());
+            extendedInstructions[0x56] = new ExtendedInstruction("BIT 2 $(HL)", 0x56, () => this.BIT_2_hlp());
+            extendedInstructions[0x57] = new ExtendedInstruction("BIT 2 a", 0x57, () => this.BIT_2_a());
+
+            extendedInstructions[0x58] = new ExtendedInstruction("BIT 3 b", 0x58, () => this.BIT_3_b());
+            extendedInstructions[0x59] = new ExtendedInstruction("BIT 3 c", 0x59, () => this.BIT_3_c());
+            extendedInstructions[0x5A] = new ExtendedInstruction("BIT 3 d", 0x5A, () => this.BIT_3_d());
+            extendedInstructions[0x5B] = new ExtendedInstruction("BIT 3 e", 0x5B, () => this.BIT_3_e());
+            extendedInstructions[0x5C] = new ExtendedInstruction("BIT 3 h", 0x5C, () => this.BIT_3_h());
+            extendedInstructions[0x5D] = new ExtendedInstruction("BIT 3 l", 0x5D, () => this.BIT_3_l());
+            extendedInstructions[0x5E] = new ExtendedInstruction("BIT 3 $(HL)", 0x5E, () => this.BIT_3_hlp());
+            extendedInstructions[0x5F] = new ExtendedInstruction("BIT 3 a", 0x5F, () => this.BIT_3_a());
+
+            extendedInstructions[0x60] = new ExtendedInstruction("BIT 4 b", 0x60, () => this.BIT_4_b());
+            extendedInstructions[0x61] = new ExtendedInstruction("BIT 4 c", 0x61, () => this.BIT_4_c());
+            extendedInstructions[0x62] = new ExtendedInstruction("BIT 4 d", 0x62, () => this.BIT_4_d());
+            extendedInstructions[0x63] = new ExtendedInstruction("BIT 4 e", 0x63, () => this.BIT_4_e());
+            extendedInstructions[0x64] = new ExtendedInstruction("BIT 4 h", 0x64, () => this.BIT_4_h());
+            extendedInstructions[0x65] = new ExtendedInstruction("BIT 4 l", 0x65, () => this.BIT_4_l());
+            extendedInstructions[0x66] = new ExtendedInstruction("BIT 4 $(HL)", 0x66, () => this.BIT_4_hlp());
+            extendedInstructions[0x67] = new ExtendedInstruction("BIT 4 a", 0x67, () => this.BIT_4_a());
+
+            extendedInstructions[0x68] = new ExtendedInstruction("BIT 5 b", 0x68, () => this.BIT_5_b());
+            extendedInstructions[0x69] = new ExtendedInstruction("BIT 5 c", 0x69, () => this.BIT_5_c());
+            extendedInstructions[0x6A] = new ExtendedInstruction("BIT 5 d", 0x6A, () => this.BIT_5_d());
+            extendedInstructions[0x6B] = new ExtendedInstruction("BIT 5 e", 0x6B, () => this.BIT_5_e());
+            extendedInstructions[0x6C] = new ExtendedInstruction("BIT 5 h", 0x6C, () => this.BIT_5_h());
+            extendedInstructions[0x6D] = new ExtendedInstruction("BIT 5 l", 0x6D, () => this.BIT_5_l());
+            extendedInstructions[0x6E] = new ExtendedInstruction("BIT 5 $(HL)", 0x6E, () => this.BIT_5_hlp());
+            extendedInstructions[0x6F] = new ExtendedInstruction("BIT 5 a", 0x6F, () => this.BIT_5_a());
+
+            extendedInstructions[0x70] = new ExtendedInstruction("BIT 6 b", 0x70, () => this.BIT_6_b());
+            extendedInstructions[0x71] = new ExtendedInstruction("BIT 6 c", 0x71, () => this.BIT_6_c());
+            extendedInstructions[0x72] = new ExtendedInstruction("BIT 6 d", 0x72, () => this.BIT_6_d());
+            extendedInstructions[0x73] = new ExtendedInstruction("BIT 6 e", 0x73, () => this.BIT_6_e());
+            extendedInstructions[0x74] = new ExtendedInstruction("BIT 6 h", 0x74, () => this.BIT_6_h());
+            extendedInstructions[0x75] = new ExtendedInstruction("BIT 6 l", 0x75, () => this.BIT_6_l());
+            extendedInstructions[0x76] = new ExtendedInstruction("BIT 6 $(HL)", 0x76, () => this.BIT_6_hlp());
+            extendedInstructions[0x77] = new ExtendedInstruction("BIT 6 a", 0x77, () => this.BIT_6_a());
+
+            extendedInstructions[0x78] = new ExtendedInstruction("BIT 7 b", 0x78, () => this.BIT_7_b());
+            extendedInstructions[0x79] = new ExtendedInstruction("BIT 7 c", 0x79, () => this.BIT_7_c());
+            extendedInstructions[0x7A] = new ExtendedInstruction("BIT 7 d", 0x7A, () => this.BIT_7_d());
+            extendedInstructions[0x7B] = new ExtendedInstruction("BIT 7 e", 0x7B, () => this.BIT_7_e());
+            extendedInstructions[0x7C] = new ExtendedInstruction("BIT 7 h", 0x7C, () => this.BIT_7_h());
+            extendedInstructions[0x7D] = new ExtendedInstruction("BIT 7 l", 0x7D, () => this.BIT_7_l());
+            extendedInstructions[0x7E] = new ExtendedInstruction("BIT 7 $(HL)", 0x7E, () => this.BIT_7_hlp());
+            extendedInstructions[0x7F] = new ExtendedInstruction("BIT 7 a", 0x7F, () => this.BIT_7_a());
 
 
             // Check we don't have repeat id's (we made a type in the table above)
