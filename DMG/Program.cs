@@ -18,20 +18,23 @@ namespace DMG
         static Rom rom;
         static Memory memory;
         static Cpu cpu;
+        static Gpu gpu;
 
         static void Main(string[] args)
         {
             bootstrapRom = new BootRom("../../../../DMG.bin");
             rom = new Rom("../../../../tetris.gb");
-            memory = new Memory(bootstrapRom, rom);         
-            cpu = new Cpu(memory);            
+            gpu = new Gpu();
+            memory = new Memory(bootstrapRom, rom, gpu);         
+            cpu = new Cpu(memory);
+            
 
             Console.WriteLine(String.Format("Running {0}", rom.RomName));
 
             Mode mode = Mode.BreakPoint;
 
             ConsoleKeyInfo key;
-
+            
             // User keys
             Console.SetCursorPosition(0, 25);
             Console.Write(String.Format("[S]tep - [R]un - Rese[t] - [D]ump - E[x]it"));
@@ -39,6 +42,7 @@ namespace DMG
             ushort[] breakpoints = new ushort[64];
             breakpoints[0] = 0xFC;
             breakpoints[1] = 0x40;
+            //breakpoints[1] = 0x72;
 
             while (cpu.IsHalted == false)
             {
@@ -54,6 +58,7 @@ namespace DMG
                         case ConsoleKey.S:
                             mode = Mode.BreakPoint;
                             cpu.Step();
+                            gpu.Step(cpu.Ticks);
                             break;
 
                         case ConsoleKey.R:
@@ -73,6 +78,7 @@ namespace DMG
                 if(mode == Mode.Running)
                 {
                     cpu.Step();
+                    gpu.Step(cpu.Ticks);
                 }
 
                 foreach (var breakpoint in breakpoints)
@@ -98,9 +104,9 @@ namespace DMG
         {
             Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };          
 
-            // map  - 16x24 tiles
+            // map  - 16x16 (256) tiles 
             int tileMapX = 16;
-            int tileMapY = 32;
+            int tileMapY = 16;
             var image = new Bitmap(tileMapX * 8, tileMapY * 8);
 
             int tileX = 0;
@@ -197,6 +203,8 @@ namespace DMG
                 }
             }
         }
+
+
 
     }
 }

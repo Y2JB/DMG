@@ -24,6 +24,8 @@ namespace DMG
         public byte L { get; private set; }
         public ushort HL { get { return (ushort)((H << 8) | L); } private set { H = (byte)(value >> 8); L = (byte)(value & 0x00FF); } }
 
+        public byte ScrollX { get { return memory.ReadByte(0xFF43); } }
+        public byte ScrollY { get { return memory.ReadByte(0xFF42); } }
 
         // Progrtam counter (16 bit)
         public ushort PC { get; private set; }
@@ -31,6 +33,28 @@ namespace DMG
         // Stack Pointer (16 bit)
         public ushort SP { get; private set; }
 
+
+        // How many clock cycles for each instyruction. Important for timing between the cpu, gpu and interupts 
+        byte[] instructionTicks = new byte[256] {
+                                                    2, 6, 4, 4, 2, 2, 4, 4, 10, 4, 4, 4, 2, 2, 4, 4, // 0x0_
+	                                                2, 6, 4, 4, 2, 2, 4, 4,  4, 4, 4, 4, 2, 2, 4, 4, // 0x1_
+	                                                0, 6, 4, 4, 2, 2, 4, 2,  0, 4, 4, 4, 2, 2, 4, 2, // 0x2_
+	                                                4, 6, 4, 4, 6, 6, 6, 2,  0, 4, 4, 4, 2, 2, 4, 2, // 0x3_
+	                                                2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x4_
+	                                                2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x5_
+	                                                2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x6_
+	                                                4, 4, 4, 4, 4, 4, 2, 4,  2, 2, 2, 2, 2, 2, 4, 2, // 0x7_
+	                                                2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x8_
+	                                                2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0x9_
+	                                                2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0xa_
+	                                                2, 2, 2, 2, 2, 2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2, // 0xb_
+	                                                0, 6, 0, 6, 0, 8, 4, 8,  0, 2, 0, 0, 0, 6, 4, 8, // 0xc_
+	                                                0, 6, 0, 0, 0, 8, 4, 8,  0, 8, 0, 0, 0, 0, 4, 8, // 0xd_
+	                                                6, 6, 4, 0, 0, 8, 4, 8,  8, 2, 8, 0, 0, 0, 4, 8, // 0xe_
+	                                                6, 6, 4, 2, 0, 8, 4, 8,  6, 4, 8, 2, 0, 0, 4, 8  // 0xf_
+                                                };
+
+        public UInt32 Ticks { get; private set; }
 
         public enum Flags
         {
@@ -95,6 +119,8 @@ namespace DMG
 
             instruction.Handler(operandValue);
 
+
+            Ticks += instructionTicks[opCode];
         }
 
 
@@ -176,7 +202,7 @@ namespace DMG
             Console.SetCursorPosition(0, 5);
             Console.Write("                    ");
             Console.SetCursorPosition(0, 5);
-            Console.Write(String.Format("A: 0x{0:X2}", A));
+            Console.Write(String.Format("A: 0x{0:X2}               ", A));
             if (ZeroFlag) Console.Write(" Z");
             if (CarryFlag) Console.Write(" C");
             if (HalfCarryFlag) Console.Write(" H");
@@ -198,6 +224,11 @@ namespace DMG
             Console.Write(String.Format("SP: 0x{0:X2}", SP));
             Console.SetCursorPosition(0, 13);
             Console.Write(String.Format("PC: 0x{0:X2}", PC));
+
+            Console.SetCursorPosition(0, 15);
+            Console.Write(String.Format("Scroll X: {0}       Scroll Y: {1}        ", ScrollX, ScrollY));
+
+
 
             Console.SetCursorPosition(20, 5);
             Console.Write(String.Format("AF: 0x{0:X4}", AF));
@@ -405,14 +436,18 @@ namespace DMG
             instructions[0xD5] = new Instruction("PUSH de", 0xD5, 0, (v) => this.PUSH_de());
             instructions[0xCB] = new Instruction("Extended Opcode", 0xCB, 1, (v) => this.extended((byte)v));
             instructions[0xCD] = new Instruction("CALL nn", 0xCD, 2, (v) => this.CALL_nn(v));
-            instructions[0xE0] = new Instruction("LD (0xFF00 + n) a", 0xE0, 1, (v) => this.LD_ff_n_a((byte) v));
+            instructions[0xE0] = new Instruction("LDH (0xFF00 + n) a", 0xE0, 1, (v) => this.LDH_ff_n_a((byte) v));
             instructions[0xE1] = new Instruction("POP hl", 0xE1, 0, (v) => this.POP_hl());
-            instructions[0xE2] = new Instruction("LD (0xFF00 + C) a", 0xE2, 0, (v) => this.LD_ff_c_a());
+            instructions[0xE2] = new Instruction("LDH (0xFF00 + C) a", 0xE2, 0, (v) => this.LDH_ff_c_a());
             instructions[0xE5] = new Instruction("PUSH hl", 0xE5, 0, (v) => this.PUSH_hl());
             instructions[0xEA] = new Instruction("LD nn a", 0xEA, 2, (v) => this.LD_nn_a(v));
+            instructions[0xF0] = new Instruction("LDH a (0xFF00 + n)", 0xF0, 1, (v) => this.LDH_a_ff_n((byte)v));
             instructions[0xF1] = new Instruction("POP af", 0xF1, 0, (v) => this.POP_af());
             instructions[0xF3] = new Instruction("DI", 0xF3, 0, (v) => this.DI());
             instructions[0xF5] = new Instruction("PUSH af", 0xF5, 0, (v) => this.PUSH_af());
+            instructions[0xF8] = new Instruction("LDHL hl (sp + n)", 0xF8, 1, (v) => this.LDH_hl_sp_n((sbyte) v));
+            instructions[0xF9] = new Instruction("LDHL sp hl", 0xF9, 0, (v) => this.LD_sp_hl());
+            instructions[0xFA] = new Instruction("LD a (nn)", 0xFA, 2, (v) => this.LD_a_nnp(v));
             instructions[0xFE] = new Instruction("CP n", 0xFE, 1, (v) => this.CP_n((byte) v));
 
 

@@ -21,6 +21,8 @@ namespace DMG
 
 	public class Memory : IMemoryReaderWriter
 	{
+		private IGpu gpu;
+
 		private IMemoryReader GameRom { get; set; }
 		private IMemoryReader BootstrapRom { get; set; }
 		public byte[] Ram { get; set; }
@@ -32,10 +34,12 @@ namespace DMG
 
 
 		// Memory on the Gameboy is mapped. A memory read to a specific address can read the cart, ram, IO, OAM etc depending on the address
-		public Memory(IMemoryReader bootstrap, IMemoryReader rom)
+		public Memory(IMemoryReader bootstrap, IMemoryReader rom, IGpu gpu)
 		{
 			GameRom = rom;
 			BootstrapRom = bootstrap;
+			this.gpu = gpu;
+
 			Ram = new byte[0x2000];
 			VRam = new byte[0x2000];
 			Io = new Byte[0x100];
@@ -70,7 +74,24 @@ namespace DMG
 			{
 				return VRam[address - 0x8000];
 			}
-
+			else if (address == 0xFF40)
+			{
+				throw new NotImplementedException();
+				//return gpu.control;
+			}
+			else if (address == 0xFF42)
+			{
+				return gpu.BgScrollY;
+			}
+			else if (address == 0xFF43)
+			{
+				return gpu.BgScrollX;
+			}
+			else if (address == 0xFF44)
+			{
+				// Read only
+				return gpu.CurrentScanline; 
+			}
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{
 				return Io[address - 0xFF00];
@@ -162,6 +183,14 @@ namespace DMG
 			{
 				VRam[address - 0x8000] = value;
 				//if (address <= 0x97ff) updateTile(address, value);
+			}
+			else if (address == 0xFF42)
+			{
+				gpu.BgScrollY = value;
+			}
+			else if (address == 0xFF43)
+			{
+                gpu.BgScrollX = value;
 			}
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{

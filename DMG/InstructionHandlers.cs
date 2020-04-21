@@ -1157,7 +1157,8 @@ namespace DMG
             HL = nn;
         }
 
-        void LD_ff_n_a(byte n)
+        // 0xE0
+        void LDH_ff_n_a(byte n)
         {
             memory.WriteByte((ushort)((ushort)0xFF00 + (ushort)n), A);
         }
@@ -1169,7 +1170,7 @@ namespace DMG
         }
 
         // 0xE2
-        void LD_ff_c_a()
+        void LDH_ff_c_a()
         {
             memory.WriteByte((ushort)((ushort) 0xFF00 + (ushort) C), A);
         }
@@ -1187,6 +1188,13 @@ namespace DMG
             memory.WriteByte(nn, A);
         }
 
+        // 0xF0
+        void LDH_a_ff_n(byte n)
+        {
+            ushort address = (ushort) (0xFF00 + n);
+            A = memory.ReadByte(address);
+        }
+
         // 0xF1
         void POP_af()
         {
@@ -1200,11 +1208,39 @@ namespace DMG
             throw new NotImplementedException();
         }
 
-
         // 0xF5
         void PUSH_af()
         {
             StackPush(AF);
+        }
+
+        // 0xF8
+        void LDH_hl_sp_n(sbyte n)
+        {
+            int result = SP + n;
+
+            if ((result & 0xFFFF0000) != 0) SetFlag(Flags.Carry);
+            else ClearFlag(Flags.Carry);
+
+            if (((SP & 0x0f) + (n & 0x0f)) > 0x0f) SetFlag(Flags.HalfCarry);
+            else ClearFlag(Flags.HalfCarry);
+
+            ClearFlag(Flags.Zero);
+            ClearFlag(Flags.Negative);
+
+            HL = (ushort)(result & 0xFFFF);
+        }
+
+        // 0xF9
+        void LD_sp_hl()
+        {
+            SP = HL;
+        }
+
+        // 0xFA
+        void LD_a_nnp(ushort nn)
+        {
+            A = memory.ReadByte(nn);
         }
 
         // 0xFE
