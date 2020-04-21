@@ -23,10 +23,10 @@ namespace DMG
 	{
 		private IMemoryReader GameRom { get; set; }
 		private IMemoryReader BootstrapRom { get; set; }
-		private byte[] Ram { get; set; }
-		private byte[] VRam { get; set; }
-		private byte[] Io { get; set; }
-		private byte[] HRam { get; set; }
+		public byte[] Ram { get; set; }
+		public byte[] VRam { get; set; }
+		public byte[] Io { get; set; }
+		public byte[] HRam { get; set; }
 	
 		//private Random rnd = new Random();
 
