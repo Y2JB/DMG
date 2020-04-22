@@ -96,6 +96,24 @@ namespace DMG
             return destination;
         }
 
+        ushort Add16(ushort lhs, ushort rhs)
+        {
+            UInt32 result = (UInt32) (lhs + rhs);
+
+            if ((result & 0xFFFF0000) != 0) SetFlag(Flags.Carry);
+            else ClearFlag(Flags.Carry);
+
+            
+
+            if (((lhs & 0x0F) + (rhs & 0x0F)) > 0x0F) SetFlag(Flags.HalfCarry);
+            else ClearFlag(Flags.HalfCarry);
+
+            // zero flag left alone
+
+            ClearFlag(Flags.Negative);
+
+            return (ushort)(result & 0xffff);
+        }
 
         void Sub(byte value)
         {
@@ -138,6 +156,17 @@ namespace DMG
         {
         }
 
+        // 0x01
+        void LD_bc_nn(ushort nn)
+        {
+            BC = nn;
+        }
+
+        // 0x02
+        void LD_bcp_a()
+        {
+            memory.WriteByte(BC, A);
+        }
 
         // 0x03
         void INC_bc()
@@ -145,40 +174,7 @@ namespace DMG
             BC++;
         }
 
-        // 0x06
-        void LD_b_n(byte n)
-        {
-            B = n;
-        }
-
-        // 0x08
-        void LD_nn_sp(ushort nn)
-        {
-            memory.WriteShort(nn, SP);
-        }
-
-        // 0x38
-        void JR_C_n(sbyte n)
-        {
-            if (CarryFlag)
-            {
-                int pc = (int)(PC) + n;
-                PC = (ushort)pc;
-            }
-        }
-
-        // 0x3B
-        void DEC_sp()
-        {
-            SP--;
-        }
-
-        // 0x3C
-        void INC_a()
-        {
-            A = Inc(A);
-        }
-
+        // 0x04
         void INC_b()
         {
             B = Inc(B);
@@ -188,6 +184,49 @@ namespace DMG
         void DEC_b()
         {
             B = Dec(B);
+        }
+
+        // 0x06
+        void LD_b_n(byte n)
+        {
+            B = n;
+        }
+
+        //0x07
+        void RLCA()
+        {
+            byte carry = (byte) ((A & 0x80) >> 7);
+
+            if (carry != 0) SetFlag(Flags.Carry);
+            else ClearFlag(Flags.Carry);
+
+            A <<= 1;
+            A += carry;
+
+            if (A == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
+            ClearFlag(Flags.HalfCarry);
+            ClearFlag(Flags.Negative);
+        }
+
+        // 0x08
+        void LD_nn_sp(ushort nn)
+        {
+            memory.WriteShort(nn, SP);
+        }        
+
+        
+        // 0x09
+        void ADD_hl_bc()
+        {
+            HL = Add16(HL, BC);
+        }
+
+        // 0x0A
+        void LD_a_bcp()
+        {
+            A = memory.ReadByte(BC);
         }
 
         // 0x0B
@@ -208,10 +247,40 @@ namespace DMG
             C = Dec(C);
         }
 
+        // 0x0E
+        void LD_c_n(byte n)
+        {
+            C = n;
+        }
+
+        // 0x0F
+        void RRCA()
+        {
+            byte carry = (byte) (A & 0x01);
+            if (carry != 0) SetFlag(Flags.Carry);
+            else ClearFlag(Flags.Carry);
+
+            A >>= 1;
+            if (carry != 0) A |= 0x80;
+
+            if (A == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
+            ClearFlag(Flags.HalfCarry);
+            ClearFlag(Flags.Negative);
+        }
+
+        // 0x13       
+        void INC_de()
+        {
+            DE++;
+        }
+
+        // 0x14
         void INC_d()
         {
             D = Inc(D);
-        }
+        }      
 
         // 0x15
         void DEC_d()
@@ -266,6 +335,12 @@ namespace DMG
             }
         }
 
+        //0x29
+        void ADD_hl_hl()
+        {
+            HL = Add16(HL, HL);
+        }
+
         // 0x2A
         void LDI_a_hlp()
         {
@@ -285,20 +360,11 @@ namespace DMG
             L = Inc(L);
         }
 
-        void LD_c_n(byte n)
-        {
-            C = n;
-        }
+
 
         void LD_de_nn(ushort nn)
         {
             DE = nn;
-        }
-
-        // 0x13       
-        void INC_de()
-        {
-            DE++;
         }
 
         void LD_d_n(byte n)
@@ -317,9 +383,11 @@ namespace DMG
             A <<= 1;
             A += (byte) carry;
 
+            if (A == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
             ClearFlag(Flags.HalfCarry);
             ClearFlag(Flags.Negative);
-            ClearFlag(Flags.Zero);
         }
 
         // 0x18
@@ -327,6 +395,13 @@ namespace DMG
         {
             int pc = (int)(PC) + n;
             PC = (ushort)pc;
+        }
+
+
+        // 0x19
+        void ADD_hl_de()
+        {
+            HL = Add16(HL, DE);
         }
 
         // 0x1A
@@ -347,6 +422,24 @@ namespace DMG
             E = n;
         }
 
+        // 0x1F
+        void RRA()
+        {
+            int carry = ((CarryFlag) ? 1 : 0) << 7;
+
+            if ((A & 0x01) != 0) SetFlag(Flags.Carry);
+            else ClearFlag(Flags.Carry);
+
+            A >>= 1;
+            A += (byte) carry;
+
+            if (A == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
+            ClearFlag(Flags.HalfCarry);
+            ClearFlag(Flags.Negative);
+        }
+
         // 0x20
         void JR_NZ_n(sbyte n)
         {
@@ -357,6 +450,13 @@ namespace DMG
             }
         }
 
+        // 0x21
+        void LD_hl_nn(ushort nn)
+        {
+            HL = nn;
+        }
+
+        // 0x26
         void LD_h_n(byte n)
         {
             H = n;
@@ -421,6 +521,35 @@ namespace DMG
             memory.WriteByte(HL, Dec(memory.ReadByte(HL)));
         }
 
+        // 0x38
+        void JR_C_n(sbyte n)
+        {
+            if (CarryFlag)
+            {
+                int pc = (int)(PC) + n;
+                PC = (ushort)pc;
+            }
+        }
+
+        // 0x3B
+        void DEC_sp()
+        {
+            SP--;
+        }
+
+
+        //0x39
+        void ADD_hl_sp()
+        {
+            HL = Add16(HL, SP);
+        }
+
+        // 0x3C
+        void INC_a()
+        {
+            A = Inc(A);
+        }
+
         // 0x3D
         void DEC_a()
         {
@@ -432,8 +561,6 @@ namespace DMG
         {
             A = n;
         }
-
-
 
         //0x40        
         void LD_b_b()
@@ -1115,16 +1242,59 @@ namespace DMG
             BC = StackPop();
         }
 
+        // C3
         void JP_nn(ushort nn)
         {
             PC = nn;
         }
 
+        // 0xC4
+        void CALL_NZ_nn(ushort nn)
+        {
+            if (ZeroFlag)
+            {
+                Ticks += 12;
+            }
+            else
+            {
+                StackPush(PC);
+                PC = nn;
+                Ticks += 24;
+            }
+        }
 
         // 0xC5
         void PUSH_bc()
         {
             StackPush(BC);
+        }
+
+        // 0xC6
+        void ADD_a_n(byte n)
+        {
+            A = Add(A, n);
+        }
+
+        // 0xC9
+        void RET()
+        {
+            PC = StackPop();
+        }
+
+        // 0xCC
+        void CALL_Z_nn(ushort nn)
+        {
+            if (ZeroFlag)
+            {
+                StackPush(PC);
+                PC = nn;
+                Ticks += 24;
+                
+            }
+            else
+            {
+                Ticks += 12;
+            }
         }
 
         // 0xCD
@@ -1134,16 +1304,25 @@ namespace DMG
             PC = nn;
         }
 
-        // 0xC9
-        void RET()
-        {
-            PC = StackPop();
-        }
-
         //0xD1
         void POP_de()
         {
             DE = StackPop();
+        }
+
+        // 0xD4
+        void CALL_NC_nn(ushort nn)
+        {
+            if (CarryFlag)
+            {
+                Ticks += 12;
+            }
+            else
+            {
+                StackPush(PC);
+                PC = nn;
+                Ticks += 24;
+            }
         }
 
         // 0xD5
@@ -1152,9 +1331,25 @@ namespace DMG
             StackPush(DE);
         }
 
-        void LD_hl_nn(ushort nn)
+        // 0xD6
+        void SUB_a_n(byte n)
         {
-            HL = nn;
+            Sub(n);
+        }
+
+        // 0xDC
+        void CALL_C_nn(ushort nn)
+        {
+            if (CarryFlag)
+            {
+                StackPush(PC);
+                PC = nn;
+                Ticks += 24;                
+            }
+            else
+            {
+                Ticks += 12;
+            }
         }
 
         // 0xE0
@@ -1182,10 +1377,30 @@ namespace DMG
             StackPush(HL);
         }
 
+        // 0xE6
+        void AND_n(byte n)
+        {
+            A &= n;
+
+            ClearFlag(Flags.Carry);
+            ClearFlag(Flags.Negative);
+
+            SetFlag(Flags.HalfCarry);
+
+            if (A == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+        }
+
         // 0xEA
         void LD_nn_a(ushort nn)
         {
             memory.WriteByte(nn, A);
+        }
+
+        // 0xEE
+        void XOR_n(byte n)
+        {
+            Xor(n);
         }
 
         // 0xF0
@@ -1204,8 +1419,7 @@ namespace DMG
         // F3
         void DI()
         {
-            // TODO DISABLE INTERUPTS!!!!
-            throw new NotImplementedException();
+            interupts.InteruptsMasterEnable = false;
         }
 
         // 0xF5

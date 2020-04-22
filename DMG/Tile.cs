@@ -13,63 +13,21 @@ namespace DMG
         const int quality = 75;
 
         Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
+
         public byte[,] renderTile { get; private set; }
 
-        public Tile()
+        public ushort VRamAddress { get; private set; }
+
+        public Tile(ushort vramAddress)
         {
             renderTile  = new byte[8, 8];
-            /*
-            var image = new Bitmap(16, 16);
-            for (int y = 0; y < 16; y++)
-            {
-                for (int x = 0; x < 16; x++)
-                {
-                    image.SetPixel(x, y, palette[2]);
-                }
-            }
-
-            image.Save("../../../../gb_out.JPG");
-
-            
-            string inputPath = "../../../../gb.JPG";
-            string outputPath = "../../../../gb_out.JPG";
-
-            using var image = new Bitmap(System.Drawing.Image.FromFile(inputPath));
-            int width, height;
-            if (image.Width > image.Height)
-            {
-                width = size;
-                height = Convert.ToInt32(image.Height * size / (double)image.Width);
-            }
-            else
-            {
-                width = Convert.ToInt32(image.Width * size / (double)image.Height);
-                height = size;
-            }
-
-            var resized = new Bitmap(width, height);
-            using (var graphics = Graphics.FromImage(resized))
-            {
-                graphics.CompositingQuality = CompositingQuality.HighSpeed;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.DrawImage(image, 0, 0, width, height);
-
-                
-                using (var output = File.Open(outputPath, FileMode.Create))
-                {
-                    var qualityParamId = Encoder.Quality;
-                    var encoderParameters = new EncoderParameters(1);
-                    encoderParameters.Param[0] = new EncoderParameter(qualityParamId, quality);
-                    var codec = ImageCodecInfo.GetImageDecoders()
-                        .FirstOrDefault(codec => codec.FormatID == ImageFormat.Jpeg.Guid);
-                    resized.Save(output, codec, encoderParameters);
-                }
-                
-            }
-            */
+            VRamAddress = vramAddress;
         }
 
+        public void Parse(byte[] vram)
+        {
+            Parse(vram, VRamAddress - 0x8000);
+        }
 
         public void Parse(byte[] vramTile, int offset)
         {

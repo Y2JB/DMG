@@ -21,24 +21,25 @@ namespace DMG
 
 	public class Memory : IMemoryReaderWriter
 	{
-		private IGpu gpu;
-
 		private IMemoryReader GameRom { get; set; }
 		private IMemoryReader BootstrapRom { get; set; }
 		public byte[] Ram { get; set; }
 		public byte[] VRam { get; set; }
 		public byte[] Io { get; set; }
 		public byte[] HRam { get; set; }
-	
+
+		Gpu gpu;
+		Interupts interupts;
 		//private Random rnd = new Random();
 
 
 		// Memory on the Gameboy is mapped. A memory read to a specific address can read the cart, ram, IO, OAM etc depending on the address
-		public Memory(IMemoryReader bootstrap, IMemoryReader rom, IGpu gpu)
+		public Memory(DmgSystem dmg)
 		{
-			GameRom = rom;
-			BootstrapRom = bootstrap;
-			this.gpu = gpu;
+			GameRom = dmg.rom;
+			BootstrapRom = dmg.bootstrapRom;
+			gpu = dmg.gpu;
+			interupts = dmg.interupts;
 
 			Ram = new byte[0x2000];
 			VRam = new byte[0x2000];
@@ -62,13 +63,19 @@ namespace DMG
 					return GameRom.ReadByte(address);
 				}
 			}
+
+
 			if (address <= 0x7fff)
+			{
 				return GameRom.ReadByte(address);
-
-
+			}
 			else if (address >= 0xC000 && address <= 0xDFFF)
 			{
 				return Ram[address - 0xC000];
+			}
+			else if (address >= 0xE000 && address <= 0xFDFF)
+			{
+				return Ram[address - 0xE000];
 			}
 			else if (address >= 0x8000 && address <= 0x9FFF)
 			{
@@ -76,30 +83,43 @@ namespace DMG
 			}
 			else if (address == 0xFF40)
 			{
+				return gpu.MemoryRegisters.LCDC.Register;
+			}
+			else if (address == 0xFF41)
+			{
+				// See status memory ragister
 				throw new NotImplementedException();
-				//return gpu.control;
 			}
 			else if (address == 0xFF42)
 			{
-				return gpu.BgScrollY;
+				return gpu.MemoryRegisters.BgScrollY;
 			}
 			else if (address == 0xFF43)
 			{
-				return gpu.BgScrollX;
+				return gpu.MemoryRegisters.BgScrollX;
 			}
 			else if (address == 0xFF44)
 			{
 				// Read only
-				return gpu.CurrentScanline; 
+				return gpu.CurrentScanline;
 			}
-			else if (address >= 0xFF00 && address <= 0xFF7F)
+			else if (address == 0xFF0F)
 			{
-				return Io[address - 0xFF00];
+				return interupts.InteruptFlags;
+			}
+			else if (address == 0xFFFF)
+			{
+				return interupts.InteruptEnable;
 			}
 			else if (address >= 0xFF80 && address <= 0xFFFE)
 			{
 				return HRam[address - 0xFF80];
 			}
+			else if (address >= 0xFF00 && address <= 0xFF7F)
+			{
+				return Io[address - 0xFF00];
+			}
+
 
 			/*
 			else if (address >= 0xA000 && address <= 0xBFFF)
@@ -174,23 +194,46 @@ namespace DMG
 		public void WriteByte(ushort address, byte value)
 		{
 			if (address >= 0xC000 && address <= 0xDFFF)
+			{
 				Ram[address - 0xc000] = value;
-
+			}
 			else if (address >= 0xE000 && address <= 0xFDFF)
+			{
 				Ram[address - 0xe000] = value;
-
+			}
 			else if (address >= 0x8000 && address <= 0x9fff)
 			{
+				// TODO: model that CPU cannot access vram during Pixel Transfer and if it does it gets 0xFF
+
+				// TODO: model that CPU cannot access OAM during OAM Search or Pixel Transfer and if it does it gets 0xFF
+
 				VRam[address - 0x8000] = value;
 				//if (address <= 0x97ff) updateTile(address, value);
 			}
+			else if (address == 0xFF40)
+			{
+				gpu.MemoryRegisters.LCDC.Register = value;
+			}
+			else if (address == 0xFF41)
+			{
+				// See status memory ragister
+				throw new NotImplementedException();
+			}
 			else if (address == 0xFF42)
 			{
-				gpu.BgScrollY = value;
+				gpu.MemoryRegisters.BgScrollY = value;
 			}
 			else if (address == 0xFF43)
 			{
-                gpu.BgScrollX = value;
+				gpu.MemoryRegisters.BgScrollX = value;
+			}
+			else if (address == 0xFF0F)
+			{
+                interupts.InteruptFlags = value;
+			}
+			else if (address == 0xFFFF)
+			{
+				interupts.InteruptEnable = value;
 			}
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{
@@ -199,7 +242,7 @@ namespace DMG
 			else if (address >= 0xFF80 && address <= 0xFFFE)
 			{
 				HRam[address - 0xFF80] = value;
-			}
+			}		
 			else
 			{
 				Console.WriteLine(String.Format("Invalid memory write addr 0x{0:X4} val 0x{1:X2}", address, value));

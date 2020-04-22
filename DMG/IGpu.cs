@@ -1,15 +1,19 @@
 ﻿using System;
+using System.Drawing;
 
 namespace DMG
 {
     public interface IGpu
     {
-        public byte BgScrollX { get; set; }
-        public byte BgScrollY { get; set; }
+        public GfxMemoryRegisters MemoryRegisters { get; }
 
         public byte CurrentScanline { get; }
 
-        public byte[,] FrameBuffer { get; }
+        public Color[] FrameBuffer { get; }
+
+        public TileMap[] TileMaps { get; }
+        public Tile[] Tiles { get; }
+        Tile GetTileByVRamAdrress(ushort address);
     }
 
 

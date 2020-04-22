@@ -17,5 +17,9 @@ namespace DMG
 
     public interface IMemoryReaderWriter : IMemoryReader, IMemoryWriter
     {
+        public byte[] Ram { get; }
+        public byte[] VRam { get; }
+        public byte[] Io { get; }
+        public byte[] HRam { get; }
     }
 }
