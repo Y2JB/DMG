@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Text;
 
 namespace DMG
 {
@@ -31,11 +31,15 @@ namespace DMG
 		Gpu gpu;
 		Interupts interupts;
 		//private Random rnd = new Random();
+		byte bootRomMask = 0;
 
+		DmgSystem dmg;
 
 		// Memory on the Gameboy is mapped. A memory read to a specific address can read the cart, ram, IO, OAM etc depending on the address
 		public Memory(DmgSystem dmg)
 		{
+			this.dmg = dmg;
+
 			GameRom = dmg.rom;
 			BootstrapRom = dmg.bootstrapRom;
 			gpu = dmg.gpu;
@@ -54,7 +58,7 @@ namespace DMG
 				// When the system boots, the bootrom (scrolling Nintendo logo) is executed starting from address 0.
 				// Bootrom is 256 bytes. At the end of the boot sequence, it writ4es to a special register to disable the boot rom page and
 				// this makes the first 256 bytes of the cart rom readable
-				if (true)
+				if (bootRomMask == 0)
 				{
 					return BootstrapRom.ReadByte(address);
 				}
@@ -87,8 +91,7 @@ namespace DMG
 			}
 			else if (address == 0xFF41)
 			{
-				// See status memory ragister
-				throw new NotImplementedException();
+				return gpu.MemoryRegisters.STAT.Register;
 			}
 			else if (address == 0xFF42)
 			{
@@ -193,7 +196,11 @@ namespace DMG
 
 		public void WriteByte(ushort address, byte value)
 		{
-			if (address >= 0xC000 && address <= 0xDFFF)
+			if (address >= 0x2000 && address <= 0x3FFF)
+			{
+				// TODO: Writing to this address space selects the lower 5 bits of the ROM Bank Number(in range 01 - 1Fh)
+			}
+			else if (address >= 0xC000 && address <= 0xDFFF)
 			{
 				Ram[address - 0xc000] = value;
 			}
@@ -210,14 +217,26 @@ namespace DMG
 				VRam[address - 0x8000] = value;
 				//if (address <= 0x97ff) updateTile(address, value);
 			}
+			else if (address >= 0xFE00 && address <= 0xFEFF)
+			{
+				// OAM write
+			}
+            // Serial Port output
+			else if (address == 0xFF01)
+			{
+				dmg.Tty.Append(Encoding.ASCII.GetString(new[] { value }));
+			}
+			// Serial Port clock
+			else if (address == 0xFF02)
+			{
+			}
 			else if (address == 0xFF40)
 			{
 				gpu.MemoryRegisters.LCDC.Register = value;
 			}
 			else if (address == 0xFF41)
 			{
-				// See status memory ragister
-				throw new NotImplementedException();
+				gpu.MemoryRegisters.STAT.Register = value;
 			}
 			else if (address == 0xFF42)
 			{
@@ -227,9 +246,13 @@ namespace DMG
 			{
 				gpu.MemoryRegisters.BgScrollX = value;
 			}
+			else if (address == 0xFF50)
+			{
+				bootRomMask = value;
+			}
 			else if (address == 0xFF0F)
 			{
-                interupts.InteruptFlags = value;
+				interupts.InteruptFlags = value;
 			}
 			else if (address == 0xFFFF)
 			{
@@ -242,11 +265,11 @@ namespace DMG
 			else if (address >= 0xFF80 && address <= 0xFFFE)
 			{
 				HRam[address - 0xFF80] = value;
-			}		
+			}
 			else
 			{
 				Console.WriteLine(String.Format("Invalid memory write addr 0x{0:X4} val 0x{1:X2}", address, value));
-				throw new ArgumentException("Invalid memory write");
+				throw new ArgumentException(String.Format("Invalid memory write addr 0x{0:X4} val 0x{1:X2}", address, value));
 			}
 
 

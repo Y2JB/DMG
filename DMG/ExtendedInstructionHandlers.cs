@@ -6,8 +6,8 @@ namespace DMG
     {
         void TestBit(byte bit, byte value)
         {
-            if ((value & bit) != 0) ClearFlag(Flags.Zero);
-            else SetFlag(Flags.Zero);
+            if ((value & bit) == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);           
 
             ClearFlag(Flags.Negative);
             SetFlag(Flags.HalfCarry);
@@ -565,6 +565,7 @@ namespace DMG
             TestBit(1 << 0, B);
         }
 
+        // 0x41
         void BIT_0_c()
         {
             TestBit(1 << 0, C);
@@ -600,6 +601,7 @@ namespace DMG
             TestBit(1 << 0, A);
         }
 
+        // 0x48
         void BIT_1_b()
         {
             TestBit(1 << 1, B);

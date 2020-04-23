@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Text;
 
 namespace DMG
 {
@@ -23,8 +25,11 @@ namespace DMG
         public Gpu gpu { get; private set; }
         public Interupts interupts { get; private set; }
 
+        public StringBuilder Tty { get; private set; }
+
         public DmgSystem()
         {
+            Tty = new StringBuilder(1024 * 256);
         }
 
 
@@ -33,10 +38,11 @@ namespace DMG
             bootstrapRom = new BootRom("../../../../DMG.bin");
             //rom = new Rom("../../../../tetris.gb");
             //rom = new Rom("../../../../cpu_instrs.gb");
-            rom = new Rom("../../../../10-bit ops.gb");
-            
+            //rom = new Rom("../../../../10-bit ops.gb");
+            rom = new Rom("../../../../06-ld r,r.gb");
 
-            interupts = new Interupts();
+
+              interupts = new Interupts();
             gpu = new Gpu();
             memory = new Memory(this);
             cpu = new Cpu(memory, interupts);
@@ -58,64 +64,119 @@ namespace DMG
             Console.SetCursorPosition(0, 25);
             Console.Write(String.Format("[S]tep - [R]un - Rese[t] - [D]ump - E[x]it"));
 
-            ushort[] breakpoints = new ushort[64];
-            breakpoints[0] = 0xFC;
-            breakpoints[1] = 0x40;
+            List<ushort> breakpoints = new List<ushort>()
+            {
+                0xFC
+                //0xDEF8
+            };
+            //breakpoints[0] = 0xFC;
+            //breakpoints[1] = 0xDEF9;
+            //breakpoints[1] = 0x55;
+            //breakpoints[2] = 0x8F;
+            //breakpoints[3] = 0xF9;
+            //breakpoints[1] = 0x28;
+            //breakpoints[2] = 0x99;
+            //breakpoints[3] = 0x68;
+
             //breakpoints[1] = 0x72;
 
-            while (cpu.IsHalted == false)
+            try
             {
-                if (mode == Mode.BreakPoint) cpu.OutputState();
-
-                // Step the system
-                if (mode == Mode.BreakPoint ||
-                    (mode == Mode.Running && Console.KeyAvailable))
+                while (cpu.IsHalted == false)
                 {
-                    key = Console.ReadKey(true);
-                    switch (key.Key)
+                    if (mode == Mode.BreakPoint) cpu.OutputState();
+
+                    // Step the system
+                    if (mode == Mode.BreakPoint ||
+                        (mode == Mode.Running && Console.KeyAvailable))
                     {
-                        case ConsoleKey.S:
-                            mode = Mode.BreakPoint;
-                            cpu.Step();
-                            gpu.Step(cpu.Ticks);
-                            break;
+                        key = Console.ReadKey(true);
+                        switch (key.Key)
+                        {
+                            case ConsoleKey.S:
+                                mode = Mode.BreakPoint;
+                                cpu.Step();
+                                gpu.Step(cpu.Ticks);
+                                break;
 
-                        case ConsoleKey.R:
-                            mode = Mode.Running;
-                            break;
+                            case ConsoleKey.R:
+                                mode = Mode.Running;
+                                break;
 
 
-                        case ConsoleKey.D:
-                            Dump();
-                            break;
+                            case ConsoleKey.D:
+                                Dump();
+                                break;
 
-                        case ConsoleKey.X:
-                            return;
+                            case ConsoleKey.X:
+                                return;
+                        }
                     }
-                }
 
-                if (mode == Mode.Running)
-                {
-                    cpu.Step();
-                    gpu.Step(cpu.Ticks);
-                }
-
-                foreach (var breakpoint in breakpoints)
-                {
-                    if (cpu.PC == breakpoint)
+                    if (mode == Mode.Running)
                     {
-                        mode = Mode.BreakPoint;
-                        break;
+                        cpu.Step();
+                        gpu.Step(cpu.Ticks);
+                    }
+
+                    foreach (var breakpoint in breakpoints)
+                    {
+                        if (cpu.PC == breakpoint)
+                        {
+                            mode = Mode.BreakPoint;
+                            break;
+                        }
                     }
                 }
             }
+            catch(Exception ex)
+            {
+                DumpSystemState(ex);
+
+                cpu.OutputState();
+
+                DumpTty();
+
+                DumpTileSet();
+            }            
         }
 
 
         void Dump()
         {
+            DumpTty();
+
             //TileDumpTxt(memory.VRam, 0x190, 16);
             DumpTileSet();
+        }
+
+        void DumpTty()
+        {
+            using (FileStream fs = File.Open("../../../../dump/tty.txt", FileMode.Create))
+            {
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    sw.Write(Tty.ToString());                 
+                }
+            }
+        }
+
+        void DumpSystemState(Exception ex)
+        {
+            using (FileStream fs = File.Open("../../../../dump/crashdump.txt", FileMode.Create))
+            {
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    sw.Write(cpu.ToString());
+
+                    sw.Write("\n\n");
+
+                    if (ex != null)
+                    {
+                        sw.Write(ex.ToString());
+                    }
+                }
+            }
         }
 
 

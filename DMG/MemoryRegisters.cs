@@ -7,7 +7,7 @@ namespace DMG
         public LcdControlRegister LCDC { get; private set; }
 
         // 0xFF41
-        //LcdStatusRegister
+        public LcdStatusRegister STAT { get; set; }
 
         // 0xFF42
         public byte BgScrollY { get; set; }
@@ -18,6 +18,7 @@ namespace DMG
         public GfxMemoryRegisters()
         {
             LCDC = new LcdControlRegister();
+            STAT = new LcdStatusRegister();
         }
 
         public void Reset()

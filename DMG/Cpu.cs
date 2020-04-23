@@ -192,6 +192,10 @@ namespace DMG
             F &= (byte)~((byte)flag);
         }
 
+        void ClearAllFlags()
+        {
+            F = 0;
+        }
 
         void extended(byte opCode)
         {
@@ -206,11 +210,7 @@ namespace DMG
             Console.SetCursorPosition(0, 5);
             Console.Write("                    ");
             Console.SetCursorPosition(0, 5);
-            Console.Write(String.Format("A: 0x{0:X2}               ", A));
-            if (ZeroFlag) Console.Write(" Z");
-            if (CarryFlag) Console.Write(" C");
-            if (HalfCarryFlag) Console.Write(" H");
-            if (NegativeFlag) Console.Write(" N");
+            Console.Write(String.Format("A: 0x{0:X2} ({1}{2}{3}{4})", A, CarryFlag ? "C" : "-", HalfCarryFlag ? "H" : "-", NegativeFlag ? "N" : "-", ZeroFlag ? "Z" : "-"));
 
             Console.SetCursorPosition(0, 6);
             Console.Write(String.Format("B: 0x{0:X2}", B));
@@ -257,11 +257,23 @@ namespace DMG
         }
 
 
+        public override String ToString()
+        {
+            return String.Format("AF 0x{0:X4}\n" +
+                                 "BC 0x{1:X4}\n" +
+                                 "DE 0x{1:X4}\n" +
+                                 "HL 0x{1:X4}\n" +
+                                 "PC 0x{1:X4}\n" +
+                                 "SP 0x{1:X4}\n"
+                                 , AF, BC, DE, HL, PC, SP);
+        }
+
+
         void RegisterInstructionHandlers()
         {
             instructions[0x00] = new Instruction("NOP", 0x00, 0, (v) => this.NOP());
             instructions[0x01] = new Instruction("LD bc nn", 0x01, 2, (v) => this.LD_bc_nn(v));
-            instructions[0x02] = new Instruction("LD bc a", 0x02, 0, (v) => this.LD_bcp_a());
+            instructions[0x02] = new Instruction("LD (bc) a", 0x02, 0, (v) => this.LD_bcp_a());
             instructions[0x03] = new Instruction("INC bc", 0x03, 0, (v) => this.INC_bc());
             instructions[0x04] = new Instruction("INC b", 0x04, 0, (v) => this.INC_b());
             instructions[0x05] = new Instruction("DEC b", 0x05, 0, (v) => this.DEC_b());
@@ -275,7 +287,9 @@ namespace DMG
             instructions[0x0D] = new Instruction("DEC c", 0x0D, 0, (v) => this.DEC_c());
             instructions[0x0E] = new Instruction("LD c n", 0x0E, 1, (v) => this.LD_c_n((byte)v));
             instructions[0x0F] = new Instruction("RRCA", 0x0F, 0, (v) => this.RRCA());
+            instructions[0x10] = new Instruction("STOP", 0x10, 0, (v) => this.STOP());
             instructions[0x11] = new Instruction("LD DE nn", 0x11, 2, (v) => this.LD_de_nn(v));
+            instructions[0x12] = new Instruction("LD (de) a", 0x12, 0, (v) => this.LD_dep_a());
             instructions[0x13] = new Instruction("INC de", 0x13, 0, (v) => this.INC_de());
             instructions[0x14] = new Instruction("INC d", 0x14, 0, (v) => this.INC_d());
             instructions[0x15] = new Instruction("DEC d", 0x15, 0, (v) => this.DEC_d());
@@ -296,6 +310,7 @@ namespace DMG
             instructions[0x24] = new Instruction("INC h", 0x24, 0, (v) => this.INC_h());
             instructions[0x25] = new Instruction("DEC h", 0x25, 0, (v) => this.DEC_h());
             instructions[0x26] = new Instruction("LD h n", 0x26, 1, (v) => this.LD_h_n((byte)v));
+            instructions[0x27] = new Instruction("DAA", 0x27, 0, (v) => this.DAA());
             instructions[0x28] = new Instruction("JR Z n", 0x28, 1, (v) => this.JR_Z_n((sbyte)v));
             instructions[0x29] = new Instruction("ADD hl hl", 0x29, 0, (v) => this.ADD_hl_hl());
             instructions[0x2A] = new Instruction("LDI a (hl)", 0x2A, 0, (v) => this.LDI_a_hlp());
@@ -303,18 +318,24 @@ namespace DMG
             instructions[0x2C] = new Instruction("INC l", 0x2C, 0, (v) => this.INC_l());
             instructions[0x2D] = new Instruction("DEC l", 0x2D, 0, (v) => this.DEC_l());
             instructions[0x2E] = new Instruction("LD l n", 0x2E, 1, (v) => this.LD_l_n((byte)v));
+            instructions[0x2F] = new Instruction("CPL", 0x2F, 0, (v) => this.CPL());
+
             instructions[0x30] = new Instruction("JR NC n", 0x30, 1, (v) => this.JR_NC_n((sbyte)v));
             instructions[0x31] = new Instruction("LD sp nn", 0x31, 2, (v) => this.LD_sp_nn(v));
-            instructions[0x32] = new Instruction("LDD hl a", 0x32, 0, (v) => this.LDD_hl_a());
+            instructions[0x32] = new Instruction("LDD (hl) a", 0x32, 0, (v) => this.LDD_hlp_a());
             instructions[0x33] = new Instruction("INC sp", 0x33, 0, (v) => this.INC_sp());
             instructions[0x34] = new Instruction("INC (hl)", 0x34, 0, (v) => this.INC_hlp());
             instructions[0x35] = new Instruction("DEC (hl)", 0x35, 0, (v) => this.DEC_hlp());
+            instructions[0x36] = new Instruction("LD (hl) n", 0x36, 1, (v) => this.LD_hlp_n((byte) v));
+            instructions[0x37] = new Instruction("SCF", 0x37, 0, (v) => this.SCF());
             instructions[0x38] = new Instruction("JR C n", 0x38, 1, (v) => this.JR_C_n((sbyte)v));
             instructions[0x39] = new Instruction("ADD hl sp", 0x39, 0, (v) => this.ADD_hl_sp());
+            instructions[0x3A] = new Instruction("LDD a (hl)", 0x3A, 0, (v) => this.LDD_a_hlp());
             instructions[0x3B] = new Instruction("DEC sp", 0x3B, 0, (v) => this.DEC_sp());
             instructions[0x3C] = new Instruction("INC a", 0x3C, 0, (v) => this.INC_a());
             instructions[0x3D] = new Instruction("DEC a", 0x3D, 0, (v) => this.DEC_a());
             instructions[0x3E] = new Instruction("LD a n", 0x3E, 1, (v) => this.LD_a_n((byte) v));
+            instructions[0x3F] = new Instruction("CCF", 0x3F, 0, (v) => this.CCF());
 
             instructions[0x40] = new Instruction("LD b b", 0x40, 0, (v) => this.LD_b_b());
             instructions[0x41] = new Instruction("LD b c", 0x41, 0, (v) => this.LD_b_c());
@@ -397,6 +418,15 @@ namespace DMG
             instructions[0x86] = new Instruction("ADD a (hl)", 0x86, 0, (v) => this.ADD_a_hlp());
             instructions[0x87] = new Instruction("ADD a a", 0x87, 0, (v) => this.ADD_a_a());
 
+            instructions[0x88] = new Instruction("ADC a b", 0x88, 0, (v) => this.ADC_a_b());
+            instructions[0x89] = new Instruction("ADC a c", 0x89, 0, (v) => this.ADC_a_c());
+            instructions[0x8A] = new Instruction("ADC a d", 0x8A, 0, (v) => this.ADC_a_d());
+            instructions[0x8B] = new Instruction("ADC a e", 0x8B, 0, (v) => this.ADC_a_e());
+            instructions[0x8C] = new Instruction("ADC a h", 0x8C, 0, (v) => this.ADC_a_h());
+            instructions[0x8D] = new Instruction("ADC a l", 0x8D, 0, (v) => this.ADC_a_l());
+            instructions[0x8E] = new Instruction("ADC a (hl)", 0x8E, 0, (v) => this.ADC_a_hlp());
+            instructions[0x8F] = new Instruction("ADC a a", 0x8F, 0, (v) => this.ADC_a_a());
+
             instructions[0x90] = new Instruction("SUB a b", 0x90, 0, (v) => this.SUB_a_b());
             instructions[0x91] = new Instruction("SUB a c", 0x91, 0, (v) => this.SUB_a_c());
             instructions[0x92] = new Instruction("SUB a d", 0x92, 0, (v) => this.SUB_a_d());
@@ -405,6 +435,15 @@ namespace DMG
             instructions[0x95] = new Instruction("SUB a l", 0x95, 0, (v) => this.SUB_a_l());
             instructions[0x96] = new Instruction("SUB a (hl)", 0x96, 0, (v) => this.SUB_a_hlp());
             instructions[0x97] = new Instruction("SUB a a", 0x97, 0, (v) => this.SUB_a_a());
+
+            instructions[0x98] = new Instruction("SBC a b", 0x98, 0, (v) => this.SBC_a_b());
+            instructions[0x99] = new Instruction("SBC a c", 0x99, 0, (v) => this.SBC_a_c());
+            instructions[0x9A] = new Instruction("SBC a d", 0x9A, 0, (v) => this.SBC_a_d());
+            instructions[0x9B] = new Instruction("SBC a e", 0x9B, 0, (v) => this.SBC_a_e());
+            instructions[0x9C] = new Instruction("SBC a h", 0x9C, 0, (v) => this.SBC_a_h());
+            instructions[0x9D] = new Instruction("SBC a l", 0x9D, 0, (v) => this.SBC_a_l());
+            instructions[0x9E] = new Instruction("SBC a (hl)", 0x9E, 0, (v) => this.SBC_a_hlp());
+            instructions[0x9F] = new Instruction("SBC a a", 0x9F, 0, (v) => this.SBC_a_a());
 
             instructions[0xA0] = new Instruction("AND b", 0xA0, 0, (v) => this.AND_b());
             instructions[0xA1] = new Instruction("AND c", 0xA1, 0, (v) => this.AND_c());
@@ -442,35 +481,60 @@ namespace DMG
             instructions[0xBE] = new Instruction("CP (hl)", 0xBE, 0, (v) => this.CP_hlp());
             instructions[0xBF] = new Instruction("CP a", 0xBF, 0, (v) => this.CP_a());
 
+            
+            instructions[0xC0] = new Instruction("RET NZ", 0xC0, 0, (v) => this.RET_NZ());
             instructions[0xC1] = new Instruction("POP bc", 0xC1, 0, (v) => this.POP_bc());
+            instructions[0xC2] = new Instruction("JP NZ nn", 0xC2, 2, (v) => this.JP_NZ_nn(v));
             instructions[0xC3] = new Instruction("JP nn", 0xC3, 2, (v) => this.JP_nn(v));
             instructions[0xC4] = new Instruction("CALL NZ nn", 0xC4, 2, (v) => this.CALL_NZ_nn(v));
             instructions[0xC5] = new Instruction("PUSH bc", 0xC5, 0, (v) => this.PUSH_bc());
             instructions[0xC6] = new Instruction("ADD a n", 0xC6, 1, (v) => this.ADD_a_n((byte) v));
+            instructions[0xC7] = new Instruction("RST 0", 0xC7, 0, (v) => this.RST_0());
+            instructions[0xC8] = new Instruction("RET Z", 0xC8, 0, (v) => this.RET_Z());
             instructions[0xC9] = new Instruction("RET", 0xC9, 0, (v) => this.RET());
             instructions[0xCB] = new Instruction("Extended Opcode", 0xCB, 1, (v) => this.extended((byte)v));
+            instructions[0xCA] = new Instruction("JP Z nn", 0xCA, 2, (v) => this.JP_Z_nn(v));
             instructions[0xCC] = new Instruction("CALL Z nn", 0xCC, 2, (v) => this.CALL_Z_nn(v));
             instructions[0xCD] = new Instruction("CALL nn", 0xCD, 2, (v) => this.CALL_nn(v));
+            instructions[0xCE] = new Instruction("ADC a n", 0xCE, 1, (v) => this.ADC_a_n((byte) v));
+            instructions[0xCF] = new Instruction("RST 8", 0xCF, 0, (v) => this.RST_8());
+
+            instructions[0xD0] = new Instruction("RET NC", 0xD0, 0, (v) => this.RET_NC());
             instructions[0xD1] = new Instruction("POP de", 0xD1, 0, (v) => this.POP_de());
+            instructions[0xD2] = new Instruction("JP NC nn", 0xD2, 2, (v) => this.JP_NC_nn(v));
             instructions[0xD4] = new Instruction("CALL NC nn", 0xD4, 2, (v) => this.CALL_NZ_nn(v));
             instructions[0xD5] = new Instruction("PUSH de", 0xD5, 0, (v) => this.PUSH_de());
             instructions[0xD6] = new Instruction("SUB a n", 0xD6, 1, (v) => this.SUB_a_n((byte)v));
+            instructions[0xD7] = new Instruction("RST 10", 0xD7, 0, (v) => this.RST_10());
+            instructions[0xD8] = new Instruction("RET C", 0xD8, 0, (v) => this.RET_C());
+            instructions[0xD9] = new Instruction("RET I", 0xD9, 0, (v) => this.RET_I());
+            instructions[0xDA] = new Instruction("JP C nn", 0xDA, 2, (v) => this.JP_C_nn(v));
             instructions[0xDC] = new Instruction("CALL C nn", 0xDC, 2, (v) => this.CALL_C_nn(v));
+            instructions[0xDE] = new Instruction("SBC a n", 0xDE, 1, (v) => this.SBC_a_n((byte)v));
+            instructions[0xDF] = new Instruction("RST 18", 0xDF, 0, (v) => this.RST_18());
+
             instructions[0xE0] = new Instruction("LDH (0xFF00 + n) a", 0xE0, 1, (v) => this.LDH_ff_n_a((byte) v));
             instructions[0xE1] = new Instruction("POP hl", 0xE1, 0, (v) => this.POP_hl());
             instructions[0xE2] = new Instruction("LDH (0xFF00 + C) a", 0xE2, 0, (v) => this.LDH_ff_c_a());
             instructions[0xE5] = new Instruction("PUSH hl", 0xE5, 0, (v) => this.PUSH_hl());
             instructions[0xE6] = new Instruction("AND n", 0xE6, 1, (v) => this.AND_n((byte)v));
-            instructions[0xEA] = new Instruction("LD nn a", 0xEA, 2, (v) => this.LD_nn_a(v));
+            instructions[0xE7] = new Instruction("RST 20", 0xE7, 0, (v) => this.RST_20());
+            instructions[0xE9] = new Instruction("JP hl", 0xE9, 0, (v) => this.JP_hl());
+            instructions[0xEA] = new Instruction("LD nn a", 0xEA, 2, (v) => this.LD_nnp_a(v));
             instructions[0xEE] = new Instruction("XOR n", 0xEE, 1, (v) => this.XOR_n((byte) v));
+            instructions[0xEF] = new Instruction("RST 28", 0xEF, 0, (v) => this.RST_28());
+
             instructions[0xF0] = new Instruction("LDH a (0xFF00 + n)", 0xF0, 1, (v) => this.LDH_a_ff_n((byte)v));
             instructions[0xF1] = new Instruction("POP af", 0xF1, 0, (v) => this.POP_af());
             instructions[0xF3] = new Instruction("DI", 0xF3, 0, (v) => this.DI());
             instructions[0xF5] = new Instruction("PUSH af", 0xF5, 0, (v) => this.PUSH_af());
+            instructions[0xF7] = new Instruction("RST 30", 0xF7, 0, (v) => this.RST_30());
             instructions[0xF8] = new Instruction("LDHL hl (sp + n)", 0xF8, 1, (v) => this.LDH_hl_sp_n((sbyte) v));
             instructions[0xF9] = new Instruction("LDHL sp hl", 0xF9, 0, (v) => this.LD_sp_hl());
             instructions[0xFA] = new Instruction("LD a (nn)", 0xFA, 2, (v) => this.LD_a_nnp(v));
+            instructions[0xFB] = new Instruction("EI", 0xFB, 0, (v) => this.EI());
             instructions[0xFE] = new Instruction("CP n", 0xFE, 1, (v) => this.CP_n((byte) v));
+            instructions[0xFF] = new Instruction("RST 38", 0xFF, 0, (v) => this.RST_38());
 
 
             // Check we don't have repeat id's (we made a type in the table above)
