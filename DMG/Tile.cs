@@ -51,9 +51,6 @@ namespace DMG
 
                 y++;
             }
-
-
-            Console.WriteLine();
         }
 
 

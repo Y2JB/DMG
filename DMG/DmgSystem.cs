@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
 
 namespace DMG
 {
-    
+
 
     public class DmgSystem
     {
@@ -27,6 +28,9 @@ namespace DMG
 
         public StringBuilder Tty { get; private set; }
 
+        public Color[] FrameBuffer { get { return gpu.FrameBuffer; } }
+        public Action OnFrame{ get; set;  }
+
         public DmgSystem()
         {
             Tty = new StringBuilder(1024 * 256);
@@ -39,11 +43,10 @@ namespace DMG
             //rom = new Rom("../../../../tetris.gb");
             //rom = new Rom("../../../../cpu_instrs.gb");
             //rom = new Rom("../../../../10-bit ops.gb");
-            rom = new Rom("../../../../06-ld r,r.gb");
-
-
-              interupts = new Interupts();
-            gpu = new Gpu();
+            rom = new Rom("../../../../roms/06-ld r,r.gb");
+         
+            interupts = new Interupts();
+            gpu = new Gpu(this);
             memory = new Memory(this);
             cpu = new Cpu(memory, interupts);
 
@@ -56,8 +59,10 @@ namespace DMG
 
             Console.WriteLine(String.Format("Running {0}", rom.RomName));
 
-            Mode mode = Mode.BreakPoint;
+            //Mode mode = Mode.Running;
 
+
+            /*
             ConsoleKeyInfo key;
 
             // User keys
@@ -80,16 +85,28 @@ namespace DMG
 
             //breakpoints[1] = 0x72;
 
+            var timer = new Stopwatch();
+            timer.Start();
+            long elapsed = timer.ElapsedMilliseconds;
+            bool keyAvailable = false;
             try
             {
                 while (cpu.IsHalted == false)
                 {
+                    // Only poll the key every ms or the program slows to a crawl
+                    if(timer.ElapsedMilliseconds - elapsed >= 1)
+                    {
+                        elapsed = timer.ElapsedMilliseconds;
+                        keyAvailable = Console.KeyAvailable;
+                    }
+
                     if (mode == Mode.BreakPoint) cpu.OutputState();
 
                     // Step the system
                     if (mode == Mode.BreakPoint ||
-                        (mode == Mode.Running && Console.KeyAvailable))
+                        (mode == Mode.Running && keyAvailable))
                     {
+                        keyAvailable = false;
                         key = Console.ReadKey(true);
                         switch (key.Key)
                         {
@@ -138,12 +155,22 @@ namespace DMG
                 DumpTty();
 
                 DumpTileSet();
-            }            
+            }   
+            
+            */
+        }
+
+        public void Step()
+        {
+            cpu.Step();
+            gpu.Step(cpu.Ticks);
         }
 
 
         void Dump()
         {
+            gpu.DumpFrameBufferToPng();
+
             DumpTty();
 
             //TileDumpTxt(memory.VRam, 0x190, 16);

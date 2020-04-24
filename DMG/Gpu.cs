@@ -38,9 +38,11 @@ namespace DMG
         UInt32 lastCpuTickCount;
         UInt32 elapsedTicks;
 
+        DmgSystem dmg;
 
-        public Gpu()
+        public Gpu(DmgSystem dmg)
         {
+            this.dmg = dmg;
         }
 
 
@@ -156,6 +158,10 @@ namespace DMG
                             CurrentScanline = 0;
                             mode = Mode.OamSearch;
 
+                            if (dmg.OnFrame != null)
+                            {
+                                dmg.OnFrame();
+                            }
                             DumpFrameBufferToPng();
                         }
 
@@ -187,6 +193,7 @@ namespace DMG
                 t.Parse(Memory.VRam, offset);
                 offset += 16;
             }
+
 
             TileMap tileMap = TileMaps[MemoryRegisters.LCDC.BgTileMapSelect];
 
@@ -234,7 +241,7 @@ namespace DMG
             throw new ArgumentException("Bad tile address");
         }
 
-        void DumpFrameBufferToPng()
+        public void DumpFrameBufferToPng()
         {           
             var image = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution);
 
