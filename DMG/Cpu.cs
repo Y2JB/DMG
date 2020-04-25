@@ -8,30 +8,30 @@ namespace DMG
     public partial class Cpu
     {
         // 8 bit registers can be addressed together as 16 bit
-        public byte A { get; private set; }
-        public byte F { get; private set; }
-        public ushort AF { get { return (ushort)((A << 8) | F); } private set { A = (byte)(value >> 8); B = (byte)(value & 0x00FF); } }
+        public byte A { get; set; }
+        public byte F { get; set; }
+        public ushort AF { get { return (ushort)((A << 8) | F); } set { A = (byte)(value >> 8); F = (byte)(value & 0x00FF); } }
 
-        public byte B { get; private set; }
-        public byte C { get; private set; }
-        public ushort BC { get { return (ushort)((B << 8) | C); } private set { B = (byte)(value >> 8); C = (byte)(value & 0x00FF); } }
+        public byte B { get; set; }
+        public byte C { get; set; }
+        public ushort BC { get { return (ushort)((B << 8) | C); } set { B = (byte)(value >> 8); C = (byte)(value & 0x00FF); } }
 
-        public byte D { get; private set; }
-        public byte E { get; private set; }
-        public ushort DE { get { return (ushort)((D << 8) | E); } private set { D = (byte)(value >> 8); E = (byte)(value & 0x00FF); } }
+        public byte D { get; set; }
+        public byte E { get; set; }
+        public ushort DE { get { return (ushort)((D << 8) | E); } set { D = (byte)(value >> 8); E = (byte)(value & 0x00FF); } }
 
-        public byte H { get; private set; }
-        public byte L { get; private set; }
-        public ushort HL { get { return (ushort)((H << 8) | L); } private set { H = (byte)(value >> 8); L = (byte)(value & 0x00FF); } }
+        public byte H { get; set; }
+        public byte L { get; set; }
+        public ushort HL { get { return (ushort)((H << 8) | L); } set { H = (byte)(value >> 8); L = (byte)(value & 0x00FF); } }
 
         public byte ScrollX { get { return memory.ReadByte(0xFF43); } }
         public byte ScrollY { get { return memory.ReadByte(0xFF42); } }
 
         // Progrtam counter (16 bit)
-        public ushort PC { get; private set; }
+        public ushort PC { get; set; }
 
         // Stack Pointer (16 bit)
-        public ushort SP { get; private set; }
+        public ushort SP { get; set; }
 
         public Instruction NextInstruction { get; private set; }
         public Instruction PreviousInstruction { get; private set; }
@@ -281,8 +281,7 @@ namespace DMG
         public override String ToString()
         {
             return String.Format("AF - 0x{0:X4}    ({1}{2}{3}{4}){5}BC - 0x{6:X4}{7}DE - 0x{8:X4}{9}HL - 0x{10:X4}{11}{12}SP - 0x{13:X4}{14}PC - 0x{15:X4}{16}",
-                AF
-                , CarryFlag ? "C" : "-", HalfCarryFlag ? "H" : "-", NegativeFlag ? "N" : "-", ZeroFlag ? "Z" : "-", Environment.NewLine, BC, Environment.NewLine, DE, Environment.NewLine, HL, Environment.NewLine, Environment.NewLine, SP, Environment.NewLine, PC, Environment.NewLine);
+                AF, CarryFlag ? "C" : "-", HalfCarryFlag ? "H" : "-", NegativeFlag ? "N" : "-", ZeroFlag ? "Z" : "-", Environment.NewLine, BC, Environment.NewLine, DE, Environment.NewLine, HL, Environment.NewLine, Environment.NewLine, SP, Environment.NewLine, PC, Environment.NewLine);
         }
 
 

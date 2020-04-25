@@ -46,8 +46,7 @@ namespace WinFormsDmg
             loadregisters,
             mem,                            // mem 0 = read(0)   mem 0 10 = wrtie(0, 10)
             help,
-            AF, BC, CD, HL, SP, PC,
-            A, B, C, D, E, F, H, L,
+            set,                            // set (register) n/nn
 
             exit
 
@@ -155,6 +154,9 @@ namespace WinFormsDmg
                 case ConsoleCommand.mem:
                     return MemCommand(parameters);
 
+                case ConsoleCommand.set:
+                    return SetCommand(parameters);
+
                 case ConsoleCommand.brk:
                     DmgMode = Mode.BreakPoint;
                     return true;
@@ -180,7 +182,7 @@ namespace WinFormsDmg
                 parsedParams = ParseUShortParameter(parameters[0], out p1);
                 if (parsedParams && parameters.Length == 2)
                 {
-                    ParseUShortParameter(parameters[1], out p2);
+                    parsedParams = ParseUShortParameter(parameters[1], out p2);
                 }
                    
 
@@ -209,6 +211,106 @@ namespace WinFormsDmg
             // Fail
             ConsoleAddString(String.Format("mem usage: 'mem n' for read, 'mem n n' for write. n can be of the form 255 or 0xFF"));
             return false;
+        }
+
+
+        bool SetCommand(string[] parameters)
+        {
+            if (parameters.Length != 2)
+            {
+                // Fail
+                ConsoleAddString(String.Format("set usgage: set a 10, ser HL 0xFF..."));
+                return false;
+            }
+
+            parameters[0] = parameters[0].ToUpper();
+            // Param 1 is the register id
+            string[] registers = new string[] { "A", "B", "C", "D", "E", "F", "H", "L", "AF", "BC", "DE", "HL", "SP", "PC" };
+            bool match = false;
+            foreach(var s in registers)
+            {
+                if(String.Equals(parameters[0], s, StringComparison.OrdinalIgnoreCase))
+                {
+                    match = true;
+                    break;
+                }
+            }
+
+            if(match == false)
+            {
+                ConsoleAddString(String.Format("set command: invalid register"));
+            }
+
+            //Param 2 is the value
+            bool parsedParams;
+            ushort value;
+            parsedParams = ParseUShortParameter(parameters[1], out value);
+
+            if(parsedParams == false)
+            {
+                ConsoleAddString(String.Format("set command: parameter 2 must be a number"));
+            }
+
+            // This isn't pretty but it's UI code and the debugger just needs to work.
+            switch(parameters[0])
+            {
+                case "A":
+                    dmg.cpu.A = (byte) value;
+                    break;
+
+                case "B":
+                    dmg.cpu.B = (byte)value;
+                    break;
+
+                case "C":
+                    dmg.cpu.C = (byte)value;
+                    break;
+
+                case "D":
+                    dmg.cpu.D = (byte)value;
+                    break;
+
+                case "E":
+                    dmg.cpu.E = (byte)value;
+                    break;
+
+                case "F":
+                    dmg.cpu.F = (byte)value;
+                    break;
+
+                case "H":
+                    dmg.cpu.H = (byte)value;
+                    break;
+
+                case "L":
+                    dmg.cpu.L = (byte)value;
+                    break;
+
+                case "AF":
+                    dmg.cpu.AF = value;
+                    break;
+
+                case "BC":
+                    dmg.cpu.BC = value;
+                    break;
+
+                case "DE":
+                    dmg.cpu.DE = value;
+                    break;
+
+                case "HL":
+                    dmg.cpu.HL = value;
+                    break;
+
+                case "SP":
+                    dmg.cpu.SP = value;
+                    break;
+
+                case "PC":
+                    dmg.cpu.PC = value;
+                    break;
+            }
+            return true;
         }
 
         // Try to parse a base 10 or base 16 number from string
