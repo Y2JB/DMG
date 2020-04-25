@@ -486,6 +486,13 @@ namespace DMG
             IsHalted = true;
         }
 
+        // 0x11
+        void LD_de_nn(ushort nn)
+        {
+            DE = nn;
+        }
+
+
         // 0x12
         void LD_dep_a()
         {
@@ -521,12 +528,6 @@ namespace DMG
         {
             E = Inc(E);
         }        
-
-        // 0x11
-        void LD_de_nn(ushort nn)
-        {
-            DE = nn;
-        }
 
         // 0x16
         void LD_d_n(byte n)

@@ -280,8 +280,9 @@ namespace DMG
 
         public override String ToString()
         {
-            return String.Format("AF - 0x{0:X4}{1}BC - 0x{2:X4}{3}DE - 0x{4:X4}{5}HL - 0x{6:X4}{7}{8}SP - 0x{9:X4}{10}PC - 0x{11:X4}{12}",
-                AF, Environment.NewLine, BC, Environment.NewLine, DE, Environment.NewLine, HL, Environment.NewLine, Environment.NewLine, SP, Environment.NewLine, PC, Environment.NewLine);
+            return String.Format("AF - 0x{0:X4}    ({1}{2}{3}{4}){5}BC - 0x{6:X4}{7}DE - 0x{8:X4}{9}HL - 0x{10:X4}{11}{12}SP - 0x{13:X4}{14}PC - 0x{15:X4}{16}",
+                AF
+                , CarryFlag ? "C" : "-", HalfCarryFlag ? "H" : "-", NegativeFlag ? "N" : "-", ZeroFlag ? "Z" : "-", Environment.NewLine, BC, Environment.NewLine, DE, Environment.NewLine, HL, Environment.NewLine, Environment.NewLine, SP, Environment.NewLine, PC, Environment.NewLine);
         }
 
 

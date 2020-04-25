@@ -33,7 +33,15 @@ namespace DMG
 
         public override String ToString()
         {
-            return String.Format("0x{0:X2}  ->  {1}", OpCode, Name);
+            if (HasOperand)
+            {
+                return String.Format("0x{0:X}  ->  {1} 0x{2:X}", OpCode, Name, Operand);
+                
+            }
+            else
+            {
+                return String.Format("0x{0:X}  ->  {1}", OpCode, Name);
+            }
         }
     }
 }

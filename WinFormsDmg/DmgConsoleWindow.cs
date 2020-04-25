@@ -67,7 +67,7 @@ namespace WinFormsDmg
 
             InitializeComponent();
 
-            this.ClientSize = new System.Drawing.Size(800, 480);
+            this.ClientSize = new System.Drawing.Size(860, 470);
             this.Text = "DMG Console";
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -83,7 +83,7 @@ namespace WinFormsDmg
 
             dmgSnapshot.Location = new System.Drawing.Point(console.Location.X + console.Width + 10, 10);
             dmgSnapshot.Multiline = true;
-            dmgSnapshot.Width = 200;
+            dmgSnapshot.Width = 230;
             dmgSnapshot.Height = 400;
             dmgSnapshot.Enabled = false;
             this.Controls.Add(dmgSnapshot);
@@ -120,6 +120,7 @@ namespace WinFormsDmg
                 if (commandStr.Equals("s")) command = ConsoleCommand.step;
                 else if (commandStr.Equals("r")) command = ConsoleCommand.run;
                 else if (commandStr.Equals("b")) command = ConsoleCommand.brk;
+                else if (commandStr.Equals("x")) command = ConsoleCommand.exit;
 
                 // error
                 else
@@ -156,6 +157,10 @@ namespace WinFormsDmg
 
                 case ConsoleCommand.brk:
                     DmgMode = Mode.BreakPoint;
+                    return true;
+
+                case ConsoleCommand.exit:
+                    Application.Exit();
                     return true;
 
                 default:

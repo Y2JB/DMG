@@ -6,17 +6,32 @@ namespace DMG
     {
         void TestBit(byte bit, byte value)
         {
+            /*
             if ((value & bit) == 0) SetFlag(Flags.Zero);
             else ClearFlag(Flags.Zero);           
 
+            ClearFlag(Flags.Negative);
+            SetFlag(Flags.HalfCarry);
+            */
+
+
+            if (((value >> bit) & 0x01) == 0)
+            {
+                SetFlag(Flags.Zero);
+            }
+            else
+            {
+                ClearFlag(Flags.Carry);
+            }
             ClearFlag(Flags.Negative);
             SetFlag(Flags.HalfCarry);
         }
 
 
         // Rotates register to the left with the carry's value put into bit 0 and bit 7 is put into the carry.
-        byte Rl(byte value)
+        byte Rl(byte value, bool isRegisterA)
         {
+            /*
             int carry = CarryFlag ? 1 : 0;
 
             if ((value & 0x80) != 0) SetFlag(Flags.Carry);
@@ -30,14 +45,30 @@ namespace DMG
 
             ClearFlag(Flags.Negative);
             ClearFlag(Flags.HalfCarry);
+            */
 
-            return value;
+            byte carry = CarryFlag ? (byte) 1 : (byte) 0;
+            byte result = value;
+            ClearAllFlags();
+            if ((result & 0x80) != 0) SetFlag(Flags.Carry);
+
+            result <<= 1;
+            result |= carry;
+
+            if (!isRegisterA)
+            {
+                if (result == 0) SetFlag(Flags.Zero);
+                else ClearFlag(Flags.Zero);
+            }
+
+            return result;
         }
 
 
         // Rotates to the right with the carry put in bit 7 and bit 0 put into the carry.
-        byte Rr(byte value)
+        byte Rr(byte value, bool isRegisterA)
         {
+            /*
             value >>= 1;
             if (CarryFlag) value |= 0x80;
 
@@ -49,8 +80,24 @@ namespace DMG
 
             ClearFlag(Flags.Negative);
             ClearFlag(Flags.HalfCarry);
+            */
 
-            return value;
+            byte carry = CarryFlag ? (byte) 0x80 : (byte) 0x00;
+            byte result = value;
+
+            ClearAllFlags();
+
+            if ((result & 0x01) != 0) SetFlag(Flags.Carry);
+            result >>= 1;
+            result |= carry;
+
+            if (!isRegisterA)
+            {
+                if (result == 0) SetFlag(Flags.Zero);
+                else ClearFlag(Flags.Zero);
+            }
+
+            return result;
         }
 
 
@@ -136,6 +183,7 @@ namespace DMG
 
         byte Srl(byte value)
         {
+            /*
             if ((byte) (value & 0x01) != 0) SetFlag(Flags.Carry);
             else ClearFlag(Flags.Carry);
 
@@ -146,14 +194,27 @@ namespace DMG
 
             ClearFlag(Flags.Negative);
             ClearFlag(Flags.HalfCarry);
+            */
 
-            return value;
+
+            byte result = value;
+
+            ClearAllFlags();
+
+            if ((result & 0x01) != 0) SetFlag(Flags.Carry);
+            result >>= 1;
+
+            if (result == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
+            return result;
         }
 
 
         // Swap upper & lower nibles 
         byte Swap(byte value)
         {
+            /*
             value = (byte)( (byte)(((value & 0xf) << 4)) | (byte) (((value & 0xf0) >> 4)));
 
 
@@ -163,6 +224,17 @@ namespace DMG
             ClearFlag(Flags.Negative);
             ClearFlag(Flags.Carry);
             ClearFlag(Flags.HalfCarry);
+            */
+
+
+            byte low_half = (byte) (value & 0x0F);
+            byte high_half = (byte) ((value >> 4) & 0x0F);
+            byte result = (byte)((low_half << 4) + high_half);
+
+            ClearAllFlags();
+
+            if (result == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
 
             return value;
         }
@@ -273,97 +345,97 @@ namespace DMG
         //0x10
         void RL_b()
         {
-            B = Rl(B);
+            B = Rl(B, false);
         }
 
         //0x11
         void RL_c()
         {
-            C = Rl(C);
+            C = Rl(C, false);
         }
 
         //0x12
         void RL_d()
         {
-            D = Rl(D);
+            D = Rl(D, false);
         }
 
         //0x13
         void RL_e()
         {
-            E = Rl(E);
+            E = Rl(E, false);
         }
 
         //0x14
         void RL_h()
         {
-            H = Rl(H);
+            H = Rl(H, false);
         }
 
         //0x15
         void RL_l()
         {
-            L = Rl(L);
+            L = Rl(L, false);
         }
 
         //0x16
         void RL_hlp()
         {
-            memory.WriteByte(HL, Rrc(memory.ReadByte(HL)));
+            memory.WriteByte(HL, Rl(memory.ReadByte(HL), false));
         }
 
         //0x17
         void RL_a()
         {
-            A = Rl(A);
+            A = Rl(A, true);
         }
 
         //0x18
         void RR_b()
         {
-            B = Rr(B);
+            B = Rr(B, false);
         }
 
         //0x19
         void RR_c()
         {
-            C = Rr(C);
+            C = Rr(C, false);
         }
 
         //0x1A
         void RR_d()
         {
-            D = Rr(D);
+            D = Rr(D, false);
         }
 
         //0x1B
         void RR_e()
         {
-            E = Rr(E);
+            E = Rr(E, false);
         }
 
         //0x1C
         void RR_h()
         {
-            H = Rr(H);
+            H = Rr(H, false);
         }
 
         //0x1D
         void RR_l()
         {
-            L = Rr(L);
+            L = Rr(L, false);
         }
 
         //0x1E
         void RR_hlp()
         {
-            memory.WriteByte(HL, Rr(memory.ReadByte(HL)));
+            memory.WriteByte(HL, Rr(memory.ReadByte(HL), false));
         }
 
         //0x1F
         void RR_a()
         {
-            A = Rr(A);
+            A = Rr(A, true);
         }
 
         //0x20
