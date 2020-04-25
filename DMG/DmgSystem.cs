@@ -11,14 +11,6 @@ namespace DMG
 
     public class DmgSystem
     {
-        public enum Mode
-        {
-            Running,
-            Halted,
-            BreakPoint
-        }
-
-
         public BootRom bootstrapRom { get; private set; }
         public Rom rom { get; private set; }
         public Memory memory { get; private set; }
@@ -57,7 +49,8 @@ namespace DMG
             cpu.Reset();
             gpu.Reset();
 
-            Console.WriteLine(String.Format("Running {0}", rom.RomName));
+            // Peek the first instruction (done this way so we can always see the next instruction)
+            cpu.PeekNextInstruction();
 
             //Mode mode = Mode.Running;
 

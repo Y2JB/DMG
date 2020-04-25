@@ -33,6 +33,8 @@ namespace DMG
         // Stack Pointer (16 bit)
         public ushort SP { get; private set; }
 
+        public Instruction NextInstruction { get; private set; }
+        public Instruction PreviousInstruction { get; private set; }
 
         // How many clock cycles for each instyruction. Important for timing between the cpu, gpu and interupts 
         byte[] instructionTicks = new byte[256] {
@@ -104,6 +106,24 @@ namespace DMG
             //SP = 0xFFFE;
         }
 
+        public void PeekNextInstruction()
+        {
+            byte opCode = memory.ReadByte(PC);
+
+            if(NextInstruction != null)
+            {
+                PreviousInstruction = NextInstruction.DeepCopy();
+            }
+
+            NextInstruction = instructions[opCode].DeepCopy();
+
+            ushort operandValue;
+            if (NextInstruction.OperandLength == 1) operandValue = memory.ReadByte((byte)(PC+1));
+            else operandValue = memory.ReadShort(PC);
+            
+            NextInstruction.Operand = operandValue;
+        }
+
 
         public void Step()
         {
@@ -120,11 +140,12 @@ namespace DMG
             else operandValue = memory.ReadShort(PC);
             PC += instruction.OperandLength;
 
-
             instruction.Handler(operandValue);
 
-
             Ticks += instructionTicks[opCode];
+
+            // Let's the debugger look ahead
+            PeekNextInstruction();
         }
 
 
@@ -259,13 +280,8 @@ namespace DMG
 
         public override String ToString()
         {
-            return String.Format("AF 0x{0:X4}\n" +
-                                 "BC 0x{1:X4}\n" +
-                                 "DE 0x{1:X4}\n" +
-                                 "HL 0x{1:X4}\n" +
-                                 "PC 0x{1:X4}\n" +
-                                 "SP 0x{1:X4}\n"
-                                 , AF, BC, DE, HL, PC, SP);
+            return String.Format("AF - 0x{0:X4}{1}BC - 0x{2:X4}{3}DE - 0x{4:X4}{5}HL - 0x{6:X4}{7}{8}SP - 0x{9:X4}{10}PC - 0x{11:X4}{12}",
+                AF, Environment.NewLine, BC, Environment.NewLine, DE, Environment.NewLine, HL, Environment.NewLine, Environment.NewLine, SP, Environment.NewLine, PC, Environment.NewLine);
         }
 
 

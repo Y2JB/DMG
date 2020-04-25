@@ -24,23 +24,19 @@ namespace WinFormDmgRender
         {
             InitializeComponent();
             
+            // 4X gameboy resolution
             Width = 640;
             Height = 576;
 
-            consoleWindow = new DmgConsoleWindow(this);
-            //consoleWindow.Owner = this;
-
-            //var p = new Point(Location.X + 1800, Location.Y);
-            //consoleWindow.Location = p;
-            consoleWindow.Show();
-
-
-            System.Windows.Forms.Application.Idle += new EventHandler(OnApplicationIdle);
-
             dmg = new DmgSystem();
             dmg.PowerOn();
-
             dmg.OnFrame = () => this.Draw();
+
+            consoleWindow = new DmgConsoleWindow(dmg);
+
+            consoleWindow.Show();
+
+            System.Windows.Forms.Application.Idle += new EventHandler(OnApplicationIdle);
         }
 
         protected override void OnLoad(EventArgs e)
@@ -57,7 +53,17 @@ namespace WinFormDmgRender
             
             while (IsApplicationIdle())
             {
-                dmg.Step();
+                if (consoleWindow.DmgMode == DmgConsoleWindow.Mode.Running)
+                {
+                    dmg.Step();
+                }
+
+                if (consoleWindow.DmgMode == DmgConsoleWindow.Mode.BreakPoint &&
+                    consoleWindow.BreakpointStepAvailable)
+                {
+                    dmg.Step();
+                    consoleWindow.OnBreakpointStep();
+                }
             }
         }
 
