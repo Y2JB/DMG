@@ -685,26 +685,37 @@ namespace DMG
         // 0x27
         void DAA()
         {
-            ushort s = A;
+            int a = A;
 
-            if (NegativeFlag)
+            if (!NegativeFlag)
             {
-                if (HalfCarryFlag) s = (ushort)((s - 0x06) & 0xFF);
-                if (CarryFlag) s -= 0x60;
+                if (HalfCarryFlag || ((a & 0xF) > 9))
+                    a += 0x06;
+
+                if (CarryFlag || (a > 0x9F))
+                    a += 0x60;
             }
             else
             {
-                if (HalfCarryFlag || (s & 0xF) > 9) s += 0x06;
-                if (CarryFlag || s > 0x9F) s += 0x60;
+                if (HalfCarryFlag)
+                    a = (a - 6) & 0xFF;
+
+                if (CarryFlag)
+                    a -= 0x60;
             }
 
-            A = (byte)s;
             ClearFlag(Flags.HalfCarry);
+            ClearFlag(Flags.Zero);
 
-            if (A != 0) ClearFlag(Flags.Zero);
-            else SetFlag(Flags.Zero);
+            if ((a & 0x100) == 0x100)
+                SetFlag(Flags.Carry);
 
-            if (s >= 0x100) SetFlag(Flags.Carry);
+            a &= 0xFF;
+
+            if (a == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);            
+
+            A = (byte) a;
         }
 
         //0x29

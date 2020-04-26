@@ -408,11 +408,11 @@ namespace DMG
             instructions[0x6F] = new Instruction("LD l a", 0x6F, 0, (v) => this.LD_l_a());
 
             instructions[0x70] = new Instruction("LD (hl) b", 0x70, 0, (v) => this.LD_hlp_b());
-            instructions[0x71] = new Instruction("LD (hl) c", 0x71, 0, (v) => this.LD_hlp_b());
-            instructions[0x72] = new Instruction("LD (hl) d", 0x72, 0, (v) => this.LD_hlp_b());
-            instructions[0x73] = new Instruction("LD (hl) e", 0x73, 0, (v) => this.LD_hlp_b());
-            instructions[0x74] = new Instruction("LD (hl) h", 0x74, 0, (v) => this.LD_hlp_b());
-            instructions[0x75] = new Instruction("LD (hl) l", 0x75, 0, (v) => this.LD_hlp_b());
+            instructions[0x71] = new Instruction("LD (hl) c", 0x71, 0, (v) => this.LD_hlp_c());
+            instructions[0x72] = new Instruction("LD (hl) d", 0x72, 0, (v) => this.LD_hlp_d());
+            instructions[0x73] = new Instruction("LD (hl) e", 0x73, 0, (v) => this.LD_hlp_e());
+            instructions[0x74] = new Instruction("LD (hl) h", 0x74, 0, (v) => this.LD_hlp_h());
+            instructions[0x75] = new Instruction("LD (hl) l", 0x75, 0, (v) => this.LD_hlp_l());
             instructions[0x76] = new Instruction("HALT", 0x76, 0, (v) => this.HALT());
             instructions[0x77] = new Instruction("LD (hl) a", 0x77, 0, (v) => this.LD_hlp_a());
 

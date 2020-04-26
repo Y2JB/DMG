@@ -263,7 +263,7 @@ namespace DMG
 				Io[address - 0xFF00] = value;
 			}
 			else if (address >= 0xFF80 && address <= 0xFFFE)
-			{
+			{			
 				HRam[address - 0xFF80] = value;
 			}
 			else

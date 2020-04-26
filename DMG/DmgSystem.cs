@@ -34,8 +34,12 @@ namespace DMG
             bootstrapRom = new BootRom("../../../../DMG.bin");
             //rom = new Rom("../../../../tetris.gb");
             //rom = new Rom("../../../../cpu_instrs.gb");
-            //rom = new Rom("../../../../10-bit ops.gb");
-            rom = new Rom("../../../../roms/06-ld r,r.gb");
+
+            //rom = new Rom("../../../../roms/01-special.gb");
+            //rom = new Rom("../../../../roms/06-ld r,r.gb");
+            rom = new Rom("../../../../roms/07-jr,jp,call,ret,rst.gb"); 
+            //rom = new Rom("../../../../roms/10-bit ops.gb");
+           
          
             interupts = new Interupts();
             gpu = new Gpu(this);

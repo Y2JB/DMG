@@ -21,6 +21,7 @@ namespace WinFormsDmg
         TextBox console = new TextBox();     
         TextBox commandInput = new TextBox();
         TextBox dmgSnapshot = new TextBox();
+        Button okButton = new Button();
 
         List<string> commandHistory = new List<string>();
         int historyIndex = -1;
@@ -73,7 +74,12 @@ namespace WinFormsDmg
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            
+
+            // This is the only way i found to stop the annoying bong sound effect when pressing enter on a text box!
+            this.Controls.Add(okButton);
+            okButton.Visible = false;
+            this.AcceptButton = okButton;
+
             console.Location = new System.Drawing.Point(10, 10);
             console.Multiline = true;
             console.ScrollBars = ScrollBars.Vertical;
@@ -95,7 +101,13 @@ namespace WinFormsDmg
             this.Controls.Add(commandInput);
             commandInput.Focus();
 
-            //breakpoints.Add(0xC31D);
+            //breakpoints.Add(0xC33F);
+
+            //breakpoints.Add(0xC345);
+
+            //breakpoints.Add(0x0xC089);
+            //breakpoints.Add(0xC33e);
+            //breakpoints.Add(0xC34e);
             //breakpoints.Add(0xC32A);
             //breakpoints.Add(0xC31E);
             //breakpoints.Add(0xC325);
@@ -166,6 +178,9 @@ namespace WinFormsDmg
                     DmgMode = Mode.BreakPoint;
                     return true;
 
+                case ConsoleCommand.breakpoint:
+                    return BreakpointCommand(parameters);
+                   
                 case ConsoleCommand.exit:
                     Application.Exit();
                     return true;
@@ -218,8 +233,26 @@ namespace WinFormsDmg
             return false;
         }
 
+        bool BreakpointCommand(string[] parameters)
+        {
+            if (parameters.Length != 1)
+            {
+                ConsoleAddString(String.Format("breakpoint: Invalid number of parameters. Usage:'breakpoint 0xC100'"));
+                return false;
+            }
 
-        bool SetCommand(string[] parameters)
+            ushort p1 = 0;
+            bool parsedParams;
+            parsedParams = ParseUShortParameter(parameters[0], out p1);
+
+            breakpoints.Add(p1);
+
+            ConsoleAddString(String.Format("breakpoint added at 0x{0:X4}", p1));
+            return true;
+        }
+
+
+            bool SetCommand(string[] parameters)
         {
             if (parameters.Length != 2)
             {
@@ -391,6 +424,9 @@ namespace WinFormsDmg
 
         private void CommandInput_KeyUp(object sender, KeyEventArgs e)
         {
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+
             switch (e.KeyCode)
             {
                 case Keys.Enter:
