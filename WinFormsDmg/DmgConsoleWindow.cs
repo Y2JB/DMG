@@ -22,8 +22,8 @@ namespace WinFormsDmg
         TextBox commandInput = new TextBox();
         TextBox dmgSnapshot = new TextBox();
 
-        //List<string> consoleContent = new List<string>();
         List<string> commandHistory = new List<string>();
+        int historyIndex = -1;
 
         // FIFO
         Queue<Instruction> executionHistory = new Queue<Instruction>();
@@ -91,7 +91,7 @@ namespace WinFormsDmg
             commandInput.Width = console.Width + dmgSnapshot.Width + 10;
             commandInput.KeyUp += CommandInput_KeyUp;
             this.Controls.Add(commandInput);
-
+            commandInput.Focus();
 
 
 
@@ -313,6 +313,7 @@ namespace WinFormsDmg
             return true;
         }
 
+
         // Try to parse a base 10 or base 16 number from string
         bool ParseUShortParameter(string p, out ushort value)
         {
@@ -327,6 +328,7 @@ namespace WinFormsDmg
             }
             return true;
         }
+
 
         public void OnBreakpointStep()
         {
@@ -348,9 +350,17 @@ namespace WinFormsDmg
 
         void RefreshDmgSnapshot()
         {
-            dmgSnapshot.Text = dmg.cpu.ToString();
-            dmgSnapshot.AppendText(Environment.NewLine);
-            dmgSnapshot.AppendText(dmg.cpu.NextInstruction.ToString());
+            if (dmg.cpu.IsHalted)
+            {
+                dmgSnapshot.Text = "HALTED";
+            }
+
+            else
+            {
+                dmgSnapshot.Text = dmg.cpu.ToString();
+                dmgSnapshot.AppendText(Environment.NewLine);
+                dmgSnapshot.AppendText(dmg.cpu.NextInstruction.ToString());
+            }         
         }
 
 
@@ -362,13 +372,37 @@ namespace WinFormsDmg
 
         private void CommandInput_KeyUp(object sender, KeyEventArgs e)
         {
-            if(e.KeyCode == Keys.Enter && commandInput.Text != String.Empty)
+            switch (e.KeyCode)
             {
-                ConsoleAddString(commandInput.Text);
+                case Keys.Enter:
+                    if (commandInput.Text != String.Empty)
+                    {
+                        ConsoleAddString(commandInput.Text);
 
-                ProcessCommand(commandInput.Text);
+                        ProcessCommand(commandInput.Text);
 
-                commandInput.Text = "";
+                        commandInput.Text = String.Empty;
+                        historyIndex = -1;
+                    }
+                    break;
+
+                case Keys.Up:                
+                    if (historyIndex < commandHistory.Count - 1) historyIndex++;
+                    commandInput.Text = commandHistory[commandHistory.Count - historyIndex - 1];
+                    commandInput.Select(commandInput.Text.Length, 0);
+                    break;
+
+                case Keys.Down:           
+                    if (historyIndex > -1) historyIndex--;
+
+                    if (historyIndex >= 0)
+                    {
+                        commandInput.Text = commandHistory[commandHistory.Count - historyIndex - 1];
+                        commandInput.Select(commandInput.Text.Length, 0);
+                    }
+                    else commandInput.Text = String.Empty;
+                    break;
+            
             }
         }
     }
