@@ -118,8 +118,8 @@ namespace DMG
             NextInstruction = instructions[opCode].DeepCopy();
 
             ushort operandValue;
-            if (NextInstruction.OperandLength == 1) operandValue = memory.ReadByte((byte)(PC+1));
-            else operandValue = memory.ReadShort(PC);
+            if (NextInstruction.OperandLength == 1) operandValue = memory.ReadByte((ushort)(PC+1));
+            else operandValue = memory.ReadShort((ushort) (PC + 1));
             
             NextInstruction.Operand = operandValue;
         }

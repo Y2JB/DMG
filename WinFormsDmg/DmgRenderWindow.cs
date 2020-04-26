@@ -56,6 +56,8 @@ namespace WinFormDmgRender
                 if (consoleWindow.DmgMode == DmgConsoleWindow.Mode.Running)
                 {
                     dmg.Step();
+
+                    consoleWindow.CheckForBreakpoints();
                 }
 
                 if (consoleWindow.DmgMode == DmgConsoleWindow.Mode.BreakPoint &&

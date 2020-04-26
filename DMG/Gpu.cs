@@ -162,7 +162,7 @@ namespace DMG
                             {
                                 dmg.OnFrame();
                             }
-                            DumpFrameBufferToPng();
+                            //DumpFrameBufferToPng();
                         }
 
                         elapsedTicks -= 456;

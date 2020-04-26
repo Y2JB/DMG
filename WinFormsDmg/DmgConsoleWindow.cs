@@ -25,6 +25,8 @@ namespace WinFormsDmg
         List<string> commandHistory = new List<string>();
         int historyIndex = -1;
 
+        List<ushort> breakpoints = new List<ushort>();
+
         // FIFO
         Queue<Instruction> executionHistory = new Queue<Instruction>();
 
@@ -82,7 +84,7 @@ namespace WinFormsDmg
 
             dmgSnapshot.Location = new System.Drawing.Point(console.Location.X + console.Width + 10, 10);
             dmgSnapshot.Multiline = true;
-            dmgSnapshot.Width = 230;
+            dmgSnapshot.Width = 240;
             dmgSnapshot.Height = 400;
             dmgSnapshot.Enabled = false;
             this.Controls.Add(dmgSnapshot);
@@ -93,7 +95,10 @@ namespace WinFormsDmg
             this.Controls.Add(commandInput);
             commandInput.Focus();
 
-
+            //breakpoints.Add(0xC31D);
+            //breakpoints.Add(0xC32A);
+            //breakpoints.Add(0xC31E);
+            //breakpoints.Add(0xC325);
 
             BreakpointStepAvailable = false;
 
@@ -330,9 +335,23 @@ namespace WinFormsDmg
         }
 
 
+        public void CheckForBreakpoints()
+        {
+            foreach (var bp in breakpoints)
+            {
+                if (dmg.cpu.PC == bp)
+                {
+                    DmgMode = Mode.BreakPoint;
+                    RefreshDmgSnapshot();
+                    break;
+                }
+            }
+        }
+
+
         public void OnBreakpointStep()
         {
-            BreakpointStepAvailable = false;
+            BreakpointStepAvailable = false;            
 
             // Take a copy of this instruction and store it in our history 
             executionHistory.Enqueue(dmg.cpu.PreviousInstruction);

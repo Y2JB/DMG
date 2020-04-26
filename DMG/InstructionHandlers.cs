@@ -57,6 +57,7 @@ namespace DMG
 
             A &= value;
             ClearAllFlags();
+            SetFlag(Flags.HalfCarry);
             if (A == 0) SetFlag(Flags.Zero);
         }
 
@@ -588,6 +589,7 @@ namespace DMG
         // 0x1F
         void RRA()
         {
+            /*
             int carry = ((CarryFlag) ? 1 : 0) << 7;
 
             if ((A & 0x01) != 0) SetFlag(Flags.Carry);
@@ -601,6 +603,19 @@ namespace DMG
 
             ClearFlag(Flags.HalfCarry);
             ClearFlag(Flags.Negative);
+            */
+
+            byte carry = CarryFlag ? (byte) 0x80 : (byte) 0x00;
+            byte result = A;
+            ClearAllFlags();
+            if ((result & 0x01) != 0) SetFlag(Flags.Carry); 
+            result >>= 1;
+            result |= carry;
+            A = result;
+            //if (!isRegisterA)
+            //{
+            //    ToggleZeroFlagFromResult(result);
+            //}
         }
 
         // 0x20
@@ -610,8 +625,15 @@ namespace DMG
             {
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
+
+                Ticks += 12;
+            }
+            else
+            {
+                Ticks += 8;
             }
         }
+
 
         // 0x21
         void LD_hl_nn(ushort nn)
@@ -737,14 +759,14 @@ namespace DMG
         {
             if (CarryFlag)
             {
-                //ticks += 8;
+                Ticks += 8;
             }
             else
             {
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
 
-                //ticks += 12;
+                Ticks += 12;
             }
         }
 
@@ -1924,6 +1946,7 @@ namespace DMG
         // 0xE6
         void AND_n(byte n)
         {
+            /*
             A &= n;
 
             ClearFlag(Flags.Carry);
@@ -1933,6 +1956,8 @@ namespace DMG
 
             if (A == 0) SetFlag(Flags.Zero);
             else ClearFlag(Flags.Zero);
+            */
+            And(n);
         }
 
         // 0xE7
@@ -1980,6 +2005,9 @@ namespace DMG
         void POP_af()
         {
             AF = StackPop();
+
+            // Make sure we don't set impossible flags on F, See Blargg's PUSH AF test.
+            F &= 0xF0;
         }
 
         // F3
