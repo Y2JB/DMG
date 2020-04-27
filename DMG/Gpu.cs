@@ -22,7 +22,7 @@ namespace DMG
 
         public GfxMemoryRegisters MemoryRegisters { get; private set; }
 
-        public Color[] FrameBuffer { get; private set; }
+        public Bitmap FrameBuffer { get; private set; }
 
         public TileMap[] TileMaps { get; private set; }
         public Tile[] Tiles { get; private set; }
@@ -40,6 +40,9 @@ namespace DMG
 
         DmgSystem dmg;
 
+        // temp palette
+        Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
+
         public Gpu(DmgSystem dmg)
         {
             this.dmg = dmg;
@@ -48,7 +51,7 @@ namespace DMG
 
         public void Reset()
         {
-            FrameBuffer = new Color[Screen_X_Resolution * Screen_Y_Resolution];
+            FrameBuffer = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution); // new Color[Screen_X_Resolution * Screen_Y_Resolution];
 
             MemoryRegisters = new GfxMemoryRegisters();
             MemoryRegisters.Reset();
@@ -172,7 +175,6 @@ namespace DMG
         }
 
 
-
         void OamSearch()
         {
 
@@ -185,24 +187,12 @@ namespace DMG
             // Render the BG
             // Total BG size in VRam is 32x32 tiles
             // Viewport is 20x18 tiles
-
-            // Very temporary
-            int offset = 0;
-            foreach (Tile t in Tiles)
-            {
-                t.Parse(Memory.VRam, offset);
-                offset += 16;
-            }
-
-
             TileMap tileMap = TileMaps[MemoryRegisters.LCDC.BgTileMapSelect];
 
             byte y = CurrentScanline;
 
             // What row are we rendering within a tile?
-            int tilePixelY = ((y + MemoryRegisters.BgScrollY) % 8);
-
-            Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
+            int tilePixelY = ((y + MemoryRegisters.BgScrollY) % 8);        
 
             for (byte x = 0; x < Screen_X_Resolution; x++)
             {
@@ -211,7 +201,7 @@ namespace DMG
 
                 Tile tile = tileMap.TileFromXY((byte) (x + MemoryRegisters.BgScrollX), (byte) (y + MemoryRegisters.BgScrollY));
 
-                FrameBuffer[(y * Screen_X_Resolution) + x] = palette[tile.renderTile[tilePixelX, tilePixelY]];
+                FrameBuffer.SetPixel(x, y, palette[tile.renderTile[tilePixelX, tilePixelY]]);
             }
 
 
@@ -225,14 +215,9 @@ namespace DMG
 
         public Tile GetTileByVRamAdrress(ushort address)
         {
-            if ((address % 8) != 0)
-            {
-                throw new ArgumentException("Bad tile address");
-            }
-
             foreach (Tile t in Tiles)
             {
-                if (t.VRamAddress == address)
+                if (address >= t.VRamAddress && address < (t.VRamAddress + 16))
                 {
                     return t;
                 }
@@ -241,20 +226,10 @@ namespace DMG
             throw new ArgumentException("Bad tile address");
         }
 
+
         public void DumpFrameBufferToPng()
-        {           
-            var image = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution);
-
-            for (int y = 0; y < Screen_Y_Resolution; y++)
-            {
-                for (int x = 0; x < Screen_X_Resolution; x++)
-                {
-                    image.SetPixel(x, y, FrameBuffer[x + (y * Screen_X_Resolution)]);
-                }
-            }
-
-            image.Save("../../../../dump/screen.png");
-
+        {
+            FrameBuffer.Save("../../../../dump/screen.png");
         }
     }
 }

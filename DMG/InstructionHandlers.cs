@@ -6,17 +6,6 @@ namespace DMG
     {
         private void Xor(byte value)
         {
-            /*
-            A ^= value;
-
-            if (A != 0) ClearFlag(Flags.Zero);
-            else SetFlag(Flags.Zero);
-
-            ClearFlag(Flags.Carry);
-            ClearFlag(Flags.HalfCarry);
-            ClearFlag(Flags.Negative);
-            */
-
             A ^= value;
             ClearAllFlags();
             if (A == 0) SetFlag(Flags.Zero);
@@ -25,17 +14,6 @@ namespace DMG
 
         void Or(byte value)
         {
-            /*
-            A |= value;
-
-            if(A != 0) ClearFlag(Flags.Zero);
-            else SetFlag(Flags.Zero);
-
-            ClearFlag(Flags.Carry);
-            ClearFlag(Flags.HalfCarry);
-            ClearFlag(Flags.Negative);
-            */
-
             A |= value;
             ClearAllFlags();
             if (A == 0) SetFlag(Flags.Zero);
@@ -44,17 +22,6 @@ namespace DMG
 
         void And(byte value)
         {
-            /*
-            A &= value;
-
-            if (A == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Carry);
-            ClearFlag(Flags.Negative);
-            SetFlag(Flags.HalfCarry);
-            */
-
             A &= value;
             ClearAllFlags();
             SetFlag(Flags.HalfCarry);
@@ -64,20 +31,6 @@ namespace DMG
 
         byte Inc(byte value)
         {
-            /*
-            if ((value & 0x0f) == 0x0f) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-
-            value++;
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-
-            return value;
-            */
-
             byte result = (byte) (value + 1);
 
             if (result == 0) SetFlag(Flags.Zero);
@@ -96,28 +49,6 @@ namespace DMG
 
         void Add(byte value)
         {
-            /*
-            if ((((lhs & 0xF) + (rhs & 0xF)) & 0x10) == 0x10) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-
-            UInt32 result = (UInt32)(lhs + rhs);
-
-            if ((result & 0xFF00) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            lhs = (byte)(result & 0xFF);
-
-            if (lhs == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-          
-            //if (((lhs & 0x0F) + (rhs & 0x0F)) > 0x0F) SetFlag(Flags.HalfCarry);
-            //else ClearFlag(Flags.HalfCarry);
-
-            ClearFlag(Flags.Negative);
-
-            return lhs;
-            */
-
             int result = A + value;
             int carrybits = A ^ value ^ result;
             A = (byte)result;
@@ -140,21 +71,6 @@ namespace DMG
 
         void AddHL(ushort value)
         {
-            /*
-            if ((((lhs & 0xF) + (rhs & 0xF)) & 0x10) == 0x10) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-
-            UInt32 result = (UInt32) (lhs + rhs);
-
-            if ((result & 0xFFFF0000) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);           
-            
-            // zero flag left alone
-
-            ClearFlag(Flags.Negative);
-
-            return (ushort)(result & 0xffff);
-            */
             int result = HL + value;
 
             if(ZeroFlag)
@@ -183,25 +99,6 @@ namespace DMG
         // Add and then add Carry
         void Adc(byte value)
         {
-            /*
-            value += (byte)(CarryFlag ? 1 : 0);
-
-            if ((((A & 0xF) + (value & 0xF)) & 0x10) == 0x10) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-
-            int result = A + value;
-
-            if ((result & 0xff00) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            if (value == A) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-
-            A = (byte)(result & 0xff);
-            */
-
             int carry = CarryFlag ? 1 : 0;
             int result = A + value + carry;
             ClearAllFlags();
@@ -221,21 +118,6 @@ namespace DMG
 
         void Sub(byte value)
         {
-            /*
-            SetFlag(Flags.Negative);
-
-            if (value > A) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            if ((value & 0x0F) > (A & 0x0f)) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-
-            A -= value;
-
-            if (A == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-            */
-
             int result = A - value;
             int carrybits = A ^ value ^ result;
             A = (byte)result;
@@ -256,20 +138,6 @@ namespace DMG
 
         byte Dec(byte value)
         {
-            /*
-            if ((byte)(value & 0x0f) != 0) ClearFlag(Flags.HalfCarry);
-            else SetFlag(Flags.HalfCarry);
-
-            value--;
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            SetFlag(Flags.Negative);
-
-            return value;
-            */
-
             byte result = (byte)(value - 1);
 
             SetFlag(Flags.Negative);
@@ -287,24 +155,6 @@ namespace DMG
         // Subrtact and then subtract Carry
         void Sbc(byte value)
         {
-            /*
-            value -= (byte) (CarryFlag ? 1 : 0);
-
-            SetFlag(Flags.Negative);
-
-            if (value > A) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-
-            if (value == A) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            if (((value & 0x0F) + (A & 0x0F)) > 0x0F) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);     
-
-            A -= value;
-            */
-
             int carry = CarryFlag ? 1 : 0;
             int result = A - value - carry;
 
@@ -327,19 +177,6 @@ namespace DMG
 
         void Cmp(byte value)
         {
-            /*
-            if (A == value) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            if (value > A) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            if ((byte)(value & 0x0F) > (byte)(A & 0x0F)) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-
-            SetFlag(Flags.Negative);
-            */
-
             ClearAllFlags();
             SetFlag(Flags.Negative);
 
@@ -664,17 +501,7 @@ namespace DMG
         void DEC_h()
         {
             H = Dec(H);
-        }
-
-        // 0x28
-        void JR_Z_n(sbyte n)
-        {
-            if (ZeroFlag)
-            {
-                int pc = (int)(PC) + n;
-                PC = (ushort)pc;
-            }
-        }
+        }        
 
         // 0x26
         void LD_h_n(byte n)
@@ -716,6 +543,22 @@ namespace DMG
             else ClearFlag(Flags.Zero);            
 
             A = (byte) a;
+        }
+
+        // 0x28
+        void JR_Z_n(sbyte n)
+        {
+            if (ZeroFlag)
+            {
+                int pc = (int)(PC) + n;
+                PC = (ushort)pc;
+
+                Ticks += 12;
+            }
+            else
+            {
+                Ticks += 8;
+            }
         }
 
         //0x29
@@ -833,6 +676,12 @@ namespace DMG
             {
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
+
+                Ticks += 12;
+            }
+            else
+            {
+                Ticks += 8;
             }
         }        
 

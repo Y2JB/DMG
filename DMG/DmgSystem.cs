@@ -20,7 +20,8 @@ namespace DMG
 
         public StringBuilder Tty { get; private set; }
 
-        public Color[] FrameBuffer { get { return gpu.FrameBuffer; } }
+        public Bitmap FrameBuffer { get { return gpu.FrameBuffer; } }
+
         public Action OnFrame{ get; set;  }
 
         public DmgSystem()
@@ -266,46 +267,6 @@ namespace DMG
             }
 
             image.Save("../../../../dump/tileset.png");
-
-
-
-            //byte[] tileData = new byte[16] { 0x3C, 0x00, 0x42, 0x00, 0xB9, 0x00, 0xA5, 0x00, 0xB9, 0x00, 0xA5, 0x00, 0x42, 0x00, 0x3C, 0x00 };
-            //var tile = new Tile();
-            //tile.Parse(tileData, 0);
-            //tile.DumptToImageFile("../../../../dump/tile.png");
-
-
-        }
-
-
-        void TileDumpTxt(byte[] array, int offset, int count)
-        {
-            using (FileStream fs = File.Open("../../../../dump/dump.txt", FileMode.Create))
-            {
-                using (StreamWriter sw = new StreamWriter(fs))
-                {
-
-                    for (int i = offset; i < (offset + count); i++)
-                    {
-                        sw.WriteLine(String.Format("{0:X2} ", array[i]));
-                    }
-
-                    /*
-                    for (int i = offset; i < (offset + count); i += 2)
-                    {
-                        sw.WriteLine(String.Format("{0:X2} {1:X2}", array[i + 1], array[i]));
-                    }
-
-                    sw.WriteLine();
-                    sw.WriteLine();
-
-                    for (int i = offset; i < (offset + count); i += 2)
-                    {
-                        sw.WriteLine(String.Format("{0:X2}\n{1:X2}\n\n", Convert.ToString(array[i + 1], 2).PadLeft(8, '0'), Convert.ToString(array[i], 2).PadLeft(8, '0')));
-                    }
-                    */
-                }
-            }
-        }
+        }        
     }
 }

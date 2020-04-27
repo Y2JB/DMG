@@ -9,7 +9,7 @@ namespace DMG
 
         public byte CurrentScanline { get; }
 
-        public Color[] FrameBuffer { get; }
+        public Bitmap FrameBuffer { get; }
 
         public TileMap[] TileMaps { get; }
         public Tile[] Tiles { get; }

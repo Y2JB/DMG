@@ -215,7 +215,13 @@ namespace DMG
 				// TODO: model that CPU cannot access OAM during OAM Search or Pixel Transfer and if it does it gets 0xFF
 
 				VRam[address - 0x8000] = value;
-				//if (address <= 0x97ff) updateTile(address, value);
+
+				// Whenever we write to a tile in vram, update the rendering data. (Remember tile maps start at 0x9800)
+				if (address <= 0x97ff)
+				{
+					Tile tile = gpu.GetTileByVRamAdrress(address);
+					tile.Parse(VRam, tile.VRamAddress - 0x8000);
+				}
 			}
 			else if (address >= 0xFE00 && address <= 0xFEFF)
 			{
@@ -279,18 +285,6 @@ namespace DMG
 
 			if (address >= 0xa000 && address <= 0xbfff)
 				sram[address - 0xa000] = value;
-
-			else if (address >= 0x8000 && address <= 0x9fff)
-			{
-				vram[address - 0x8000] = value;
-				if (address <= 0x97ff) updateTile(address, value);
-			}
-
-			if (address >= 0xc000 && address <= 0xdfff)
-				wram[address - 0xc000] = value;
-
-			else if (address >= 0xe000 && address <= 0xfdff)
-				wram[address - 0xe000] = value;
 
 			else if (address >= 0xfe00 && address <= 0xfeff)
 				oam[address - 0xfe00] = value;
