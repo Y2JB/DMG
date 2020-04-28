@@ -31,12 +31,36 @@ namespace DMG
 
         byte Inc(byte value)
         {
+            /*
             byte result = (byte) (value + 1);
 
             if (result == 0) SetFlag(Flags.Zero);
             else ClearFlag(Flags.Zero);
 
             ClearFlag(Flags.Negative);
+
+            if ((result & 0x0F) == 0x00)
+            {
+                SetFlag(Flags.HalfCarry);
+            }
+            return result;
+            */
+
+
+            byte result = (byte) (value + 1);
+
+            if (CarryFlag)
+            {
+                ClearAllFlags();
+                SetFlag(Flags.Carry);
+            }
+            else
+            {
+                ClearAllFlags();
+            }
+
+            if (result == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
 
             if ((result & 0x0F) == 0x00)
             {
@@ -122,22 +146,20 @@ namespace DMG
             int carrybits = A ^ value ^ result;
             A = (byte)result;
 
+            ClearAllFlags();
             SetFlag(Flags.Negative);
 
             if (A == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
 
             if ((carrybits & 0x100) != 0) SetFlag(Flags.Carry);            
-            else ClearFlag(Flags.Carry);
             
             if ((carrybits & 0x10) != 0) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-
         }
 
 
         byte Dec(byte value)
         {
+            /*
             byte result = (byte)(value - 1);
 
             SetFlag(Flags.Negative);
@@ -149,6 +171,32 @@ namespace DMG
             else ClearFlag(Flags.HalfCarry); 
 
             return result;
+            */
+
+
+            byte result = (byte) (value - 1);
+
+            if (CarryFlag)
+            {
+                ClearAllFlags();
+                SetFlag(Flags.Carry);
+            }
+            else
+            {
+                ClearAllFlags();
+            }
+   
+            SetFlag(Flags.Negative);
+            
+            if (result == 0) SetFlag(Flags.Zero);
+            else ClearFlag(Flags.Zero);
+
+            if ((result & 0x0F) == 0x0F)
+            {
+                SetFlag(Flags.HalfCarry);
+            }
+            return result;
+
         }
 
 
@@ -158,16 +206,14 @@ namespace DMG
             int carry = CarryFlag ? 1 : 0;
             int result = A - value - carry;
 
+            ClearAllFlags();
             SetFlag(Flags.Negative);
 
             if (result == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
 
             if (result < 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
             
             if (((A & 0x0F) - (value & 0x0F) - carry) < 0) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
 
             A = (byte)(result);
         }
@@ -193,6 +239,7 @@ namespace DMG
                 SetFlag(Flags.HalfCarry);
             }
         }
+
 
 
         // ********************

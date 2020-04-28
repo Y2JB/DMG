@@ -43,6 +43,7 @@ namespace WinFormsDmg
             run,
             brk,
             breakpoint,
+            delete,
             dumptiles,                      // param = fn else dumpttiles.txt
             dumpmemory,                     // Dumps a text file containing hex for 8K. EG: 10 2A FF ...
             loadmemory,                     // param must be a text file containing hex for 8K. EG: 10 2A FF ...
@@ -69,7 +70,7 @@ namespace WinFormsDmg
 
             InitializeComponent();
 
-            this.ClientSize = new System.Drawing.Size(860, 470);
+            this.ClientSize = new System.Drawing.Size(880, 470);
             this.Text = "DMG Console";
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -83,7 +84,7 @@ namespace WinFormsDmg
             console.Location = new System.Drawing.Point(10, 10);
             console.Multiline = true;
             console.ScrollBars = ScrollBars.Vertical;
-            console.Width = 600;
+            console.Width = 620;
             console.Height = 400;            
             console.Enabled = false;
             this.Controls.Add(console);
@@ -101,16 +102,16 @@ namespace WinFormsDmg
             this.Controls.Add(commandInput);
             commandInput.Focus();
 
-            //breakpoints.Add(0xC33F);
+            //breakpoints.Add(0xC681);
+            //breakpoints.Add(0xC67C);
 
-            //breakpoints.Add(0xC345);
+            //breakpoints.Add(0xC6A8);
+            //breakpoints.Add(0xC6A9);
+            //breakpoints.Add(0xC6AA);
+            //breakpoints.Add(0xC6AB);
 
-            //breakpoints.Add(0x0xC089);
-            //breakpoints.Add(0xC33e);
-            //breakpoints.Add(0xC34e);
-            //breakpoints.Add(0xC32A);
-            //breakpoints.Add(0xC31E);
-            //breakpoints.Add(0xC325);
+
+            //breakpoints.Add(0xdef9);
 
             BreakpointStepAvailable = false;
 
@@ -180,6 +181,14 @@ namespace WinFormsDmg
 
                 case ConsoleCommand.breakpoint:
                     return BreakpointCommand(parameters);
+
+                case ConsoleCommand.delete:
+                    breakpoints.Clear();
+                    return true;
+
+                case ConsoleCommand.dumptiles:
+                    dmg.DumpTileSet();
+                    return true;
                    
                 case ConsoleCommand.exit:
                     Application.Exit();

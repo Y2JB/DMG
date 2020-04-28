@@ -21,10 +21,10 @@ namespace DMG
             }
             else
             {
-                ClearFlag(Flags.Carry);
-            }
-            ClearFlag(Flags.Negative);
+                ClearFlag(Flags.Zero);
+            }            
             SetFlag(Flags.HalfCarry);
+            ClearFlag(Flags.Negative);
         }
 
 
@@ -49,8 +49,16 @@ namespace DMG
 
             byte carry = CarryFlag ? (byte) 1 : (byte) 0;
             byte result = value;
-            ClearAllFlags();
-            if ((result & 0x80) != 0) SetFlag(Flags.Carry);
+            
+            if ((result & 0x80) != 0)
+            {
+                ClearAllFlags();
+                SetFlag(Flags.Carry);
+            }
+            else
+            {
+                ClearAllFlags();
+            }
 
             result <<= 1;
             result |= carry;
@@ -102,8 +110,9 @@ namespace DMG
 
 
         // Rotates to the left with bit 7 being moved to bit 0 and also stored into the carry.
-        byte Rlc(byte value)
+        byte Rlc(byte value, bool isRegisterA)
         {
+            /*
             int carry = (value & 0x80) >> 7;
 
             if ((value & 0x80) != 0) SetFlag(Flags.Carry);
@@ -119,12 +128,36 @@ namespace DMG
             ClearFlag(Flags.HalfCarry);
 
             return value;
+            */
+
+            byte result = value;
+            if ((result & 0x80) != 0)
+            {
+                ClearAllFlags();
+                SetFlag(Flags.Carry);
+                result <<= 1;
+                result |= 0x1;
+            }
+            else
+            {
+                ClearAllFlags();
+                result <<= 1;
+            }
+
+            if (!isRegisterA)
+            {
+                if (result == 0) SetFlag(Flags.Zero);
+                else ClearFlag(Flags.Zero);
+            }
+
+            return result;
         }
 
 
         // Rotates to the right with bit 0 moved to bit 7 and also stored into the carry.
-        byte Rrc(byte value)
+        byte Rrc(byte value, bool isRegisterA)
         {
+            /*
             int carry = (value & 0x01);
 
             value >>= 1;
@@ -143,12 +176,35 @@ namespace DMG
             ClearFlag(Flags.HalfCarry);
 
             return value;
+            */
+
+            byte  result = value;
+            if ((result & 0x01) != 0)
+            {
+                ClearAllFlags();
+                SetFlag(Flags.Carry);
+                result >>= 1;
+                result |= 0x80;
+            }
+            else
+            {
+                ClearAllFlags();
+                result >>= 1;
+            }
+
+            if (!isRegisterA)
+            {
+                if (result == 0) SetFlag(Flags.Zero);
+                else ClearFlag(Flags.Zero);
+            }
+            return result;
         }
 
 
         // Shifts register to the left with bit 7 moved to the carry flag and bit 0 reset (zeroed).
         byte Sla(byte value)
         {
+            /*
             if ((value & 0x80) != 0) SetFlag(Flags.Carry);
             else ClearFlag(Flags.Carry);
 
@@ -161,11 +217,22 @@ namespace DMG
             ClearFlag(Flags.HalfCarry);
 
             return value;
+            */
+
+            ClearAllFlags();
+            if((value & 0x80) != 0) SetFlag(Flags.Carry);
+
+            byte result = (byte) (value << 1);
+
+            if (result == 0) SetFlag(Flags.Zero);
+
+            return result;
         }
 
 
         byte Sra(byte value)
         {
+            /*
             if((value & 0x01) != 0) SetFlag(Flags.Carry);
             else ClearFlag(Flags.Carry);
 
@@ -178,6 +245,25 @@ namespace DMG
             ClearFlag(Flags.HalfCarry);
 
             return value;
+            */
+
+            byte result = value;
+            ClearAllFlags();
+            if ((result & 0x01) != 0) SetFlag(Flags.Carry);
+
+            if ((result & 0x80) != 0)
+            {
+                result >>= 1;
+                result |= 0x80;
+            }
+            else
+            {
+                result >>= 1;
+            }
+
+            if (result == 0) SetFlag(Flags.Zero);
+
+            return result;
         }
 
 
@@ -205,7 +291,6 @@ namespace DMG
             result >>= 1;
 
             if (result == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
 
             return result;
         }
@@ -239,7 +324,16 @@ namespace DMG
             return value;
         }
 
+        byte Res(byte bit, byte value)
+        {
+            return (byte) (value & (~(byte)(0x1 << bit)));
+        }
 
+
+        byte Set(byte bit, byte value)
+        {
+            return (byte)(value | (byte)(0x1 << bit));
+        }
 
         // ********************
         // Instruction Handlers 
@@ -249,97 +343,97 @@ namespace DMG
         //0x00
         void RLC_b()
         {
-            B = Rlc(B);
+            B = Rlc(B, false);
         }
 
         //0x01
         void RLC_c()
         {
-            C = Rlc(C);
+            C = Rlc(C, false);
         }
 
         //0x02
         void RLC_d()
         {
-            D = Rlc(D);
+            D = Rlc(D, false);
         }
 
         //0x03
         void RLC_e()
         {
-            E = Rlc(E);
+            E = Rlc(E, false);
         }
 
         //0x04
         void RLC_h()
         {
-            H = Rlc(H);
+            H = Rlc(H, false);
         }
 
         //0x05
         void RLC_l()
         {
-            L = Rlc(L);
+            L = Rlc(L, false);
         }
 
         //0x06
         void RLC_hlp()
         {
-            memory.WriteByte(HL, Rlc(memory.ReadByte(HL)));
+            memory.WriteByte(HL, Rlc(memory.ReadByte(HL), false));
         }
 
         //0x07
         void RLC_a()
         {
-            A = Rlc(A);
+            A = Rlc(A, true);
         }
 
         //0x08
         void RRC_b()
         {
-            B = Rrc(B);
+            B = Rrc(B, false);
         }
 
         //0x09
         void RRC_c()
         {
-            C = Rrc(C);
+            C = Rrc(C, false);
         }
 
         //0x0A
         void RRC_d()
         {
-            D = Rrc(D);
+            D = Rrc(D, false);
         }
 
         //0x0B
         void RRC_e()
         {
-            E = Rrc(E);
+            E = Rrc(E, false);
         }
 
         //0x0C
         void RRC_h()
         {
-            H = Rrc(H);
+            H = Rrc(H, false);
         }
 
         //0x0D
         void RRC_l()
         {
-            L = Rrc(L);
+            L = Rrc(L, false);
         }
 
         //0x0E
         void RRC_hlp()
         {
-            memory.WriteByte(HL, Rrc(memory.ReadByte(HL)));
+            memory.WriteByte(HL, Rrc(memory.ReadByte(HL), false));
         }
 
         //0x0F
         void RRC_a()
         {
-            A = Rrc(A);
+            A = Rrc(A, true);
         }
 
         //0x10
@@ -632,7 +726,7 @@ namespace DMG
 
 
         //0x40
-        void BIT_0_b()
+       void BIT_0_b()
         {
             TestBit(1 << 0, B);
         }
@@ -953,5 +1047,691 @@ namespace DMG
         {
             TestBit(1 << 7, A);
         }
+
+
+        //0x80
+        void RES_0_b()
+        {
+            Res(1 << 0, B);
+        }
+
+        // 0x81
+        void RES_0_c()
+        {
+            Res(1 << 0, C);
+        }
+
+        void RES_0_d()
+        {
+            Res(1 << 0, D);
+        }
+
+        void RES_0_e()
+        {
+            Res(1 << 0, E);
+        }
+
+        void RES_0_h()
+        {
+            Res(1 << 0, H);
+        }
+
+        void RES_0_l()
+        {
+            Res(1 << 0, L);
+        }
+
+        void RES_0_hlp()
+        {
+            memory.WriteByte(HL, Res(1 << 0, memory.ReadByte(HL)));
+        }
+
+        void RES_0_a()
+        {
+            Res(1 << 0, A);
+        }
+
+        //0x88
+        void RES_1_b()
+        {
+            Res(1 << 1, B);
+        }
+
+        // 0x89
+        void RES_1_c()
+        {
+            Res(1 << 1, C);
+        }
+
+        void RES_1_d()
+        {
+            Res(1 << 1, D);
+        }
+
+        void RES_1_e()
+        {
+            Res(1 << 1, E);
+        }
+
+        void RES_1_h()
+        {
+            Res(1 << 1, H);
+        }
+
+        void RES_1_l()
+        {
+            Res(1 << 1, L);
+        }
+
+        void RES_1_hlp()
+        {
+            memory.WriteByte(HL, Res(1 << 1, memory.ReadByte(HL)));
+        }
+
+        //0x8F
+        void RES_1_a()
+        {
+            Res(1 << 1, A);
+        }
+
+
+        //0x90
+        void RES_2_b()
+        {
+            Res(1 << 2, B);
+        }
+
+        // 0x91
+        void RES_2_c()
+        {
+            Res(1 << 2, C);
+        }
+
+        void RES_2_d()
+        {
+            Res(1 << 2, D);
+        }
+
+        void RES_2_e()
+        {
+            Res(1 << 2, E);
+        }
+
+        void RES_2_h()
+        {
+            Res(1 << 2, H);
+        }
+
+        void RES_2_l()
+        {
+            Res(1 << 2, L);
+        }
+
+        void RES_2_hlp()
+        {
+            memory.WriteByte(HL, Res(1 << 2, memory.ReadByte(HL)));
+        }
+
+        void RES_2_a()
+        {
+            Res(1 << 2, A);
+        }
+
+        //0x98
+        void RES_3_b()
+        {
+            Res(1 << 3, B);
+        }
+
+        // 0x99
+        void RES_3_c()
+        {
+            Res(1 << 3, C);
+        }
+
+        void RES_3_d()
+        {
+            Res(1 << 3, D);
+        }
+
+        void RES_3_e()
+        {
+            Res(1 << 3, E);
+        }
+
+        void RES_3_h()
+        {
+            Res(1 << 3, H);
+        }
+
+        void RES_3_l()
+        {
+            Res(1 << 3, L);
+        }
+
+        void RES_3_hlp()
+        {
+            memory.WriteByte(HL, Res(1 << 3, memory.ReadByte(HL)));
+        }
+
+        //0x9F
+        void RES_3_a()
+        {
+            Res(1 << 3, A);
+        }
+
+        //0xA0
+        void RES_4_b()
+        {
+            Res(1 << 4, B);
+        }
+
+        // 0xA1
+        void RES_4_c()
+        {
+            Res(1 << 4, C);
+        }
+
+        void RES_4_d()
+        {
+            Res(1 << 4, D);
+        }
+
+        void RES_4_e()
+        {
+            Res(1 << 4, E);
+        }
+
+        void RES_4_h()
+        {
+            Res(1 << 4, H);
+        }
+
+        void RES_4_l()
+        {
+            Res(1 << 4, L);
+        }
+
+        void RES_4_hlp()
+        {
+            memory.WriteByte(HL, Res(1 << 4, memory.ReadByte(HL)));
+        }
+
+        void RES_4_a()
+        {
+            Res(1 << 4, A);
+        }
+
+        //0xA8
+        void RES_5_b()
+        {
+            Res(1 << 5, B);
+        }
+
+        // 0xA9
+        void RES_5_c()
+        {
+            Res(1 << 5, C);
+        }
+
+        void RES_5_d()
+        {
+            Res(1 << 5, D);
+        }
+
+        void RES_5_e()
+        {
+            Res(1 << 5, E);
+        }
+
+        void RES_5_h()
+        {
+            Res(1 << 5, H);
+        }
+
+        void RES_5_l()
+        {
+            Res(1 << 5, L);
+        }
+
+        void RES_5_hlp()
+        {
+            memory.WriteByte(HL, Res(1 << 5, memory.ReadByte(HL)));
+        }
+
+        //0x8F
+        void RES_5_a()
+        {
+            Res(1 << 5, A);
+        }
+
+        //0xB0
+        void RES_6_b()
+        {
+            Res(1 << 6, B);
+        }
+
+        // 0xB1
+        void RES_6_c()
+        {
+            Res(1 << 6, C);
+        }
+
+        void RES_6_d()
+        {
+            Res(1 << 6, D);
+        }
+
+        void RES_6_e()
+        {
+            Res(1 << 6, E);
+        }
+
+        void RES_6_h()
+        {
+            Res(1 << 6, H);
+        }
+
+        void RES_6_l()
+        {
+            Res(1 << 6, L);
+        }
+
+        void RES_6_hlp()
+        {
+            memory.WriteByte(HL, Res(1 << 6, memory.ReadByte(HL)));
+        }
+
+        void RES_6_a()
+        {
+            Res(1 << 6, A);
+        }
+
+        //0xB8
+        void RES_7_b()
+        {
+            Res(1 << 7, B);
+        }
+
+        // 0xB9
+        void RES_7_c()
+        {
+            Res(1 << 7, C);
+        }
+
+        void RES_7_d()
+        {
+            Res(1 << 7, D);
+        }
+
+        void RES_7_e()
+        {
+            Res(1 << 7, E);
+        }
+
+        void RES_7_h()
+        {
+            Res(1 << 7, H);
+        }
+
+        void RES_7_l()
+        {
+            Res(1 << 7, L);
+        }
+
+        void RES_7_hlp()
+        {
+            memory.WriteByte(HL, Res(1 << 7, memory.ReadByte(HL)));
+        }
+
+        //0xBF
+        void RES_7_a()
+        {
+            Res(1 << 7, A);
+        }
+
+        //0xC0
+        void SET_0_b()
+        {
+            Set(1 << 0, B);
+        }
+
+        // 0xC1
+        void SET_0_c()
+        {
+            Set(1 << 0, C);
+        }
+
+        void SET_0_d()
+        {
+            Set(1 << 0, D);
+        }
+
+        void SET_0_e()
+        {
+            Set(1 << 0, E);
+        }
+
+        void SET_0_h()
+        {
+            Set(1 << 0, H);
+        }
+
+        void SET_0_l()
+        {
+            Set(1 << 0, L);
+        }
+
+        void SET_0_hlp()
+        {
+            memory.WriteByte(HL, Set(1 << 0, memory.ReadByte(HL)));
+        }
+
+        void SET_0_a()
+        {
+            Set(1 << 0, A);
+        }
+
+        //0xC8
+        void SET_1_b()
+        {
+            Set(1 << 1, B);
+        }
+
+        // 0xC9
+        void SET_1_c()
+        {
+            Set(1 << 1, C);
+        }
+
+        void SET_1_d()
+        {
+            Set(1 << 1, D);
+        }
+
+        void SET_1_e()
+        {
+            Set(1 << 1, E);
+        }
+
+        void SET_1_h()
+        {
+            Set(1 << 1, H);
+        }
+
+        void SET_1_l()
+        {
+            Set(1 << 1, L);
+        }
+
+        void SET_1_hlp()
+        {
+            memory.WriteByte(HL, Set(1 << 1, memory.ReadByte(HL)));
+        }
+
+        //0xCF
+        void SET_1_a()
+        {
+            Set(1 << 1, A);
+        }
+
+        //0xD0
+        void SET_2_b()
+        {
+            Set(1 << 2, B);
+        }
+
+        // 0xD1
+        void SET_2_c()
+        {
+            Set(1 << 2, C);
+        }
+
+        void SET_2_d()
+        {
+            Set(1 << 2, D);
+        }
+
+        void SET_2_e()
+        {
+            Set(1 << 2, E);
+        }
+
+        void SET_2_h()
+        {
+            Set(1 << 2, H);
+        }
+
+        void SET_2_l()
+        {
+            Set(1 << 2, L);
+        }
+
+        void SET_2_hlp()
+        {
+            memory.WriteByte(HL, Set(1 << 2, memory.ReadByte(HL)));
+        }
+
+        void SET_2_a()
+        {
+            Set(1 << 2, A);
+        }
+
+        //0xD8
+        void SET_3_b()
+        {
+            Set(1 << 3, B);
+        }
+
+        // 0xD9
+        void SET_3_c()
+        {
+            Set(1 << 3, C);
+        }
+
+        void SET_3_d()
+        {
+            Set(1 << 3, D);
+        }
+
+        void SET_3_e()
+        {
+            Set(1 << 3, E);
+        }
+
+        void SET_3_h()
+        {
+            Set(1 << 3, H);
+        }
+
+        void SET_3_l()
+        {
+            Set(1 << 3, L);
+        }
+
+        void SET_3_hlp()
+        {
+            memory.WriteByte(HL, Set(1 << 3, memory.ReadByte(HL)));
+        }
+
+        //0xDF
+        void SET_3_a()
+        {
+            Set(1 << 3, A);
+        }
+
+        //0xE0
+        void SET_4_b()
+        {
+            Set(1 << 4, B);
+        }
+
+        // 0xE1
+        void SET_4_c()
+        {
+            Set(1 << 4, C);
+        }
+
+        void SET_4_d()
+        {
+            Set(1 << 4, D);
+        }
+
+        void SET_4_e()
+        {
+            Set(1 << 4, E);
+        }
+
+        void SET_4_h()
+        {
+            Set(1 << 4, H);
+        }
+
+        void SET_4_l()
+        {
+            Set(1 << 4, L);
+        }
+
+        void SET_4_hlp()
+        {
+            memory.WriteByte(HL, Set(1 << 4, memory.ReadByte(HL)));
+        }
+
+        void SET_4_a()
+        {
+            Set(1 << 4, A);
+        }
+
+        //0xE8
+        void SET_5_b()
+        {
+            Set(1 << 5, B);
+        }
+
+        // 0xE9
+        void SET_5_c()
+        {
+            Set(1 << 5, C);
+        }
+
+        void SET_5_d()
+        {
+            Set(1 << 5, D);
+        }
+
+        void SET_5_e()
+        {
+            Set(1 << 5, E);
+        }
+
+        void SET_5_h()
+        {
+            Set(1 << 5, H);
+        }
+
+        void SET_5_l()
+        {
+            Set(1 << 5, L);
+        }
+
+        void SET_5_hlp()
+        {
+            memory.WriteByte(HL, Set(1 << 5, memory.ReadByte(HL)));
+        }
+
+        //0xEF
+        void SET_5_a()
+        {
+            Set(1 << 5, A);
+        }
+
+        //0xF0
+        void SET_6_b()
+        {
+            Set(1 << 6, B);
+        }
+
+        // 0xF1
+        void SET_6_c()
+        {
+            Set(1 << 6, C);
+        }
+
+        void SET_6_d()
+        {
+            Set(1 << 6, D);
+        }
+
+        void SET_6_e()
+        {
+            Set(1 << 6, E);
+        }
+
+        void SET_6_h()
+        {
+            Set(1 << 6, H);
+        }
+
+        void SET_6_l()
+        {
+            Set(1 << 6, L);
+        }
+
+        void SET_6_hlp()
+        {
+            memory.WriteByte(HL, Set(1 << 6, memory.ReadByte(HL)));
+        }
+
+        void SET_6_a()
+        {
+            Set(1 << 6, A);
+        }
+
+        //0xF8
+        void SET_7_b()
+        {
+            Set(1 << 7, B);
+        }
+
+        // 0xF9
+        void SET_7_c()
+        {
+            Set(1 << 7, C);
+        }
+
+        void SET_7_d()
+        {
+            Set(1 << 7, D);
+        }
+
+        void SET_7_e()
+        {
+            Set(1 << 7, E);
+        }
+
+        void SET_7_h()
+        {
+            Set(1 << 7, H);
+        }
+
+        void SET_7_l()
+        {
+            Set(1 << 7, L);
+        }
+
+        void SET_7_hlp()
+        {
+            memory.WriteByte(HL, Set(1 << 7, memory.ReadByte(HL)));
+        }
+
+        //0xFF
+        void SET_7_a()
+        {
+            Set(1 << 7, A);
+        }
+
+
+
+
     }
 }

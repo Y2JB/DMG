@@ -122,6 +122,11 @@ namespace DMG
             else operandValue = memory.ReadShort((ushort) (PC + 1));
             
             NextInstruction.Operand = operandValue;
+
+            if (opCode == 0xCB && extendedInstructions[operandValue] != null)
+            {
+                NextInstruction.extendedInstruction = extendedInstructions[operandValue].DeepCopy();
+            }
         }
 
 
@@ -725,6 +730,155 @@ namespace DMG
             extendedInstructions[0x7D] = new ExtendedInstruction("BIT 7 l", 0x7D, () => this.BIT_7_l());
             extendedInstructions[0x7E] = new ExtendedInstruction("BIT 7 $(HL)", 0x7E, () => this.BIT_7_hlp());
             extendedInstructions[0x7F] = new ExtendedInstruction("BIT 7 a", 0x7F, () => this.BIT_7_a());
+
+
+            extendedInstructions[0x80] = new ExtendedInstruction("RES 0 b", 0x80, () => this.RES_0_b());
+            extendedInstructions[0x81] = new ExtendedInstruction("RES 0 c", 0x81, () => this.RES_0_c());
+            extendedInstructions[0x82] = new ExtendedInstruction("RES 0 d", 0x82, () => this.RES_0_d());
+            extendedInstructions[0x83] = new ExtendedInstruction("RES 0 e", 0x83, () => this.RES_0_e());
+            extendedInstructions[0x84] = new ExtendedInstruction("RES 0 h", 0x84, () => this.RES_0_h());
+            extendedInstructions[0x85] = new ExtendedInstruction("RES 0 l", 0x85, () => this.RES_0_l());
+            extendedInstructions[0x86] = new ExtendedInstruction("RES 0 $(HL)", 0x86, () => this.RES_0_hlp());
+            extendedInstructions[0x87] = new ExtendedInstruction("RES 0 a", 0x87, () => this.RES_0_a());
+
+            extendedInstructions[0x88] = new ExtendedInstruction("RES 1 b", 0x88, () => this.RES_1_b());
+            extendedInstructions[0x89] = new ExtendedInstruction("RES 1 c", 0x89, () => this.RES_1_c());
+            extendedInstructions[0x8A] = new ExtendedInstruction("RES 1 d", 0x8A, () => this.RES_1_d());
+            extendedInstructions[0x8B] = new ExtendedInstruction("RES 1 e", 0x8B, () => this.RES_1_e());
+            extendedInstructions[0x8C] = new ExtendedInstruction("RES 1 h", 0x8C, () => this.RES_1_h());
+            extendedInstructions[0x8D] = new ExtendedInstruction("RES 1 l", 0x8D, () => this.RES_1_l());
+            extendedInstructions[0x8E] = new ExtendedInstruction("RES 1 $(HL)", 0x8E, () => this.RES_1_hlp());
+            extendedInstructions[0x8F] = new ExtendedInstruction("RES 1 a", 0x8F, () => this.RES_1_a());
+
+            extendedInstructions[0x90] = new ExtendedInstruction("RES 2 b", 0x90, () => this.RES_2_b());
+            extendedInstructions[0x91] = new ExtendedInstruction("RES 2 c", 0x91, () => this.RES_2_c());
+            extendedInstructions[0x92] = new ExtendedInstruction("RES 2 d", 0x92, () => this.RES_2_d());
+            extendedInstructions[0x93] = new ExtendedInstruction("RES 2 e", 0x93, () => this.RES_2_e());
+            extendedInstructions[0x94] = new ExtendedInstruction("RES 2 h", 0x94, () => this.RES_2_h());
+            extendedInstructions[0x95] = new ExtendedInstruction("RES 2 l", 0x95, () => this.RES_2_l());
+            extendedInstructions[0x96] = new ExtendedInstruction("RES 2 $(HL)", 0x96, () => this.RES_2_hlp());
+            extendedInstructions[0x97] = new ExtendedInstruction("RES 2 a", 0x97, () => this.RES_2_a());
+
+            extendedInstructions[0x98] = new ExtendedInstruction("RES 3 b", 0x98, () => this.RES_3_b());
+            extendedInstructions[0x99] = new ExtendedInstruction("RES 3 c", 0x99, () => this.RES_3_c());
+            extendedInstructions[0x9A] = new ExtendedInstruction("RES 3 d", 0x9A, () => this.RES_3_d());
+            extendedInstructions[0x9B] = new ExtendedInstruction("RES 3 e", 0x9B, () => this.RES_3_e());
+            extendedInstructions[0x9C] = new ExtendedInstruction("RES 3 h", 0x9C, () => this.RES_3_h());
+            extendedInstructions[0x9D] = new ExtendedInstruction("RES 3 l", 0x9D, () => this.RES_3_l());
+            extendedInstructions[0x9E] = new ExtendedInstruction("RES 3 $(HL)", 0x9E, () => this.RES_3_hlp());
+            extendedInstructions[0x9F] = new ExtendedInstruction("RES 3 a", 0x9F, () => this.RES_3_a());
+
+            extendedInstructions[0xA0] = new ExtendedInstruction("RES 4 b", 0xA0, () => this.RES_4_b());
+            extendedInstructions[0xA1] = new ExtendedInstruction("RES 4 c", 0xA1, () => this.RES_4_c());
+            extendedInstructions[0xA2] = new ExtendedInstruction("RES 4 d", 0xA2, () => this.RES_4_d());
+            extendedInstructions[0xA3] = new ExtendedInstruction("RES 4 e", 0xA3, () => this.RES_4_e());
+            extendedInstructions[0xA4] = new ExtendedInstruction("RES 4 h", 0xA4, () => this.RES_4_h());
+            extendedInstructions[0xA5] = new ExtendedInstruction("RES 4 l", 0xA5, () => this.RES_4_l());
+            extendedInstructions[0xA6] = new ExtendedInstruction("RES 4 $(HL)", 0xA6, () => this.RES_4_hlp());
+            extendedInstructions[0xA7] = new ExtendedInstruction("RES 4 a", 0xA7, () => this.RES_4_a());
+
+            extendedInstructions[0xA8] = new ExtendedInstruction("RES 5 b", 0xA8, () => this.RES_5_b());
+            extendedInstructions[0xA9] = new ExtendedInstruction("RES 5 c", 0xA9, () => this.RES_5_c());
+            extendedInstructions[0xAA] = new ExtendedInstruction("RES 5 d", 0xAA, () => this.RES_5_d());
+            extendedInstructions[0xAB] = new ExtendedInstruction("RES 5 e", 0xAB, () => this.RES_5_e());
+            extendedInstructions[0xAC] = new ExtendedInstruction("RES 5 h", 0xAC, () => this.RES_5_h());
+            extendedInstructions[0xAD] = new ExtendedInstruction("RES 5 l", 0xAD, () => this.RES_5_l());
+            extendedInstructions[0xAE] = new ExtendedInstruction("RES 5 $(HL)", 0xAE, () => this.RES_5_hlp());
+            extendedInstructions[0xAF] = new ExtendedInstruction("RES 5 a", 0xAF, () => this.RES_5_a());
+
+            extendedInstructions[0xB0] = new ExtendedInstruction("RES 6 b", 0xB0, () => this.RES_6_b());
+            extendedInstructions[0xB1] = new ExtendedInstruction("RES 6 c", 0xB1, () => this.RES_6_c());
+            extendedInstructions[0xB2] = new ExtendedInstruction("RES 6 d", 0xB2, () => this.RES_6_d());
+            extendedInstructions[0xB3] = new ExtendedInstruction("RES 6 e", 0xB3, () => this.RES_6_e());
+            extendedInstructions[0xB4] = new ExtendedInstruction("RES 6 h", 0xB4, () => this.RES_6_h());
+            extendedInstructions[0xB5] = new ExtendedInstruction("RES 6 l", 0xB5, () => this.RES_6_l());
+            extendedInstructions[0xB6] = new ExtendedInstruction("RES 6 $(HL)", 0xB6, () => this.RES_6_hlp());
+            extendedInstructions[0xB7] = new ExtendedInstruction("RES 6 a", 0xB7, () => this.RES_6_a());
+
+            extendedInstructions[0xB8] = new ExtendedInstruction("RES 7 b", 0xB8, () => this.RES_7_b());
+            extendedInstructions[0xB9] = new ExtendedInstruction("RES 7 c", 0xB9, () => this.RES_7_c());
+            extendedInstructions[0xBA] = new ExtendedInstruction("RES 7 d", 0xBA, () => this.RES_7_d());
+            extendedInstructions[0xBB] = new ExtendedInstruction("RES 7 e", 0xBB, () => this.RES_7_e());
+            extendedInstructions[0xBC] = new ExtendedInstruction("RES 7 h", 0xBC, () => this.RES_7_h());
+            extendedInstructions[0xBD] = new ExtendedInstruction("RES 7 l", 0xBD, () => this.RES_7_l());
+            extendedInstructions[0xBE] = new ExtendedInstruction("RES 7 $(HL)", 0xBE, () => this.RES_7_hlp());
+            extendedInstructions[0xBF] = new ExtendedInstruction("RES 7 a", 0xBF, () => this.RES_7_a());
+
+
+
+            extendedInstructions[0xC0] = new ExtendedInstruction("SET 0 b", 0xC0, () => this.SET_0_b());
+            extendedInstructions[0xC1] = new ExtendedInstruction("SET 0 c", 0xC1, () => this.SET_0_c());
+            extendedInstructions[0xC2] = new ExtendedInstruction("SET 0 d", 0xC2, () => this.SET_0_d());
+            extendedInstructions[0xC3] = new ExtendedInstruction("SET 0 e", 0xC3, () => this.SET_0_e());
+            extendedInstructions[0xC4] = new ExtendedInstruction("SET 0 h", 0xC4, () => this.SET_0_h());
+            extendedInstructions[0xC5] = new ExtendedInstruction("SET 0 l", 0xC5, () => this.SET_0_l());
+            extendedInstructions[0xC6] = new ExtendedInstruction("SET 0 $(HL)", 0xC6, () => this.SET_0_hlp());
+            extendedInstructions[0xC7] = new ExtendedInstruction("SET 0 a", 0xC7, () => this.SET_0_a());
+
+            extendedInstructions[0xC8] = new ExtendedInstruction("SET 1 b", 0xC8, () => this.SET_1_b());
+            extendedInstructions[0xC9] = new ExtendedInstruction("SET 1 c", 0xC9, () => this.SET_1_c());
+            extendedInstructions[0xCA] = new ExtendedInstruction("SET 1 d", 0xCA, () => this.SET_1_d());
+            extendedInstructions[0xCB] = new ExtendedInstruction("SET 1 e", 0xCB, () => this.SET_1_e());
+            extendedInstructions[0xCC] = new ExtendedInstruction("SET 1 h", 0xCC, () => this.SET_1_h());
+            extendedInstructions[0xCD] = new ExtendedInstruction("SET 1 l", 0xCD, () => this.SET_1_l());
+            extendedInstructions[0xCE] = new ExtendedInstruction("SET 1 $(HL)", 0xCE, () => this.SET_1_hlp());
+            extendedInstructions[0xCF] = new ExtendedInstruction("SET 1 a", 0xCF, () => this.SET_1_a());
+
+            extendedInstructions[0xD0] = new ExtendedInstruction("SET 2 b", 0xD0, () => this.SET_2_b());
+            extendedInstructions[0xD1] = new ExtendedInstruction("SET 2 c", 0xD1, () => this.SET_2_c());
+            extendedInstructions[0xD2] = new ExtendedInstruction("SET 2 d", 0xD2, () => this.SET_2_d());
+            extendedInstructions[0xD3] = new ExtendedInstruction("SET 2 e", 0xD3, () => this.SET_2_e());
+            extendedInstructions[0xD4] = new ExtendedInstruction("SET 2 h", 0xD4, () => this.SET_2_h());
+            extendedInstructions[0xD5] = new ExtendedInstruction("SET 2 l", 0xD5, () => this.SET_2_l());
+            extendedInstructions[0xD6] = new ExtendedInstruction("SET 2 $(HL)", 0xD6, () => this.SET_2_hlp());
+            extendedInstructions[0xD7] = new ExtendedInstruction("SET 2 a", 0xD7, () => this.SET_2_a());
+
+            extendedInstructions[0xD8] = new ExtendedInstruction("SET 3 b", 0xD8, () => this.SET_3_b());
+            extendedInstructions[0xD9] = new ExtendedInstruction("SET 3 c", 0xD9, () => this.SET_3_c());
+            extendedInstructions[0xDA] = new ExtendedInstruction("SET 3 d", 0xDA, () => this.SET_3_d());
+            extendedInstructions[0xDB] = new ExtendedInstruction("SET 3 e", 0xDB, () => this.SET_3_e());
+            extendedInstructions[0xDC] = new ExtendedInstruction("SET 3 h", 0xDC, () => this.SET_3_h());
+            extendedInstructions[0xDD] = new ExtendedInstruction("SET 3 l", 0xDD, () => this.SET_3_l());
+            extendedInstructions[0xDE] = new ExtendedInstruction("SET 3 $(HL)", 0xDE, () => this.SET_3_hlp());
+            extendedInstructions[0xDF] = new ExtendedInstruction("SET 3 a", 0xDF, () => this.SET_3_a());
+
+            extendedInstructions[0xE0] = new ExtendedInstruction("SET 4 b", 0xE0, () => this.SET_4_b());
+            extendedInstructions[0xE1] = new ExtendedInstruction("SET 4 c", 0xE1, () => this.SET_4_c());
+            extendedInstructions[0xE2] = new ExtendedInstruction("SET 4 d", 0xE2, () => this.SET_4_d());
+            extendedInstructions[0xE3] = new ExtendedInstruction("SET 4 e", 0xE3, () => this.SET_4_e());
+            extendedInstructions[0xE4] = new ExtendedInstruction("SET 4 h", 0xE4, () => this.SET_4_h());
+            extendedInstructions[0xE5] = new ExtendedInstruction("SET 4 l", 0xE5, () => this.SET_4_l());
+            extendedInstructions[0xE6] = new ExtendedInstruction("SET 4 $(HL)", 0xE6, () => this.SET_4_hlp());
+            extendedInstructions[0xE7] = new ExtendedInstruction("SET 4 a", 0xE7, () => this.SET_4_a());
+
+            extendedInstructions[0xE8] = new ExtendedInstruction("SET 5 b", 0xE8, () => this.SET_5_b());
+            extendedInstructions[0xE9] = new ExtendedInstruction("SET 5 c", 0xE9, () => this.SET_5_c());
+            extendedInstructions[0xEA] = new ExtendedInstruction("SET 5 d", 0xEA, () => this.SET_5_d());
+            extendedInstructions[0xEB] = new ExtendedInstruction("SET 5 e", 0xEB, () => this.SET_5_e());
+            extendedInstructions[0xEC] = new ExtendedInstruction("SET 5 h", 0xEC, () => this.SET_5_h());
+            extendedInstructions[0xED] = new ExtendedInstruction("SET 5 l", 0xED, () => this.SET_5_l());
+            extendedInstructions[0xEE] = new ExtendedInstruction("SET 5 $(HL)", 0xEE, () => this.SET_5_hlp());
+            extendedInstructions[0xEF] = new ExtendedInstruction("SET 5 a", 0xEF, () => this.SET_5_a());
+
+            extendedInstructions[0xF0] = new ExtendedInstruction("SET 6 b", 0xF0, () => this.SET_6_b());
+            extendedInstructions[0xF1] = new ExtendedInstruction("SET 6 c", 0xF1, () => this.SET_6_c());
+            extendedInstructions[0xF2] = new ExtendedInstruction("SET 6 d", 0xF2, () => this.SET_6_d());
+            extendedInstructions[0xF3] = new ExtendedInstruction("SET 6 e", 0xF3, () => this.SET_6_e());
+            extendedInstructions[0xF4] = new ExtendedInstruction("SET 6 h", 0xF4, () => this.SET_6_h());
+            extendedInstructions[0xF5] = new ExtendedInstruction("SET 6 l", 0xF5, () => this.SET_6_l());
+            extendedInstructions[0xF6] = new ExtendedInstruction("SET 6 $(HL)", 0xF6, () => this.SET_6_hlp());
+            extendedInstructions[0xF7] = new ExtendedInstruction("SET 6 a", 0xF7, () => this.SET_6_a());
+
+            extendedInstructions[0xF8] = new ExtendedInstruction("SET 7 b", 0xF8, () => this.SET_7_b());
+            extendedInstructions[0xF9] = new ExtendedInstruction("SET 7 c", 0xF9, () => this.SET_7_c());
+            extendedInstructions[0xFA] = new ExtendedInstruction("SET 7 d", 0xFA, () => this.SET_7_d());
+            extendedInstructions[0xFB] = new ExtendedInstruction("SET 7 e", 0xFB, () => this.SET_7_e());
+            extendedInstructions[0xFC] = new ExtendedInstruction("SET 7 h", 0xFC, () => this.SET_7_h());
+            extendedInstructions[0xFD] = new ExtendedInstruction("SET 7 l", 0xFD, () => this.SET_7_l());
+            extendedInstructions[0xFE] = new ExtendedInstruction("SET 7 $(HL)", 0xFE, () => this.SET_7_hlp());
+            extendedInstructions[0xFF] = new ExtendedInstruction("SET 7 a", 0xFF, () => this.SET_7_a());
+
+
 
 
             // Check we don't have repeat id's (we made a type in the table above)

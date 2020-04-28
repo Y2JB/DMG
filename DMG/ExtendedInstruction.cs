@@ -13,5 +13,10 @@ namespace DMG
             OpCode = opCode;
             Handler = handler;
         }
+
+        public ExtendedInstruction DeepCopy()
+        {
+            return new ExtendedInstruction(this.Name, this.OpCode, null);           
+        }
     }
 }
