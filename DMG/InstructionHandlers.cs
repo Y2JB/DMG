@@ -80,7 +80,6 @@ namespace DMG
             ClearAllFlags();
 
             if (A == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
 
             if ((carrybits & 0x100) != 0)
             {
@@ -126,7 +125,9 @@ namespace DMG
             int carry = CarryFlag ? 1 : 0;
             int result = A + value + carry;
             ClearAllFlags();
-            if (result == 0) SetFlag(Flags.Zero);
+
+            // Note that result must be cast to a byte to do the zero check!
+            if ((byte) (result) == 0) SetFlag(Flags.Zero);
 
             if (result > 0xFF)
             {
@@ -209,7 +210,8 @@ namespace DMG
             ClearAllFlags();
             SetFlag(Flags.Negative);
 
-            if (result == 0) SetFlag(Flags.Zero);
+            // Note that result must be cast to a byte to do the zero check!
+            if ((byte) (result) == 0) SetFlag(Flags.Zero);
 
             if (result < 0) SetFlag(Flags.Carry);
             
@@ -368,7 +370,9 @@ namespace DMG
         // 0x10
         void STOP()
         {
-            IsHalted = true;
+            // Halt CPU & LCD display until button pressed.
+
+            //IsStopped = true;
         }
 
         // 0x11
@@ -1105,6 +1109,7 @@ namespace DMG
         // 0x76
         void HALT()
         {
+            // This halts until an interupt occurs, it is not the same as stop.
             throw new NotImplementedException();
         }
 
@@ -1874,6 +1879,22 @@ namespace DMG
             PC = 0x0020;
         }
 
+        // 0xE6
+        void ADD_sp_n(sbyte n)
+        {
+            int result = SP + n;
+            ClearAllFlags();
+            if (((SP ^ n ^ (result & 0xFFFF)) & 0x100) == 0x100)
+            {
+                SetFlag(Flags.Carry);
+            }
+            if (((SP ^ n ^ (result & 0xFFFF)) & 0x10) == 0x10)
+            {
+                SetFlag(Flags.HalfCarry);
+            }
+            SP = (ushort) result;
+        }
+
         // 0xE9
         // **** The documentation looks like this should jump to what HL points at but then it contradicts itself in the description ****
         // **** If this becomes problematic, check this! ****
@@ -1929,6 +1950,12 @@ namespace DMG
             StackPush(AF);
         }
 
+        // 0xF6
+        void OR_n(byte n)
+        {
+            Or(n);
+        }
+
         // 0xF7
         void RST_30()
         {
@@ -1939,6 +1966,7 @@ namespace DMG
         // 0xF8
         void LDH_hl_sp_n(sbyte n)
         {
+            /*
             int result = SP + n;
 
             if ((result & 0xFFFF0000) != 0) SetFlag(Flags.Carry);
@@ -1951,6 +1979,17 @@ namespace DMG
             ClearFlag(Flags.Negative);
 
             HL = (ushort)(result & 0xFFFF);
+            */
+
+
+            // LD HL,SP+n
+            ushort result = (ushort) (SP + n);
+            ClearAllFlags();
+            if (((SP ^ n ^ result) & 0x100) == 0x100)
+                SetFlag(Flags.Carry);
+            if (((SP ^ n ^ result) & 0x10) == 0x10)
+                SetFlag(Flags.HalfCarry);
+            HL = result;           
         }
 
         // 0xF9
@@ -1968,6 +2007,9 @@ namespace DMG
         // 0xFB
         void EI()
         {
+            // TODO THIS IS WRONG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            // IME should happen AFTER THE NEXT INSTRUCTION I@VE JUST LEFT THIS FOR NOW
+
             interupts.InteruptsMasterEnable = true;
         }
 

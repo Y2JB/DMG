@@ -56,7 +56,7 @@ namespace DMG
 			if (address <= 0xFF)
 			{
 				// When the system boots, the bootrom (scrolling Nintendo logo) is executed starting from address 0.
-				// Bootrom is 256 bytes. At the end of the boot sequence, it writ4es to a special register to disable the boot rom page and
+				// Bootrom is 256 bytes. At the end of the boot sequence, it writes to a special register to disable the boot rom page and
 				// this makes the first 256 bytes of the cart rom readable
 				if (bootRomMask == 0)
 				{
@@ -112,7 +112,7 @@ namespace DMG
 			}
 			else if (address == 0xFFFF)
 			{
-				return interupts.InteruptEnable;
+				return interupts.InteruptEnableRegister;
 			}
 			else if (address >= 0xFF80 && address <= 0xFFFE)
 			{
@@ -213,7 +213,10 @@ namespace DMG
 				// TODO: model that CPU cannot access vram during Pixel Transfer and if it does it gets 0xFF
 
 				// TODO: model that CPU cannot access OAM during OAM Search or Pixel Transfer and if it does it gets 0xFF
-
+				if(address == 0x9800 + (0x1D * 16))
+				{
+					int foo = 0;
+				}	
 				VRam[address - 0x8000] = value;
 
 				// Whenever we write to a tile in vram, update the rendering data. (Remember tile maps start at 0x9800)
@@ -262,7 +265,7 @@ namespace DMG
 			}
 			else if (address == 0xFFFF)
 			{
-				interupts.InteruptEnable = value;
+				interupts.InteruptEnableRegister = value;
 			}
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{

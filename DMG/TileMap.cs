@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+
 namespace DMG
 {
     public class TileMap
@@ -56,5 +58,26 @@ namespace DMG
 
             return gpu.GetTileByVRamAdrress(vramPointer);
         }
+
+        public void DumpTileMap()
+        {
+            string fn = String.Format("tilemap{0:x}.txt", vramOffset);
+            using (FileStream fs = File.Open("../../../../dump/" + fn, FileMode.Create))
+            {
+                using (StreamWriter sw = new StreamWriter(fs))
+                {
+                    for (int y = 0; y < 32; y++)
+                    {
+                        for (int x = 0; x < 32; x++)
+                        {
+                            string tileIndex = string.Format("0x{0:X2} ", memory.ReadByte((ushort)(vramOffset + (y * 32) + x)));
+                            sw.Write(tileIndex);
+                        }
+                        sw.Write(Environment.NewLine);
+                    }
+                }
+            }
+        }
+
     }
 }

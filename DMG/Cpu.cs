@@ -66,7 +66,7 @@ namespace DMG
             Carry = 1 << 4,
         }
 
-        public bool IsHalted { get; set; }
+        public bool IsStopped { get; set; }
 
 
         IMemoryReaderWriter memory;
@@ -75,7 +75,6 @@ namespace DMG
         ExtendedInstruction[] extendedInstructions = new ExtendedInstruction[256];
 
         Interupts interupts;
-
 
 
         public Cpu(IMemoryReaderWriter memory, Interupts interupts)
@@ -308,7 +307,7 @@ namespace DMG
             instructions[0x0D] = new Instruction("DEC c", 0x0D, 0, (v) => this.DEC_c());
             instructions[0x0E] = new Instruction("LD c n", 0x0E, 1, (v) => this.LD_c_n((byte)v));
             instructions[0x0F] = new Instruction("RRCA", 0x0F, 0, (v) => this.RRCA());
-            instructions[0x10] = new Instruction("STOP", 0x10, 0, (v) => this.STOP());
+            instructions[0x10] = new Instruction("STOP", 0x10, 1, (v) => this.STOP());
             instructions[0x11] = new Instruction("LD DE nn", 0x11, 2, (v) => this.LD_de_nn(v));
             instructions[0x12] = new Instruction("LD (de) a", 0x12, 0, (v) => this.LD_dep_a());
             instructions[0x13] = new Instruction("INC de", 0x13, 0, (v) => this.INC_de());
@@ -540,6 +539,7 @@ namespace DMG
             instructions[0xE5] = new Instruction("PUSH hl", 0xE5, 0, (v) => this.PUSH_hl());
             instructions[0xE6] = new Instruction("AND n", 0xE6, 1, (v) => this.AND_n((byte)v));
             instructions[0xE7] = new Instruction("RST 20", 0xE7, 0, (v) => this.RST_20());
+            instructions[0xE8] = new Instruction("ADD SP n", 0xE8, 1, (v) => this.ADD_sp_n((sbyte) v));
             instructions[0xE9] = new Instruction("JP hl", 0xE9, 0, (v) => this.JP_hl());
             instructions[0xEA] = new Instruction("LD nn a", 0xEA, 2, (v) => this.LD_nnp_a(v));
             instructions[0xEE] = new Instruction("XOR n", 0xEE, 1, (v) => this.XOR_n((byte) v));
@@ -549,6 +549,7 @@ namespace DMG
             instructions[0xF1] = new Instruction("POP af", 0xF1, 0, (v) => this.POP_af());
             instructions[0xF3] = new Instruction("DI", 0xF3, 0, (v) => this.DI());
             instructions[0xF5] = new Instruction("PUSH af", 0xF5, 0, (v) => this.PUSH_af());
+            instructions[0xF6] = new Instruction("OR n", 0xF6, 1, (v) => this.OR_n((byte) v));
             instructions[0xF7] = new Instruction("RST 30", 0xF7, 0, (v) => this.RST_30());
             instructions[0xF8] = new Instruction("LDHL hl (sp + n)", 0xF8, 1, (v) => this.LDH_hl_sp_n((sbyte) v));
             instructions[0xF9] = new Instruction("LDHL sp hl", 0xF9, 0, (v) => this.LD_sp_hl());

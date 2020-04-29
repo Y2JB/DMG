@@ -45,6 +45,7 @@ namespace WinFormsDmg
             breakpoint,
             delete,
             dumptiles,                      // param = fn else dumpttiles.txt
+            dumptilemaps,
             dumpmemory,                     // Dumps a text file containing hex for 8K. EG: 10 2A FF ...
             loadmemory,                     // param must be a text file containing hex for 8K. EG: 10 2A FF ...
             loadregisters,
@@ -102,7 +103,13 @@ namespace WinFormsDmg
             this.Controls.Add(commandInput);
             commandInput.Focus();
 
-            //breakpoints.Add(0xC681);
+            breakpoints.Add(0x100);
+            breakpoints.Add(0xC00A);
+            //breakpoints.Add(0xC00C);
+           // breakpoints.Add(0xC63F);
+
+            //breakpoints.Add(0xC4e6);
+
             //breakpoints.Add(0xC67C);
 
             //breakpoints.Add(0xC6A8);
@@ -189,8 +196,17 @@ namespace WinFormsDmg
                 case ConsoleCommand.dumptiles:
                     dmg.DumpTileSet();
                     return true;
-                   
+
+                case ConsoleCommand.dumptilemaps:
+                    dmg.gpu.TileMaps[0].DumpTileMap();
+                    dmg.gpu.TileMaps[1].DumpTileMap();
+                    return true;
+
                 case ConsoleCommand.exit:
+                    dmg.DumpTty();
+                    dmg.DumpTileSet();
+                    dmg.gpu.TileMaps[0].DumpTileMap();
+                    dmg.gpu.TileMaps[1].DumpTileMap();
                     Application.Exit();
                     return true;
 
@@ -411,16 +427,22 @@ namespace WinFormsDmg
 
         void RefreshDmgSnapshot()
         {
-            if (dmg.cpu.IsHalted)
+            /*
+            if (dmg.cpu.IsStopped)
             {
-                dmgSnapshot.Text = "HALTED";
+                dmgSnapshot.Text = "STOPPED - PC = " + dmg.cpu.PC.ToString(); ;
             }
 
             else
+            */
             {
                 dmgSnapshot.Text = dmg.cpu.ToString();
                 dmgSnapshot.AppendText(Environment.NewLine);
                 dmgSnapshot.AppendText(dmg.cpu.NextInstruction.ToString());
+
+                dmgSnapshot.AppendText(Environment.NewLine);
+                dmgSnapshot.AppendText(String.Format("ScrollX {0} ScrollY {1}", dmg.gpu.MemoryRegisters.BgScrollX, dmg.gpu.MemoryRegisters.BgScrollY));
+
             }         
         }
 
