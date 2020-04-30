@@ -33,7 +33,7 @@ namespace DMG
         public void PowerOn()
         {
             bootstrapRom = new BootRom("../../../../DMG.bin");
-            //rom = new Rom("../../../../roms/tetris.gb");
+            rom = new Rom("../../../../roms/tetris.gb");
             //rom = new Rom("../../../../roms/Tetris (World).gb");
 
             //rom = new Rom("../../../../cpu_instrs.gb");
@@ -45,15 +45,18 @@ namespace DMG
             //rom = new Rom("../../../../roms/04-op r,imm.gb");                 // passes
             //rom = new Rom("../../../../roms/05-op rp.gb");                    // passes
             //rom = new Rom("../../../../roms/06-ld r,r.gb");                   // passes
-            rom = new Rom("../../../../roms/07-jr,jp,call,ret,rst.gb");       // fails
-            //rom = new Rom("../../../../roms/08-misc instrs.gb");
-            //rom = new Rom("../../../../roms/09-op r,r.gb");                   // big fail
+            //rom = new Rom("../../../../roms/07-jr,jp,call,ret,rst.gb");       // passes
+            //rom = new Rom("../../../../roms/08-misc instrs.gb");                // passes
+
+            // Fails at 0xC9FB reading current scanline from 0xFF44
+            //rom = new Rom("../../../../roms/09-op r,r.gb");                     // fail
+            
             //rom = new Rom("../../../../roms/10-bit ops.gb");                  // big fail
             //rom = new Rom("../../../../roms/11-op a,(hl).gb");                  // fail
 
             //rom = new Rom("../../../../roms/bits_bank1.gb");
 
-            interupts = new Interupts();
+            interupts = new Interupts(this);
             gpu = new Gpu(this);
             memory = new Memory(this);
             cpu = new Cpu(memory, interupts);
@@ -64,6 +67,7 @@ namespace DMG
 
             cpu.Reset();
             gpu.Reset();
+            interupts.Reset();
 
             // Peek the first instruction (done this way so we can always see the next instruction)
             cpu.PeekNextInstruction();
@@ -239,7 +243,7 @@ namespace DMG
                 tiles[i].Parse(memory.VRam);
 
                 // 16 bytes per tile
-                //offset += 16;
+                //offset += 16;            
 
                 // Add one tiles pixels
                 for (int y = 0; y < 8; y++)

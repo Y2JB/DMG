@@ -103,22 +103,9 @@ namespace WinFormsDmg
             this.Controls.Add(commandInput);
             commandInput.Focus();
 
-            breakpoints.Add(0x100);
-            breakpoints.Add(0xC00A);
-            //breakpoints.Add(0xC00C);
-           // breakpoints.Add(0xC63F);
+            //breakpoints.Add(0x100);
+            //breakpoints.Add(0xC097);
 
-            //breakpoints.Add(0xC4e6);
-
-            //breakpoints.Add(0xC67C);
-
-            //breakpoints.Add(0xC6A8);
-            //breakpoints.Add(0xC6A9);
-            //breakpoints.Add(0xC6AA);
-            //breakpoints.Add(0xC6AB);
-
-
-            //breakpoints.Add(0xdef9);
 
             BreakpointStepAvailable = false;
 

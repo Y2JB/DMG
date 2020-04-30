@@ -85,6 +85,18 @@ namespace DMG
 			{
 				return VRam[address - 0x8000];
 			}
+			else if(address == 0xFF00)
+			{
+				// joypad
+				return 0xFF;
+			}
+			// Should return a div timer, but a random number works just as well for Tetris         XXXXXXX!!!!!!!!XXXXXXXX
+			else if (address == 0xff04)
+			{
+				//byte[] bb = new byte[1];
+				//rnd.NextBytes(bb);
+				//return bb[0];
+			}
 			else if (address == 0xFF40)
 			{
 				return gpu.MemoryRegisters.LCDC.Register;
@@ -140,14 +152,7 @@ namespace DMG
 			else if (address >= 0xFE00 && address <= 0xFEFF)
 				return 0; // oam[address - 0xfe00];
 
-			// Should return a div timer, but a random number works just as well for Tetris         XXXXXXX!!!!!!!!XXXXXXXX
-			else if (address == 0xff04)
-			{
-				byte[] bb = new byte[1];
-				rnd.NextBytes(bb);
-				return bb[0];
-
-			}
+			
 
 
 			//else if (address == 0xff40) return gpu.control;
@@ -211,12 +216,8 @@ namespace DMG
 			else if (address >= 0x8000 && address <= 0x9fff)
 			{
 				// TODO: model that CPU cannot access vram during Pixel Transfer and if it does it gets 0xFF
-
 				// TODO: model that CPU cannot access OAM during OAM Search or Pixel Transfer and if it does it gets 0xFF
-				if(address == 0x9800 + (0x1D * 16))
-				{
-					int foo = 0;
-				}	
+
 				VRam[address - 0x8000] = value;
 
 				// Whenever we write to a tile in vram, update the rendering data. (Remember tile maps start at 0x9800)
@@ -230,7 +231,15 @@ namespace DMG
 			{
 				// OAM write
 			}
-            // Serial Port output
+			else if (address >= 0xFF80 && address <= 0xFFFE)
+			{
+				HRam[address - 0xFF80] = value;
+			}
+			else if (address == 0xFF00)
+			{
+				// joypad is readonly
+			}
+			// Serial Port output
 			else if (address == 0xFF01)
 			{
 				dmg.Tty.Append(Encoding.ASCII.GetString(new[] { value }));
@@ -255,9 +264,18 @@ namespace DMG
 			{
 				gpu.MemoryRegisters.BgScrollX = value;
 			}
+			else if (address == 0xFF46)
+			{
+				// DMA
+				throw new NotImplementedException();
+			}
 			else if (address == 0xFF50)
 			{
 				bootRomMask = value;
+			}
+			else if (address >= 0xFF00 && address <= 0xFF7F)
+			{
+				Io[address - 0xFF00] = value;
 			}
 			else if (address == 0xFF0F)
 			{
@@ -266,14 +284,6 @@ namespace DMG
 			else if (address == 0xFFFF)
 			{
 				interupts.InteruptEnableRegister = value;
-			}
-			else if (address >= 0xFF00 && address <= 0xFF7F)
-			{
-				Io[address - 0xFF00] = value;
-			}
-			else if (address >= 0xFF80 && address <= 0xFFFE)
-			{			
-				HRam[address - 0xFF80] = value;
 			}
 			else
 			{

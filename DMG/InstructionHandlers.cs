@@ -1781,11 +1781,9 @@ namespace DMG
         }
 
         // 0xD9
-        void RET_I()
+        void RETI()
         {
-            // return from interupt
-            interupts.InteruptsMasterEnable = true;
-            PC = StackPop(); 
+            interupts.ReturnFromInterrupt();
         }
 
         // 0xDA
@@ -1936,6 +1934,12 @@ namespace DMG
 
             // Make sure we don't set impossible flags on F, See Blargg's PUSH AF test.
             F &= 0xF0;
+        }
+
+        // 0xF2
+        void LD_a_ff_c()
+        {
+            A = memory.ReadByte((ushort)(0xFF00 + C));
         }
 
         // F3

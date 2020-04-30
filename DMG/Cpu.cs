@@ -56,7 +56,7 @@ namespace DMG
 	                                                6, 6, 4, 2, 0, 8, 4, 8,  6, 4, 8, 2, 0, 0, 4, 8  // 0xf_
                                                 };
 
-        public UInt32 Ticks { get; private set; }
+        public UInt32 Ticks { get; set; }
 
         public enum Flags
         {
@@ -153,14 +153,14 @@ namespace DMG
         }
 
 
-        void StackPush(ushort value)
+        public void StackPush(ushort value)
         {
             SP -= 2;
             memory.WriteShort(SP, value);
         }
 
 
-        ushort StackPop()
+        public ushort StackPop()
         {
             ushort value = memory.ReadShort(SP);
 
@@ -527,7 +527,7 @@ namespace DMG
             instructions[0xD6] = new Instruction("SUB a n", 0xD6, 1, (v) => this.SUB_a_n((byte)v));
             instructions[0xD7] = new Instruction("RST 10", 0xD7, 0, (v) => this.RST_10());
             instructions[0xD8] = new Instruction("RET C", 0xD8, 0, (v) => this.RET_C());
-            instructions[0xD9] = new Instruction("RET I", 0xD9, 0, (v) => this.RET_I());
+            instructions[0xD9] = new Instruction("RETI", 0xD9, 0, (v) => this.RETI());
             instructions[0xDA] = new Instruction("JP C nn", 0xDA, 2, (v) => this.JP_C_nn(v));
             instructions[0xDC] = new Instruction("CALL C nn", 0xDC, 2, (v) => this.CALL_C_nn(v));
             instructions[0xDE] = new Instruction("SBC a n", 0xDE, 1, (v) => this.SBC_a_n((byte)v));
@@ -547,6 +547,7 @@ namespace DMG
 
             instructions[0xF0] = new Instruction("LDH a (0xFF00 + n)", 0xF0, 1, (v) => this.LDH_a_ff_n((byte)v));
             instructions[0xF1] = new Instruction("POP af", 0xF1, 0, (v) => this.POP_af());
+            instructions[0xF2] = new Instruction("LD a FF c", 0xF2, 0, (v) => this.LD_a_ff_c());
             instructions[0xF3] = new Instruction("DI", 0xF3, 0, (v) => this.DI());
             instructions[0xF5] = new Instruction("PUSH af", 0xF5, 0, (v) => this.PUSH_af());
             instructions[0xF6] = new Instruction("OR n", 0xF6, 1, (v) => this.OR_n((byte) v));
