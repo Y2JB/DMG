@@ -522,7 +522,7 @@ namespace DMG
             instructions[0xD0] = new Instruction("RET NC", 0xD0, 0, (v) => this.RET_NC());
             instructions[0xD1] = new Instruction("POP de", 0xD1, 0, (v) => this.POP_de());
             instructions[0xD2] = new Instruction("JP NC nn", 0xD2, 2, (v) => this.JP_NC_nn(v));
-            instructions[0xD4] = new Instruction("CALL NC nn", 0xD4, 2, (v) => this.CALL_NZ_nn(v));
+            instructions[0xD4] = new Instruction("CALL NC nn", 0xD4, 2, (v) => this.CALL_NC_nn(v));
             instructions[0xD5] = new Instruction("PUSH de", 0xD5, 0, (v) => this.PUSH_de());
             instructions[0xD6] = new Instruction("SUB a n", 0xD6, 1, (v) => this.SUB_a_n((byte)v));
             instructions[0xD7] = new Instruction("RST 10", 0xD7, 0, (v) => this.RST_10());
