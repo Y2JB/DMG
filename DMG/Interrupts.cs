@@ -3,6 +3,8 @@ namespace DMG
 {
     public class Interrupts
     {
+        public bool ResumeCpuWhenInterruptBecomesPending { get; set; }
+
         public enum Interrupt
         {
             INTERRUPTS_VBLANK = (1 << 0),
@@ -54,9 +56,19 @@ namespace DMG
 
             InterruptFlags |= (byte) interrupt;
             
+            // This is set by the HALT instruction
+            if(ResumeCpuWhenInterruptBecomesPending)
+            {
+                ResumeCpuWhenInterruptBecomesPending = false;
+                dmg.cpu.IsHalted = false;
+            }
             return true;
         }
 
+        public bool IsAnInterruptPending()
+        {
+            return ((InterruptEnableRegister & InterruptFlags) != 0);
+        }
 
         public void Step()
         {

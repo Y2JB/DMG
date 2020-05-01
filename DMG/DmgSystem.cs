@@ -40,11 +40,11 @@ namespace DMG
             
             //rom = new Rom("../../../../roms/Tetris (World).gb");
 
-            //rom = new Rom("../../../../cpu_instrs.gb");
+            rom = new Rom("../../../..//roms/cpu_instrs.gb");
 
             //rom = new Rom("../../../../roms/cpu_instrs.gb");
             //rom = new Rom("../../../../roms/01-special.gb");                  // passes
-            rom = new Rom("../../../../roms/02-interrupts.gb");
+            //rom = new Rom("../../../../roms/02-interrupts.gb");                 // passes
             //rom = new Rom("../../../../roms/03-op sp,hl.gb");                 // passes
             //rom = new Rom("../../../../roms/04-op r,imm.gb");                 // passes
             //rom = new Rom("../../../../roms/05-op rp.gb");                    // passes

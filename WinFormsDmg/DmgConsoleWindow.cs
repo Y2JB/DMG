@@ -52,6 +52,7 @@ namespace WinFormsDmg
             mem,                            // mem 0 = read(0)   mem 0 10 = wrtie(0, 10)
             help,
             set,                            // set (register) n/nn
+            ticks,
 
             exit
 
@@ -103,8 +104,9 @@ namespace WinFormsDmg
             this.Controls.Add(commandInput);
             commandInput.Focus();
 
-            //breakpoints.Add(0x100);
-            //breakpoints.Add(0xC097);
+            //breakpoints.Add(0x40);
+            //breakpoints.Add(0x50);
+            //breakpoints.Add(0xC36F);
 
 
             BreakpointStepAvailable = false;
@@ -187,6 +189,10 @@ namespace WinFormsDmg
                 case ConsoleCommand.dumptilemaps:
                     dmg.gpu.TileMaps[0].DumpTileMap();
                     dmg.gpu.TileMaps[1].DumpTileMap();
+                    return true;
+
+                case ConsoleCommand.ticks:
+                    ConsoleAddString(String.Format("ticks - {0}", dmg.cpu.Ticks));
                     return true;
 
                 case ConsoleCommand.exit:

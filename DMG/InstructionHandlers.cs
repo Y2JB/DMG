@@ -1109,17 +1109,13 @@ namespace DMG
         // 0x76
         void HALT()
         {
-            //  If interrupts are disabled (DI) then halt doesn't suspend operation but it does cause the program counter to stop counting for one instruction
-            // This halts until an interupt occurs, it is not the same as stop.
-            if (interrupts.InterruptsMasterEnable == false)
+            // http://rednex.github.io/rgbds/gbz80.7.html#HALT
+            if (interrupts.InterruptsMasterEnable)
             {
-                PC += 1;
-                PeekNextInstruction();
-            }
-            else
-            {
+                // The CPU enters low-power mode until after an interrupt is about to be serviced. The handler is executed normally, and the CPU resumes 
+                // execution after the HALT when that returns.
                 IsHalted = true;
-                
+
                 //JB: account for the cycles below
                 Ticks += 4;
 
@@ -1130,6 +1126,23 @@ namespace DMG
                     sleep 2 T cycles
                     handle interrupt if needed
                 */
+
+
+            }
+            else
+            {
+                if (interrupts.IsAnInterruptPending())
+                {
+                    // The CPU continues execution after the HALT, but the byte after it is read twice in a row (PC is not incremented, due to a hardware bug).
+                    PC += 1;
+                    PeekNextInstruction();              
+                }
+                else
+                {
+                    // As soon as an interrupt becomes pending, the CPU resumes execution. This is like the above, except that the handler is not called.
+                    IsHalted = true;
+                    interrupts.ResumeCpuWhenInterruptBecomesPending = true;
+                }
             }
         }
 
