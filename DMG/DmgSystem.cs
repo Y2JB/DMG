@@ -16,7 +16,9 @@ namespace DMG
         public Memory memory { get; private set; }
         public Cpu cpu { get; private set; }
         public Gpu gpu { get; private set; }
-        public Interupts interupts { get; private set; }
+        public Interrupts interrupts { get; private set; }
+
+        public Timer timer { get; private set; }
 
         public StringBuilder Tty { get; private set; }
 
@@ -33,14 +35,16 @@ namespace DMG
         public void PowerOn()
         {
             bootstrapRom = new BootRom("../../../../DMG.bin");
-            rom = new Rom("../../../../roms/tetris.gb");
+            //rom = new Rom("../../../../roms/tetris.gb");
+            //rom = new Rom("../../../../roms/Dr. Mario.gb");
+            
             //rom = new Rom("../../../../roms/Tetris (World).gb");
 
             //rom = new Rom("../../../../cpu_instrs.gb");
 
             //rom = new Rom("../../../../roms/cpu_instrs.gb");
             //rom = new Rom("../../../../roms/01-special.gb");                  // passes
-            //rom = new Rom("../../../../roms/02-interrupts.gb");
+            rom = new Rom("../../../../roms/02-interrupts.gb");
             //rom = new Rom("../../../../roms/03-op sp,hl.gb");                 // passes
             //rom = new Rom("../../../../roms/04-op r,imm.gb");                 // passes
             //rom = new Rom("../../../../roms/05-op rp.gb");                    // passes
@@ -50,16 +54,17 @@ namespace DMG
 
             // Fails at 0xC9FB reading current scanline from 0xFF44
             //rom = new Rom("../../../../roms/09-op r,r.gb");                     // fail
-            
+
             //rom = new Rom("../../../../roms/10-bit ops.gb");                  // big fail
             //rom = new Rom("../../../../roms/11-op a,(hl).gb");                  // fail
 
             //rom = new Rom("../../../../roms/bits_bank1.gb");
 
-            interupts = new Interupts(this);
+            interrupts = new Interrupts(this);
             gpu = new Gpu(this);
             memory = new Memory(this);
-            cpu = new Cpu(memory, interupts);
+            cpu = new Cpu(memory, interrupts);
+            timer = new Timer(this);
 
 
             // yuck
@@ -67,7 +72,8 @@ namespace DMG
 
             cpu.Reset();
             gpu.Reset();
-            interupts.Reset();
+            interrupts.Reset();
+            timer.Reset();
 
             // Peek the first instruction (done this way so we can always see the next instruction)
             cpu.PeekNextInstruction();
@@ -176,8 +182,9 @@ namespace DMG
         public void Step()
         {
             cpu.Step();
-            gpu.Step(cpu.Ticks);
-            interupts.Step();
+            gpu.Step();
+            timer.Step();
+            interrupts.Step();
         }
 
 

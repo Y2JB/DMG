@@ -38,6 +38,8 @@ namespace DMG
         UInt32 lastCpuTickCount;
         UInt32 elapsedTicks;
 
+        int frame;
+
         DmgSystem dmg;
 
         // temp palette
@@ -85,12 +87,18 @@ namespace DMG
         // 456 * 154 lines = 70,224 ticks to render 1 screen
         // Our 4hmz CPU = 4,194,304 ticks per second
         // 4,194,304 / 70,224 = 59.72 frames per second
-        public void Step(UInt32 cpuTickCount)
+        public void Step()
         {
+            UInt32 cpuTickCount = dmg.cpu.Ticks;
+
             // Here we monitor how many cycles the CPU has executed and we map the GPU state to match how the real hardware behaves. This allows
             // us to generate interupts at the right time
 
-
+            //if (MemoryRegisters.LCDC.LcdEnable == 0)
+            //{
+            //    return;
+            //}
+                
             // Track how many cycles the CPU has done since we last changed states
             elapsedTicks += (cpuTickCount - lastCpuTickCount);
             lastCpuTickCount = cpuTickCount;
@@ -127,15 +135,15 @@ namespace DMG
 
                 // PPU is idle during hblank
                 case Mode.HBlank:
-                    // 51 mahine cycles ticks (1mhz vs 4mhz mean ours are 4x the value found in some documents)
+                    // 51 machine cycles ticks (1mhz vs 4mhz mean ours are 4x the value found in some documents)
                     if (elapsedTicks >= 204)
                     {
                         CurrentScanline++;
 
                         if (CurrentScanline == 143)
-                        {
-                            //if (interrupt.enable & INTERRUPTS_VBLANK) interrupt.flags |= INTERRUPTS_VBLANK;
-
+                        {                           
+                            dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_VBLANK);
+                            
                             mode = Mode.VBlank;
                         }
                         else
@@ -161,6 +169,8 @@ namespace DMG
                             CurrentScanline = 0;
                             mode = Mode.OamSearch;
 
+                            frame++;
+
                             if (dmg.OnFrame != null)
                             {
                                 dmg.OnFrame();
@@ -184,6 +194,16 @@ namespace DMG
         // Gamebopy screen resolution = 160x144
         void RenderScanline()
         {
+            /*
+            // Very temporary
+            int offset = 0;
+            foreach (Tile t in Tiles)
+            {
+                t.Parse(Memory.VRam, offset);
+                offset += 16;
+            }
+            */
+
             // Render the BG
             // Total BG size in VRam is 32x32 tiles
             // Viewport is 20x18 tiles
@@ -200,7 +220,6 @@ namespace DMG
                 byte tilePixelX = (byte)((x + MemoryRegisters.BgScrollX) % 8);
 
                 Tile tile = tileMap.TileFromXY((byte) (x + MemoryRegisters.BgScrollX), (byte) (y + MemoryRegisters.BgScrollY));
-
                 FrameBuffer.SetPixel(x, y, palette[tile.renderTile[tilePixelX, tilePixelY]]);
             }
 
@@ -229,7 +248,8 @@ namespace DMG
 
         public void DumpFrameBufferToPng()
         {
-            FrameBuffer.Save("../../../../dump/screen.png");
+            string fn = string.Format("../../../../dump/screens/{0}.png", frame);
+            FrameBuffer.Save(fn);
         }
     }
 }

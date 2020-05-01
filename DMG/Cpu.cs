@@ -56,7 +56,29 @@ namespace DMG
 	                                                6, 6, 4, 2, 0, 8, 4, 8,  6, 4, 8, 2, 0, 0, 4, 8  // 0xf_
                                                 };
 
+        byte[] extendedInstructionTicks = new byte[256] {
+                                                    8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x0_
+	                                                8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x1_
+	                                                8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x2_
+	                                                8, 8, 8, 8, 8,  8, 16, 8,  8, 8, 8, 8, 8, 8, 16, 8, // 0x3_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x4_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x5_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x6_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x7_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x8_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0x9_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xa_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xb_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xc_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xd_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8, // 0xe_
+	                                                8, 8, 8, 8, 8,  8, 12, 8,  8, 8, 8, 8, 8, 8, 12, 8  // 0xf_
+};
+
         public UInt32 Ticks { get; set; }
+
+        // Ticks per second
+        public readonly UInt32 ClockSpeedHz = 4194304;
 
         public enum Flags
         {
@@ -66,7 +88,7 @@ namespace DMG
             Carry = 1 << 4,
         }
 
-        public bool IsStopped { get; set; }
+        public bool IsHalted { get; set; }
 
 
         IMemoryReaderWriter memory;
@@ -74,13 +96,13 @@ namespace DMG
         Instruction[] instructions = new Instruction[256];
         ExtendedInstruction[] extendedInstructions = new ExtendedInstruction[256];
 
-        Interupts interupts;
+        Interrupts interrupts;
 
 
-        public Cpu(IMemoryReaderWriter memory, Interupts interupts)
+        public Cpu(IMemoryReaderWriter memory, Interrupts interrupts)
         {
             this.memory = memory;
-            this.interupts = interupts;
+            this.interrupts = interrupts;
 
             RegisterInstructionHandlers();
             RegisterExtendedInstructionHandlers();
@@ -131,6 +153,12 @@ namespace DMG
 
         public void Step()
         {
+            if(IsHalted)
+            {
+                Ticks += 2;
+                return;
+            }
+
             byte opCode = memory.ReadByte(PC++);
 
             var instruction = instructions[opCode];
@@ -225,6 +253,7 @@ namespace DMG
         void extended(byte opCode)
         {
             extendedInstructions[opCode].Handler();
+            Ticks += opCode;
         }
 
 

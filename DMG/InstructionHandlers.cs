@@ -1109,8 +1109,28 @@ namespace DMG
         // 0x76
         void HALT()
         {
+            //  If interrupts are disabled (DI) then halt doesn't suspend operation but it does cause the program counter to stop counting for one instruction
             // This halts until an interupt occurs, it is not the same as stop.
-            throw new NotImplementedException();
+            if (interrupts.InterruptsMasterEnable == false)
+            {
+                PC += 1;
+                PeekNextInstruction();
+            }
+            else
+            {
+                IsHalted = true;
+                
+                //JB: account for the cycles below
+                Ticks += 4;
+
+                /*
+                while halted:
+                    sleep 2 T cycles
+                    check for interrupts
+                    sleep 2 T cycles
+                    handle interrupt if needed
+                */
+            }
         }
 
         // 0x77
@@ -1783,7 +1803,7 @@ namespace DMG
         // 0xD9
         void RETI()
         {
-            interupts.ReturnFromInterrupt();
+            interrupts.ReturnFromInterrupt();
         }
 
         // 0xDA
@@ -1945,7 +1965,7 @@ namespace DMG
         // F3
         void DI()
         {
-            interupts.InteruptsMasterEnable = false;
+            interrupts.InterruptsMasterEnable = false;
         }
 
         // 0xF5
@@ -2014,7 +2034,7 @@ namespace DMG
             // TODO THIS IS WRONG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // IME should happen AFTER THE NEXT INSTRUCTION I@VE JUST LEFT THIS FOR NOW
 
-            interupts.InteruptsMasterEnable = true;
+            interrupts.InterruptsMasterEnable = true;
         }
 
         // 0xFE

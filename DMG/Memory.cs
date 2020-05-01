@@ -29,8 +29,8 @@ namespace DMG
 		public byte[] HRam { get; set; }
 
 		Gpu gpu;
-		Interupts interupts;
-		//private Random rnd = new Random();
+		Interrupts interrupts;
+
 		byte bootRomMask = 0;
 
 		DmgSystem dmg;
@@ -43,7 +43,7 @@ namespace DMG
 			GameRom = dmg.rom;
 			BootstrapRom = dmg.bootstrapRom;
 			gpu = dmg.gpu;
-			interupts = dmg.interupts;
+			interrupts = dmg.interrupts;
 
 			Ram = new byte[0x2000];
 			VRam = new byte[0x2000];
@@ -90,12 +90,10 @@ namespace DMG
 				// joypad
 				return 0xFF;
 			}
-			// Should return a div timer, but a random number works just as well for Tetris         XXXXXXX!!!!!!!!XXXXXXXX
-			else if (address == 0xff04)
+			else if (address == 0xFF07)
 			{
-				//byte[] bb = new byte[1];
-				//rnd.NextBytes(bb);
-				//return bb[0];
+				// Timer Controller register 
+				return dmg.timer.TimerControllerRegister;
 			}
 			else if (address == 0xFF40)
 			{
@@ -120,11 +118,11 @@ namespace DMG
 			}
 			else if (address == 0xFF0F)
 			{
-				return interupts.InteruptFlags;
+				return interrupts.InterruptFlags;
 			}
 			else if (address == 0xFFFF)
 			{
-				return interupts.InteruptEnableRegister;
+				return interrupts.InterruptEnableRegister;
 			}
 			else if (address >= 0xFF80 && address <= 0xFFFE)
 			{
@@ -199,6 +197,13 @@ namespace DMG
 		}
 
 
+		void copy(ushort destination, ushort source, int length)
+		{
+			uint i;
+			for (i = 0; i < length; i++) WriteByte((ushort)(destination + i), ReadByte((ushort)(source + i)));
+		}
+
+
 		public void WriteByte(ushort address, byte value)
 		{
 			if (address >= 0x2000 && address <= 0x3FFF)
@@ -248,6 +253,11 @@ namespace DMG
 			else if (address == 0xFF02)
 			{
 			}
+			else if (address == 0xFF07)
+			{
+				// Timer Controller register 
+				dmg.timer.TimerControllerRegister = value;
+			}
 			else if (address == 0xFF40)
 			{
 				gpu.MemoryRegisters.LCDC.Register = value;
@@ -267,31 +277,32 @@ namespace DMG
 			else if (address == 0xFF46)
 			{
 				// DMA
-				throw new NotImplementedException();
+				//throw new NotImplementedException();
+				copy(0xfe00, (ushort)(value << 8), 160); // OAM DMA
 			}
 			else if (address == 0xFF50)
 			{
 				bootRomMask = value;
+			}			
+			else if (address == 0xFF0F)
+			{
+				interrupts.InterruptFlags = value;
 			}
+			else if (address == 0xFFFF)
+			{
+				interrupts.InterruptEnableRegister = value;
+			}
+			
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{
 				Io[address - 0xFF00] = value;
 			}
-			else if (address == 0xFF0F)
-			{
-				interupts.InteruptFlags = value;
-			}
-			else if (address == 0xFFFF)
-			{
-				interupts.InteruptEnableRegister = value;
-			}
+
 			else
 			{
 				Console.WriteLine(String.Format("Invalid memory write addr 0x{0:X4} val 0x{1:X2}", address, value));
 				throw new ArgumentException(String.Format("Invalid memory write addr 0x{0:X4} val 0x{1:X2}", address, value));
 			}
-
-
 
 
 			/*
