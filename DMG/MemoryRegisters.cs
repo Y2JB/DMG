@@ -81,6 +81,8 @@ namespace DMG
         }
 
         public byte Register { get; set; }
+
+        public bool VBlamkInterruptEnable { get { return (Register & (byte)(1 << 4)) != 0; } }
     }
 
 

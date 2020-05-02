@@ -27,9 +27,12 @@ namespace WinFormsDmg
         int historyIndex = -1;
 
         List<ushort> breakpoints = new List<ushort>();
+        List<ushort> oneTimeBreakpoints = new List<ushort>();
 
         // FIFO
         Queue<Instruction> executionHistory = new Queue<Instruction>();
+
+        UInt32 lastTicks;
 
         public enum Mode
         {
@@ -40,7 +43,8 @@ namespace WinFormsDmg
         enum ConsoleCommand
         {
             step,                           // intrinsically includes STEP n
-            run,
+            next,                           // step over 
+            @continue,
             brk,
             breakpoint,
             delete,
@@ -104,9 +108,12 @@ namespace WinFormsDmg
             this.Controls.Add(commandInput);
             commandInput.Focus();
 
+            //breakpoints.Add(0x0);
             //breakpoints.Add(0x40);
             //breakpoints.Add(0x50);
-            //breakpoints.Add(0xC36F);
+            
+            //breakpoints.Add(0x2C7);
+            
 
 
             BreakpointStepAvailable = false;
@@ -131,7 +138,8 @@ namespace WinFormsDmg
             {
                 // Command Alias'
                 if (commandStr.Equals("s")) command = ConsoleCommand.step;
-                else if (commandStr.Equals("r")) command = ConsoleCommand.run;
+                else if (commandStr.Equals("n")) command = ConsoleCommand.next;
+                else if (commandStr.Equals("c")) command = ConsoleCommand.@continue;
                 else if (commandStr.Equals("b")) command = ConsoleCommand.brk;
                 else if (commandStr.Equals("x")) command = ConsoleCommand.exit;
 
@@ -159,7 +167,10 @@ namespace WinFormsDmg
                     BreakpointStepAvailable = true;
                     return true;
 
-                case ConsoleCommand.run:
+                case ConsoleCommand.next:
+                    return NextCommand();
+
+                case ConsoleCommand.@continue:
                     DmgMode = Mode.Running;
 
                     executionHistory.Clear();
@@ -192,7 +203,8 @@ namespace WinFormsDmg
                     return true;
 
                 case ConsoleCommand.ticks:
-                    ConsoleAddString(String.Format("ticks - {0}", dmg.cpu.Ticks));
+                    ConsoleAddString(String.Format("ticks - {0}", dmg.cpu.Ticks - lastTicks));
+                    lastTicks = dmg.cpu.Ticks;
                     return true;
 
                 case ConsoleCommand.exit:
@@ -207,6 +219,16 @@ namespace WinFormsDmg
                     return false;
             }
         }
+
+
+        // This is 'step over'
+        bool NextCommand()
+        {
+            oneTimeBreakpoints.Add((ushort)(dmg.cpu.PC + 1 + dmg.cpu.NextInstruction.OperandLength));
+            DmgMode = Mode.Running;
+            return true;
+        }
+
 
         bool MemCommand(string[] parameters)
         {           
@@ -397,6 +419,21 @@ namespace WinFormsDmg
                     break;
                 }
             }
+
+
+            foreach (var bp in oneTimeBreakpoints)
+            {
+                if (dmg.cpu.PC == bp)
+                {
+                    DmgMode = Mode.BreakPoint;
+                    RefreshDmgSnapshot();
+                    oneTimeBreakpoints.Remove(bp);
+                    break;
+                }
+            }
+
+            
+            
         }
 
 

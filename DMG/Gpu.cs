@@ -94,10 +94,10 @@ namespace DMG
             // Here we monitor how many cycles the CPU has executed and we map the GPU state to match how the real hardware behaves. This allows
             // us to generate interupts at the right time
 
-            //if (MemoryRegisters.LCDC.LcdEnable == 0)
-            //{
-            //    return;
-            //}
+            if (MemoryRegisters.LCDC.LcdEnable == 0)
+            {
+                return;
+            }
                 
             // Track how many cycles the CPU has done since we last changed states
             elapsedTicks += (cpuTickCount - lastCpuTickCount);
@@ -140,10 +140,13 @@ namespace DMG
                     {
                         CurrentScanline++;
 
+                        // TODO: Shouldn't this be 144???????
+
                         if (CurrentScanline == 143)
-                        {                           
+                        {
+                            //This will only fire the interrupt if IE for vblank is set
                             dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_VBLANK);
-                            
+
                             mode = Mode.VBlank;
                         }
                         else

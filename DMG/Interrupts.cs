@@ -23,7 +23,6 @@ namespace DMG
         public bool InterruptsMasterEnable { get; set; }
 
 
-
         // Bitfield to tell us which interupts are enabled
         public byte InterruptEnableRegister { get; set; }
 
@@ -70,17 +69,23 @@ namespace DMG
             return ((InterruptEnableRegister & InterruptFlags) != 0);
         }
 
+
         public void Step()
         {
             if (InterruptsMasterEnable && InterruptEnableRegister != 0 && InterruptFlags != 0)
             {
                 byte fire = (byte) (InterruptEnableRegister & InterruptFlags);
 
+
+                // TODO: check the priority order below
+
+
                 byte inter = (byte)(Interrupt.INTERRUPTS_VBLANK);
                 if ((fire & inter) != 0)
                 {
                     InterruptFlags &= (byte)~inter;
                     vblank();
+                    return;
                 }
 
                 inter = (byte)(Interrupt.INTERRUPTS_LCDSTAT);
@@ -88,6 +93,7 @@ namespace DMG
                 {
                     InterruptFlags &= (byte)~inter;
                     lcdStat();
+                    return;
                 }
 
                 inter = (byte)(Interrupt.INTERRUPTS_TIMER);
@@ -95,6 +101,7 @@ namespace DMG
                 {
                     InterruptFlags &= (byte)~inter;
                     timer();
+                    return;
                 }
 
                 inter = (byte)(Interrupt.INTERRUPTS_SERIAL);
@@ -102,6 +109,7 @@ namespace DMG
                 {
                     InterruptFlags &= (byte)~inter;
                     serial();
+                    return;
                 }
 
                 inter = (byte)(Interrupt.INTERRUPTS_JOYPAD);
@@ -109,6 +117,7 @@ namespace DMG
                 {
                     InterruptFlags &= (byte)~inter;
                     joypad();
+                    return;
                 }          
             }
         }

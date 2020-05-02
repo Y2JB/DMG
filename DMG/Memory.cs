@@ -130,6 +130,7 @@ namespace DMG
 			}
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{
+				// TODO: MOve all teh specific IO calls FF40 etc etc into this else if
 				return Io[address - 0xFF00];
 			}
 
@@ -295,6 +296,7 @@ namespace DMG
 			
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{
+				// TODO: MOve all teh specific IO calls FF40 etc etc into this else if
 				Io[address - 0xFF00] = value;
 			}
 

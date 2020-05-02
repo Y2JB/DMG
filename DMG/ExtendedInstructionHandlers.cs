@@ -324,15 +324,21 @@ namespace DMG
             return value;
         }
 
+
+        // TODO: Set and Reset could easily not be functions!
+
+
+        // Reset bit
         byte Res(byte bit, byte value)
         {
-            return (byte) (value & (~(byte)(0x1 << bit)));
+            return (byte) (value & (~bit));
         }
 
 
+        // Set bit
         byte Set(byte bit, byte value)
         {
-            return (byte)(value | (byte)(0x1 << bit));
+            return (byte)(value | bit);
         }
 
         // ********************
@@ -1052,33 +1058,33 @@ namespace DMG
         //0x80
         void RES_0_b()
         {
-            Res(1 << 0, B);
+           B = Res(1 << 0, B);
         }
 
         // 0x81
         void RES_0_c()
         {
-            Res(1 << 0, C);
+            C = Res(1 << 0, C);
         }
 
         void RES_0_d()
         {
-            Res(1 << 0, D);
+            D = Res(1 << 0, D);
         }
 
         void RES_0_e()
         {
-            Res(1 << 0, E);
+            E = Res(1 << 0, E);
         }
 
         void RES_0_h()
         {
-            Res(1 << 0, H);
+            H = Res(1 << 0, H);
         }
 
         void RES_0_l()
         {
-            Res(1 << 0, L);
+            L = Res(1 << 0, L);
         }
 
         void RES_0_hlp()
@@ -1088,39 +1094,39 @@ namespace DMG
 
         void RES_0_a()
         {
-            Res(1 << 0, A);
+            A = Res(1 << 0, A);
         }
 
         //0x88
         void RES_1_b()
         {
-            Res(1 << 1, B);
+            B = Res(1 << 1, B);
         }
 
         // 0x89
         void RES_1_c()
         {
-            Res(1 << 1, C);
+            C = Res(1 << 1, C);
         }
 
         void RES_1_d()
         {
-            Res(1 << 1, D);
+            D = Res(1 << 1, D);
         }
 
         void RES_1_e()
         {
-            Res(1 << 1, E);
+            E = Res(1 << 1, E);
         }
 
         void RES_1_h()
         {
-            Res(1 << 1, H);
+            H = Res(1 << 1, H);
         }
 
         void RES_1_l()
         {
-            Res(1 << 1, L);
+           L =  Res(1 << 1, L);
         }
 
         void RES_1_hlp()
@@ -1131,40 +1137,40 @@ namespace DMG
         //0x8F
         void RES_1_a()
         {
-            Res(1 << 1, A);
+            A = Res(1 << 1, A);
         }
 
 
         //0x90
         void RES_2_b()
         {
-            Res(1 << 2, B);
+            B = Res(1 << 2, B);
         }
 
         // 0x91
         void RES_2_c()
         {
-            Res(1 << 2, C);
+            C = Res(1 << 2, C);
         }
 
         void RES_2_d()
         {
-            Res(1 << 2, D);
+            D = Res(1 << 2, D);
         }
 
         void RES_2_e()
         {
-            Res(1 << 2, E);
+            E = Res(1 << 2, E);
         }
 
         void RES_2_h()
         {
-            Res(1 << 2, H);
+            H = Res(1 << 2, H);
         }
 
         void RES_2_l()
         {
-            Res(1 << 2, L);
+            L = Res(1 << 2, L);
         }
 
         void RES_2_hlp()
@@ -1174,29 +1180,29 @@ namespace DMG
 
         void RES_2_a()
         {
-            Res(1 << 2, A);
+            A = Res(1 << 2, A);
         }
 
         //0x98
         void RES_3_b()
         {
-            Res(1 << 3, B);
+            B = Res(1 << 3, B);
         }
 
         // 0x99
         void RES_3_c()
         {
-            Res(1 << 3, C);
+            C = Res(1 << 3, C);
         }
 
         void RES_3_d()
         {
-            Res(1 << 3, D);
+            D = Res(1 << 3, D);
         }
 
         void RES_3_e()
         {
-            Res(1 << 3, E);
+            E = Res(1 << 3, E);
         }
 
         void RES_3_h()
@@ -1206,7 +1212,7 @@ namespace DMG
 
         void RES_3_l()
         {
-            Res(1 << 3, L);
+            L = Res(1 << 3, L);
         }
 
         void RES_3_hlp()
@@ -1217,39 +1223,39 @@ namespace DMG
         //0x9F
         void RES_3_a()
         {
-            Res(1 << 3, A);
+            A = Res(1 << 3, A);
         }
 
         //0xA0
         void RES_4_b()
         {
-            Res(1 << 4, B);
+            B = Res(1 << 4, B);
         }
 
         // 0xA1
         void RES_4_c()
         {
-            Res(1 << 4, C);
+            C = Res(1 << 4, C);
         }
 
         void RES_4_d()
         {
-            Res(1 << 4, D);
+            D = Res(1 << 4, D);
         }
 
         void RES_4_e()
         {
-            Res(1 << 4, E);
+            E = Res(1 << 4, E);
         }
 
         void RES_4_h()
         {
-            Res(1 << 4, H);
+            H = Res(1 << 4, H);
         }
 
         void RES_4_l()
         {
-            Res(1 << 4, L);
+            L = Res(1 << 4, L);
         }
 
         void RES_4_hlp()
@@ -1259,39 +1265,39 @@ namespace DMG
 
         void RES_4_a()
         {
-            Res(1 << 4, A);
+            A = Res(1 << 4, A);
         }
 
         //0xA8
         void RES_5_b()
         {
-            Res(1 << 5, B);
+            B = Res(1 << 5, B);
         }
 
         // 0xA9
         void RES_5_c()
         {
-            Res(1 << 5, C);
+            C = Res(1 << 5, C);
         }
 
         void RES_5_d()
         {
-            Res(1 << 5, D);
+            D = Res(1 << 5, D);
         }
 
         void RES_5_e()
         {
-            Res(1 << 5, E);
+            E = Res(1 << 5, E);
         }
 
         void RES_5_h()
         {
-            Res(1 << 5, H);
+            H = Res(1 << 5, H);
         }
 
         void RES_5_l()
         {
-            Res(1 << 5, L);
+            L = Res(1 << 5, L);
         }
 
         void RES_5_hlp()
@@ -1302,39 +1308,39 @@ namespace DMG
         //0x8F
         void RES_5_a()
         {
-            Res(1 << 5, A);
+            A = Res(1 << 5, A);
         }
 
         //0xB0
         void RES_6_b()
         {
-            Res(1 << 6, B);
+            B = Res(1 << 6, B);
         }
 
         // 0xB1
         void RES_6_c()
         {
-            Res(1 << 6, C);
+            C = Res(1 << 6, C);
         }
 
         void RES_6_d()
         {
-            Res(1 << 6, D);
+            D = Res(1 << 6, D);
         }
 
         void RES_6_e()
         {
-            Res(1 << 6, E);
+            E = Res(1 << 6, E);
         }
 
         void RES_6_h()
         {
-            Res(1 << 6, H);
+            H = Res(1 << 6, H);
         }
 
         void RES_6_l()
         {
-            Res(1 << 6, L);
+            L = Res(1 << 6, L);
         }
 
         void RES_6_hlp()
@@ -1344,39 +1350,39 @@ namespace DMG
 
         void RES_6_a()
         {
-            Res(1 << 6, A);
+            A = Res(1 << 6, A);
         }
 
         //0xB8
         void RES_7_b()
         {
-            Res(1 << 7, B);
+            B = Res(1 << 7, B);
         }
 
         // 0xB9
         void RES_7_c()
         {
-            Res(1 << 7, C);
+            C = Res(1 << 7, C);
         }
 
         void RES_7_d()
         {
-            Res(1 << 7, D);
+            D = Res(1 << 7, D);
         }
 
         void RES_7_e()
         {
-            Res(1 << 7, E);
+            E = Res(1 << 7, E);
         }
 
         void RES_7_h()
         {
-            Res(1 << 7, H);
+            H = Res(1 << 7, H);
         }
 
         void RES_7_l()
         {
-            Res(1 << 7, L);
+            L = Res(1 << 7, L);
         }
 
         void RES_7_hlp()
@@ -1387,39 +1393,39 @@ namespace DMG
         //0xBF
         void RES_7_a()
         {
-            Res(1 << 7, A);
+            A = Res(1 << 7, A);
         }
 
         //0xC0
         void SET_0_b()
         {
-            Set(1 << 0, B);
+            B = Set(1 << 0, B);
         }
 
         // 0xC1
         void SET_0_c()
         {
-            Set(1 << 0, C);
+            C = Set(1 << 0, C);
         }
 
         void SET_0_d()
         {
-            Set(1 << 0, D);
+            D = Set(1 << 0, D);
         }
 
         void SET_0_e()
         {
-            Set(1 << 0, E);
+            E = Set(1 << 0, E);
         }
 
         void SET_0_h()
         {
-            Set(1 << 0, H);
+            H = Set(1 << 0, H);
         }
 
         void SET_0_l()
         {
-            Set(1 << 0, L);
+            L = Set(1 << 0, L);
         }
 
         void SET_0_hlp()
@@ -1429,39 +1435,39 @@ namespace DMG
 
         void SET_0_a()
         {
-            Set(1 << 0, A);
+            A = Set(1 << 0, A);
         }
 
         //0xC8
         void SET_1_b()
         {
-            Set(1 << 1, B);
+            B = Set(1 << 1, B);
         }
 
         // 0xC9
         void SET_1_c()
         {
-            Set(1 << 1, C);
+            C = Set(1 << 1, C);
         }
 
         void SET_1_d()
         {
-            Set(1 << 1, D);
+            D = Set(1 << 1, D);
         }
 
         void SET_1_e()
         {
-            Set(1 << 1, E);
+            E = Set(1 << 1, E);
         }
 
         void SET_1_h()
         {
-            Set(1 << 1, H);
+            H = Set(1 << 1, H);
         }
 
         void SET_1_l()
         {
-            Set(1 << 1, L);
+            L = Set(1 << 1, L);
         }
 
         void SET_1_hlp()
@@ -1472,39 +1478,39 @@ namespace DMG
         //0xCF
         void SET_1_a()
         {
-            Set(1 << 1, A);
+            A = Set(1 << 1, A);
         }
 
         //0xD0
         void SET_2_b()
         {
-            Set(1 << 2, B);
+            B = Set(1 << 2, B);
         }
 
         // 0xD1
         void SET_2_c()
         {
-            Set(1 << 2, C);
+            C = Set(1 << 2, C);
         }
 
         void SET_2_d()
         {
-            Set(1 << 2, D);
+            D = Set(1 << 2, D);
         }
 
         void SET_2_e()
         {
-            Set(1 << 2, E);
+            E = Set(1 << 2, E);
         }
 
         void SET_2_h()
         {
-            Set(1 << 2, H);
+            H = Set(1 << 2, H);
         }
 
         void SET_2_l()
         {
-            Set(1 << 2, L);
+            L = Set(1 << 2, L);
         }
 
         void SET_2_hlp()
@@ -1514,39 +1520,39 @@ namespace DMG
 
         void SET_2_a()
         {
-            Set(1 << 2, A);
+            A = Set(1 << 2, A);
         }
 
         //0xD8
         void SET_3_b()
         {
-            Set(1 << 3, B);
+            B = Set(1 << 3, B);
         }
 
         // 0xD9
         void SET_3_c()
         {
-            Set(1 << 3, C);
+            C = Set(1 << 3, C);
         }
 
         void SET_3_d()
         {
-            Set(1 << 3, D);
+            D = Set(1 << 3, D);
         }
 
         void SET_3_e()
         {
-            Set(1 << 3, E);
+            E = Set(1 << 3, E);
         }
 
         void SET_3_h()
         {
-            Set(1 << 3, H);
+            H = Set(1 << 3, H);
         }
 
         void SET_3_l()
         {
-            Set(1 << 3, L);
+            L = Set(1 << 3, L);
         }
 
         void SET_3_hlp()
@@ -1557,39 +1563,39 @@ namespace DMG
         //0xDF
         void SET_3_a()
         {
-            Set(1 << 3, A);
+            A = Set(1 << 3, A);
         }
 
         //0xE0
         void SET_4_b()
         {
-            Set(1 << 4, B);
+            B = Set(1 << 4, B);
         }
 
         // 0xE1
         void SET_4_c()
         {
-            Set(1 << 4, C);
+            C = Set(1 << 4, C);
         }
 
         void SET_4_d()
         {
-            Set(1 << 4, D);
+            D = Set(1 << 4, D);
         }
 
         void SET_4_e()
         {
-            Set(1 << 4, E);
+            E = Set(1 << 4, E);
         }
 
         void SET_4_h()
         {
-            Set(1 << 4, H);
+            H = Set(1 << 4, H);
         }
 
         void SET_4_l()
         {
-            Set(1 << 4, L);
+            L = Set(1 << 4, L);
         }
 
         void SET_4_hlp()
@@ -1599,39 +1605,39 @@ namespace DMG
 
         void SET_4_a()
         {
-            Set(1 << 4, A);
+            A = Set(1 << 4, A);
         }
 
         //0xE8
         void SET_5_b()
         {
-            Set(1 << 5, B);
+            B = Set(1 << 5, B);
         }
 
         // 0xE9
         void SET_5_c()
         {
-            Set(1 << 5, C);
+            C = Set(1 << 5, C);
         }
 
         void SET_5_d()
         {
-            Set(1 << 5, D);
+            D = Set(1 << 5, D);
         }
 
         void SET_5_e()
         {
-            Set(1 << 5, E);
+            E = Set(1 << 5, E);
         }
 
         void SET_5_h()
         {
-            Set(1 << 5, H);
+            H = Set(1 << 5, H);
         }
 
         void SET_5_l()
         {
-            Set(1 << 5, L);
+            L = Set(1 << 5, L);
         }
 
         void SET_5_hlp()
@@ -1642,39 +1648,39 @@ namespace DMG
         //0xEF
         void SET_5_a()
         {
-            Set(1 << 5, A);
+            A = Set(1 << 5, A);
         }
 
         //0xF0
         void SET_6_b()
         {
-            Set(1 << 6, B);
+            B = Set(1 << 6, B);
         }
 
         // 0xF1
         void SET_6_c()
         {
-            Set(1 << 6, C);
+            C = Set(1 << 6, C);
         }
 
         void SET_6_d()
         {
-            Set(1 << 6, D);
+            D = Set(1 << 6, D);
         }
 
         void SET_6_e()
         {
-            Set(1 << 6, E);
+            E = Set(1 << 6, E);
         }
 
         void SET_6_h()
         {
-            Set(1 << 6, H);
+            H = Set(1 << 6, H);
         }
 
         void SET_6_l()
         {
-            Set(1 << 6, L);
+            L = Set(1 << 6, L);
         }
 
         void SET_6_hlp()
@@ -1684,39 +1690,39 @@ namespace DMG
 
         void SET_6_a()
         {
-            Set(1 << 6, A);
+            A = Set(1 << 6, A);
         }
 
         //0xF8
         void SET_7_b()
         {
-            Set(1 << 7, B);
+            B = Set(1 << 7, B);
         }
 
         // 0xF9
         void SET_7_c()
         {
-            Set(1 << 7, C);
+            C = Set(1 << 7, C);
         }
 
         void SET_7_d()
         {
-            Set(1 << 7, D);
+            D = Set(1 << 7, D);
         }
 
         void SET_7_e()
         {
-            Set(1 << 7, E);
+            E = Set(1 << 7, E);
         }
 
         void SET_7_h()
         {
-            Set(1 << 7, H);
+            H = Set(1 << 7, H);
         }
 
         void SET_7_l()
         {
-            Set(1 << 7, L);
+            L = Set(1 << 7, L);
         }
 
         void SET_7_hlp()
@@ -1727,7 +1733,7 @@ namespace DMG
         //0xFF
         void SET_7_a()
         {
-            Set(1 << 7, A);
+            A = Set(1 << 7, A);
         }
 
 

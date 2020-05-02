@@ -90,6 +90,7 @@ namespace DMG
 
         public bool IsHalted { get; set; }
 
+        bool enableInterruptsNextCycle;
 
         IMemoryReaderWriter memory;
         
@@ -112,6 +113,7 @@ namespace DMG
         public void Reset()
         {
             Ticks = 0;
+            enableInterruptsNextCycle = false;
 
             //A = 0x01;
             //F = 0xb0;
@@ -175,6 +177,13 @@ namespace DMG
             instruction.Handler(operandValue);
 
             Ticks += instructionTicks[opCode];
+
+            // Enable interrupts instruction is delayed by one instruction
+            if(enableInterruptsNextCycle && instruction.OpCode != 0xFB)
+            {
+                interrupts.InterruptsMasterEnable = true;
+                enableInterruptsNextCycle = false;
+            }
 
             // Let's the debugger look ahead
             PeekNextInstruction();
@@ -253,7 +262,7 @@ namespace DMG
         void extended(byte opCode)
         {
             extendedInstructions[opCode].Handler();
-            Ticks += opCode;
+            Ticks += extendedInstructionTicks[opCode];
         }
 
 

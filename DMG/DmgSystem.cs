@@ -36,11 +36,11 @@ namespace DMG
         {
             bootstrapRom = new BootRom("../../../../DMG.bin");
             //rom = new Rom("../../../../roms/tetris.gb");
-            //rom = new Rom("../../../../roms/Dr. Mario.gb");
+            rom = new Rom("../../../../roms/Dr. Mario.gb");
             
             //rom = new Rom("../../../../roms/Tetris (World).gb");
 
-            rom = new Rom("../../../..//roms/cpu_instrs.gb");
+            //rom = new Rom("../../../..//roms/cpu_instrs.gb");
 
             //rom = new Rom("../../../../roms/cpu_instrs.gb");
             //rom = new Rom("../../../../roms/01-special.gb");                  // passes

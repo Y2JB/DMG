@@ -2044,10 +2044,7 @@ namespace DMG
         // 0xFB
         void EI()
         {
-            // TODO THIS IS WRONG !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            // IME should happen AFTER THE NEXT INSTRUCTION I@VE JUST LEFT THIS FOR NOW
-
-            interrupts.InterruptsMasterEnable = true;
+            enableInterruptsNextCycle = true;
         }
 
         // 0xFE
