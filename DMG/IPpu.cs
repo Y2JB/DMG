@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace DMG
 {
-    public interface IGpu
+    public interface IPpu
     {
         public GfxMemoryRegisters MemoryRegisters { get; }
 

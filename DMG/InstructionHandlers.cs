@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace DMG
 {
     public partial class Cpu
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Xor(byte value)
         {
             A ^= value;
@@ -12,6 +14,7 @@ namespace DMG
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Or(byte value)
         {
             A |= value;
@@ -19,7 +22,7 @@ namespace DMG
             if (A == 0) SetFlag(Flags.Zero);
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void And(byte value)
         {
             A &= value;
@@ -29,6 +32,7 @@ namespace DMG
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Inc(byte value)
         {
             /*
@@ -68,9 +72,10 @@ namespace DMG
             }
 
             return result;
-        }      
+        }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Add(byte value)
         {
             int result = A + value;
@@ -92,6 +97,7 @@ namespace DMG
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void AddHL(ushort value)
         {
             int result = HL + value;
@@ -119,7 +125,9 @@ namespace DMG
             HL = (ushort) result;
         }
 
+
         // Add and then add Carry
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Adc(byte value)
         {
             int carry = CarryFlag ? 1 : 0;
@@ -141,6 +149,7 @@ namespace DMG
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Sub(byte value)
         {
             int result = A - value;
@@ -158,6 +167,7 @@ namespace DMG
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Dec(byte value)
         {
             /*
@@ -202,6 +212,7 @@ namespace DMG
 
 
         // Subrtact and then subtract Carry
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Sbc(byte value)
         {
             int carry = CarryFlag ? 1 : 0;
@@ -220,9 +231,8 @@ namespace DMG
             A = (byte)(result);
         }
 
-        
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Cmp(byte value)
         {
             ClearAllFlags();

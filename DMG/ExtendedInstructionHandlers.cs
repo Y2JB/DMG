@@ -1,20 +1,22 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace DMG
 {
     public partial class Cpu
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void TestBit(byte bit, byte value)
         {
-            /*
+            
             if ((value & bit) == 0) SetFlag(Flags.Zero);
             else ClearFlag(Flags.Zero);           
 
             ClearFlag(Flags.Negative);
             SetFlag(Flags.HalfCarry);
-            */
+        
 
-
+            /* this is WRONG!! bit is passed as a shifter value not 0-7
             if (((value >> bit) & 0x01) == 0)
             {
                 SetFlag(Flags.Zero);
@@ -25,10 +27,12 @@ namespace DMG
             }            
             SetFlag(Flags.HalfCarry);
             ClearFlag(Flags.Negative);
+            */
         }
 
 
         // Rotates register to the left with the carry's value put into bit 0 and bit 7 is put into the carry.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Rl(byte value, bool isRegisterA)
         {
             /*
@@ -74,6 +78,7 @@ namespace DMG
 
 
         // Rotates to the right with the carry put in bit 7 and bit 0 put into the carry.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Rr(byte value, bool isRegisterA)
         {
             /*
@@ -110,6 +115,7 @@ namespace DMG
 
 
         // Rotates to the left with bit 7 being moved to bit 0 and also stored into the carry.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Rlc(byte value, bool isRegisterA)
         {
             /*
@@ -155,6 +161,7 @@ namespace DMG
 
 
         // Rotates to the right with bit 0 moved to bit 7 and also stored into the carry.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Rrc(byte value, bool isRegisterA)
         {
             /*
@@ -202,6 +209,7 @@ namespace DMG
 
 
         // Shifts register to the left with bit 7 moved to the carry flag and bit 0 reset (zeroed).
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Sla(byte value)
         {
             /*
@@ -230,6 +238,7 @@ namespace DMG
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Sra(byte value)
         {
             /*
@@ -267,6 +276,7 @@ namespace DMG
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Srl(byte value)
         {
             /*
@@ -297,6 +307,7 @@ namespace DMG
 
 
         // Swap upper & lower nibles 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Swap(byte value)
         {
             /*
@@ -319,7 +330,6 @@ namespace DMG
             ClearAllFlags();
 
             if (result == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
 
             return value;
         }
@@ -329,6 +339,7 @@ namespace DMG
 
 
         // Reset bit
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Res(byte bit, byte value)
         {
             return (byte) (value & (~bit));
@@ -336,6 +347,7 @@ namespace DMG
 
 
         // Set bit
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Set(byte bit, byte value)
         {
             return (byte)(value | bit);

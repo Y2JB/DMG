@@ -15,14 +15,16 @@ namespace DMG
         public Rom rom { get; private set; }
         public Memory memory { get; private set; }
         public Cpu cpu { get; private set; }
-        public Gpu gpu { get; private set; }
+        public Ppu ppu { get; private set; }
         public Interrupts interrupts { get; private set; }
+
+        public Joypad pad { get; private set; }
 
         public Timer timer { get; private set; }
 
         public StringBuilder Tty { get; private set; }
 
-        public Bitmap FrameBuffer { get { return gpu.FrameBuffer; } }
+        public Bitmap FrameBuffer { get { return ppu.FrameBuffer; } }
 
         public Action OnFrame{ get; set;  }
 
@@ -36,8 +38,12 @@ namespace DMG
         {
             bootstrapRom = new BootRom("../../../../DMG.bin");
             //rom = new Rom("../../../../roms/tetris.gb");
-            rom = new Rom("../../../../roms/Dr. Mario.gb");
+            //rom = new Rom("../../../../roms/Dr. Mario.gb");
+
+            //rom = new Rom("../../../../roms/bgbtest.gb");
+            rom = new Rom("../../../../roms/tellinglys.gb");
             
+
             //rom = new Rom("../../../../roms/Tetris (World).gb");
 
             //rom = new Rom("../../../..//roms/cpu_instrs.gb");
@@ -55,25 +61,27 @@ namespace DMG
             // Fails at 0xC9FB reading current scanline from 0xFF44
             //rom = new Rom("../../../../roms/09-op r,r.gb");                     // fail
 
-            //rom = new Rom("../../../../roms/10-bit ops.gb");                  // big fail
+            //rom = new Rom("../../../../roms/10-bit ops.gb");                  // fail
             //rom = new Rom("../../../../roms/11-op a,(hl).gb");                  // fail
 
             //rom = new Rom("../../../../roms/bits_bank1.gb");
 
             interrupts = new Interrupts(this);
-            gpu = new Gpu(this);
+            ppu = new Ppu(this);
             memory = new Memory(this);
             cpu = new Cpu(memory, interrupts);
             timer = new Timer(this);
+            pad = new Joypad(interrupts, this);
 
 
             // yuck
-            gpu.Memory = memory;
+            ppu.Memory = memory;
 
             cpu.Reset();
-            gpu.Reset();
+            ppu.Reset();
             interrupts.Reset();
             timer.Reset();
+            pad.Reset();
 
             // Peek the first instruction (done this way so we can always see the next instruction)
             cpu.PeekNextInstruction();
@@ -182,15 +190,16 @@ namespace DMG
         public void Step()
         {
             cpu.Step();
-            gpu.Step();
+            ppu.Step();
             timer.Step();
+            pad.Step();
             interrupts.Step();
         }
 
 
         void Dump()
         {
-            gpu.DumpFrameBufferToPng();
+            ppu.DumpFrameBufferToPng();
 
             DumpTty();
 
@@ -242,7 +251,7 @@ namespace DMG
 
             //int offset =  0;
 
-            Tile[] tiles = gpu.Tiles; // new Tile[tileMapX * tileMapY];
+            Tile[] tiles = ppu.Tiles; // new Tile[tileMapX * tileMapY];
             for (int i = 0; i < tiles.Length; i++)
             {
                 //tiles[i] = new Tile((ushort)(0x8000 + offset));

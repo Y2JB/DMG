@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Windows.Input;
 
 using DMG;
 using WinFormsDmg;
@@ -42,6 +43,9 @@ namespace WinFormDmgRender
             dmg.PowerOn();
             dmg.OnFrame = () => this.Draw();
 
+            KeyDown += OnKeyDown;
+            KeyUp += OnKeyUp;
+
             consoleWindow = new DmgConsoleWindow(dmg);
 
             consoleWindow.Show();
@@ -69,6 +73,40 @@ namespace WinFormDmgRender
             gfxBuffer = gfxBufferedContext.Allocate(this.CreateGraphics(), this.DisplayRectangle);
         }
 
+        private void OnKeyDown(Object o, KeyEventArgs a)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<object, KeyEventArgs>(OnKeyDown), o, a);
+                return;
+            }
+            if (a.KeyCode == Keys.Up) dmg.pad.UpdateKeyState(Joypad.GbKey.Up, true);
+            else if (a.KeyCode == Keys.Down) dmg.pad.UpdateKeyState(Joypad.GbKey.Down, true);
+            else if (a.KeyCode == Keys.Left) dmg.pad.UpdateKeyState(Joypad.GbKey.Left, true);
+            else if (a.KeyCode == Keys.Right) dmg.pad.UpdateKeyState(Joypad.GbKey.Right, true);
+            else if (a.KeyCode == Keys.Z) dmg.pad.UpdateKeyState(Joypad.GbKey.B, true);
+            else if (a.KeyCode == Keys.X) dmg.pad.UpdateKeyState(Joypad.GbKey.A, true);
+            else if (a.KeyCode == Keys.Enter) dmg.pad.UpdateKeyState(Joypad.GbKey.Start, true);
+            else if (a.KeyCode == Keys.Back) dmg.pad.UpdateKeyState(Joypad.GbKey.Select, true);
+        }
+
+        private void OnKeyUp(Object o, KeyEventArgs a)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action<object, KeyEventArgs>(OnKeyUp), o, a);
+                return;
+            }
+
+            if (a.KeyCode == Keys.Up) dmg.pad.UpdateKeyState(Joypad.GbKey.Up, false);
+            else if (a.KeyCode == Keys.Down) dmg.pad.UpdateKeyState(Joypad.GbKey.Down, false);
+            else if (a.KeyCode == Keys.Left) dmg.pad.UpdateKeyState(Joypad.GbKey.Left, false);
+            else if (a.KeyCode == Keys.Right) dmg.pad.UpdateKeyState(Joypad.GbKey.Right, false);
+            else  if (a.KeyCode == Keys.Z) dmg.pad.UpdateKeyState(Joypad.GbKey.B, false);
+            else if (a.KeyCode == Keys.X) dmg.pad.UpdateKeyState(Joypad.GbKey.A, false);
+            else if (a.KeyCode == Keys.Enter) dmg.pad.UpdateKeyState(Joypad.GbKey.Start, false);
+            else if (a.KeyCode == Keys.Back) dmg.pad.UpdateKeyState(Joypad.GbKey.Select, false);
+        }
 
         private void OnApplicationIdle(object sender, EventArgs e)
         {
@@ -104,6 +142,8 @@ namespace WinFormDmgRender
 
             gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, new Rectangle(0, 0 , ClientRectangle.Width, ClientRectangle.Height));
 
+
+            //gfxBuffer.Graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(0, 0, 1000, 1000));
             gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), new Font("Verdana", 8),  new SolidBrush(Color.Black), new Point(ClientRectangle.Width - 75, 10));
 
             gfxBuffer.Render();            

@@ -25,10 +25,11 @@ namespace DMG
 		private IMemoryReader BootstrapRom { get; set; }
 		public byte[] Ram { get; set; }
 		public byte[] VRam { get; set; }
+		public byte[] OamRam { get; set; }
 		public byte[] Io { get; set; }
 		public byte[] HRam { get; set; }
 
-		Gpu gpu;
+		Ppu ppu;
 		Interrupts interrupts;
 
 		byte bootRomMask = 0;
@@ -42,13 +43,14 @@ namespace DMG
 
 			GameRom = dmg.rom;
 			BootstrapRom = dmg.bootstrapRom;
-			gpu = dmg.gpu;
+			ppu = dmg.ppu;
 			interrupts = dmg.interrupts;
 
 			Ram = new byte[0x2000];
 			VRam = new byte[0x2000];
+			OamRam = new Byte[0x100];
 			Io = new Byte[0x100];
-			HRam = new Byte[0x80];
+			HRam = new Byte[0x80];		
 		}
 
 		public byte ReadByte(ushort address)
@@ -85,10 +87,15 @@ namespace DMG
 			{
 				return VRam[address - 0x8000];
 			}
+			else if (address >= 0xFE00 && address <= 0xFEFF)
+			{
+				// OAM table read. Should only be accessed by PPU.
+				return OamRam[address - 0xFE00];
+			}
 			else if(address == 0xFF00)
 			{
-				// joypad
-				return 0xFF;
+				// Joypad
+				return dmg.pad.Register;
 			}
 			else if (address == 0xFF07)
 			{
@@ -97,24 +104,32 @@ namespace DMG
 			}
 			else if (address == 0xFF40)
 			{
-				return gpu.MemoryRegisters.LCDC.Register;
+				return ppu.MemoryRegisters.LCDC.Register;
 			}
 			else if (address == 0xFF41)
 			{
-				return gpu.MemoryRegisters.STAT.Register;
+				return ppu.MemoryRegisters.STAT.Register;
 			}
 			else if (address == 0xFF42)
 			{
-				return gpu.MemoryRegisters.BgScrollY;
+				return ppu.MemoryRegisters.BgScrollY;
 			}
 			else if (address == 0xFF43)
 			{
-				return gpu.MemoryRegisters.BgScrollX;
+				return ppu.MemoryRegisters.BgScrollX;
 			}
 			else if (address == 0xFF44)
 			{
 				// Read only
-				return gpu.CurrentScanline;
+				return ppu.CurrentScanline;
+			}
+			else if (address == 0xFF4A)
+			{
+				return ppu.MemoryRegisters.WindowY;
+			}
+			else if (address == 0xFF4B)
+			{
+				return ppu.MemoryRegisters.WindowX;
 			}
 			else if (address == 0xFF0F)
 			{
@@ -229,21 +244,23 @@ namespace DMG
 				// Whenever we write to a tile in vram, update the rendering data. (Remember tile maps start at 0x9800)
 				if (address <= 0x97ff)
 				{
-					Tile tile = gpu.GetTileByVRamAdrress(address);
+					Tile tile = ppu.GetTileByVRamAdrress(address);
 					tile.Parse(VRam, tile.VRamAddress - 0x8000);
 				}
 			}
 			else if (address >= 0xFE00 && address <= 0xFEFF)
 			{
-				// OAM write
+				// Writing to OAM Table 
+				OamRam[address - 0xFE00] = value;
 			}
 			else if (address >= 0xFF80 && address <= 0xFFFE)
 			{
 				HRam[address - 0xFF80] = value;
 			}
 			else if (address == 0xFF00)
-			{
-				// joypad is readonly
+			{					
+				// Joypad writes 2 bits to select if it is reading pad or buttons 			
+				dmg.pad.Register = value;
 			}
 			// Serial Port output
 			else if (address == 0xFF01)
@@ -261,25 +278,32 @@ namespace DMG
 			}
 			else if (address == 0xFF40)
 			{
-				gpu.MemoryRegisters.LCDC.Register = value;
+				ppu.MemoryRegisters.LCDC.Register = value;
 			}
 			else if (address == 0xFF41)
 			{
-				gpu.MemoryRegisters.STAT.Register = value;
+				ppu.MemoryRegisters.STAT.Register = value;
 			}
 			else if (address == 0xFF42)
 			{
-				gpu.MemoryRegisters.BgScrollY = value;
+				ppu.MemoryRegisters.BgScrollY = value;
 			}
 			else if (address == 0xFF43)
 			{
-				gpu.MemoryRegisters.BgScrollX = value;
+				ppu.MemoryRegisters.BgScrollX = value;
 			}
 			else if (address == 0xFF46)
 			{
 				// DMA
-				//throw new NotImplementedException();
 				copy(0xfe00, (ushort)(value << 8), 160); // OAM DMA
+			}
+			else if (address == 0xFF4A)
+			{
+				ppu.MemoryRegisters.WindowY = value;
+			}
+			else if (address == 0xFF4B)
+			{
+				ppu.MemoryRegisters.WindowX = value;
 			}
 			else if (address == 0xFF50)
 			{

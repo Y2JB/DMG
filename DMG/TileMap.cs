@@ -5,13 +5,13 @@ namespace DMG
 {
     public class TileMap
     {
-        IGpu gpu;
+        IPpu ppu;
         IMemoryReader memory;
         readonly ushort vramOffset;
 
         // The Game Boy contains two 32x32 tile background maps in VRAM at addresses 9800h-9BFFh and 9C00h-9FFFh.
         // Each can be used either to display "normal" background, or "window" background.
-        public TileMap(IGpu gpu, IMemoryReader memory, ushort vramOffset)
+        public TileMap(IPpu ppu, IMemoryReader memory, ushort vramOffset)
         {
             if(vramOffset != 0x9800 && vramOffset != 0x9C00)
             {
@@ -19,7 +19,7 @@ namespace DMG
             }
             this.vramOffset = vramOffset;
 
-            this.gpu = gpu;
+            this.ppu = ppu;
             this.memory = memory;
         }
 
@@ -44,7 +44,7 @@ namespace DMG
             byte tileIndex = TileIndexFromXY(x, y);
           
             ushort vramPointer;
-            if (gpu.MemoryRegisters.LCDC.BgAndWindowTileAddressingMode == 0)
+            if (ppu.MemoryRegisters.LCDC.BgAndWindowTileAddressingMode == 0)
             {
                 sbyte signedTileIndex = (sbyte)tileIndex;
                 // The "8800 method" uses $9000 as its base pointer and uses a signed addressing
@@ -56,7 +56,7 @@ namespace DMG
                 vramPointer = (ushort)(0x8000 + (ushort)(tileIndex * 16));
             }
 
-            return gpu.GetTileByVRamAdrress(vramPointer);
+            return ppu.GetTileByVRamAdrress(vramPointer);
         }
 
         public void DumpTileMap()

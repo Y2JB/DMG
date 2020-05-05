@@ -198,8 +198,8 @@ namespace WinFormsDmg
                     return true;
 
                 case ConsoleCommand.dumptilemaps:
-                    dmg.gpu.TileMaps[0].DumpTileMap();
-                    dmg.gpu.TileMaps[1].DumpTileMap();
+                    dmg.ppu.TileMaps[0].DumpTileMap();
+                    dmg.ppu.TileMaps[1].DumpTileMap();
                     return true;
 
                 case ConsoleCommand.ticks:
@@ -210,8 +210,8 @@ namespace WinFormsDmg
                 case ConsoleCommand.exit:
                     dmg.DumpTty();
                     dmg.DumpTileSet();
-                    dmg.gpu.TileMaps[0].DumpTileMap();
-                    dmg.gpu.TileMaps[1].DumpTileMap();
+                    dmg.ppu.TileMaps[0].DumpTileMap();
+                    dmg.ppu.TileMaps[1].DumpTileMap();
                     Application.Exit();
                     return true;
 
@@ -471,7 +471,7 @@ namespace WinFormsDmg
                 dmgSnapshot.AppendText(dmg.cpu.NextInstruction.ToString());
 
                 dmgSnapshot.AppendText(Environment.NewLine);
-                dmgSnapshot.AppendText(String.Format("ScrollX {0} ScrollY {1}", dmg.gpu.MemoryRegisters.BgScrollX, dmg.gpu.MemoryRegisters.BgScrollY));
+                dmgSnapshot.AppendText(String.Format("ScrollX {0} ScrollY {1}", dmg.ppu.MemoryRegisters.BgScrollX, dmg.ppu.MemoryRegisters.BgScrollY));
 
             }         
         }

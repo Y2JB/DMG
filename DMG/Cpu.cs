@@ -36,7 +36,7 @@ namespace DMG
         public Instruction NextInstruction { get; private set; }
         public Instruction PreviousInstruction { get; private set; }
 
-        // How many clock cycles for each instyruction. Important for timing between the cpu, gpu and interupts 
+        // How many clock cycles for each instyruction. Important for timing between the cpu, ppu and interupts 
         byte[] instructionTicks = new byte[256] {
                                                     2, 6, 4, 4, 2, 2, 4, 4, 10, 4, 4, 4, 2, 2, 4, 4, // 0x0_
 	                                                2, 6, 4, 4, 2, 2, 4, 4,  4, 4, 4, 4, 2, 2, 4, 4, // 0x1_
@@ -345,6 +345,7 @@ namespace DMG
             instructions[0x0D] = new Instruction("DEC c", 0x0D, 0, (v) => this.DEC_c());
             instructions[0x0E] = new Instruction("LD c n", 0x0E, 1, (v) => this.LD_c_n((byte)v));
             instructions[0x0F] = new Instruction("RRCA", 0x0F, 0, (v) => this.RRCA());
+           
             instructions[0x10] = new Instruction("STOP", 0x10, 1, (v) => this.STOP());
             instructions[0x11] = new Instruction("LD DE nn", 0x11, 2, (v) => this.LD_de_nn(v));
             instructions[0x12] = new Instruction("LD (de) a", 0x12, 0, (v) => this.LD_dep_a());
@@ -361,6 +362,7 @@ namespace DMG
             instructions[0x1D] = new Instruction("DEC e", 0x1D, 0, (v) => this.DEC_e());
             instructions[0x1E] = new Instruction("LD e n", 0x1E, 1, (v) => this.LD_e_n((byte)v));
             instructions[0x1F] = new Instruction("RRA", 0x1F, 0, (v) => this.RRA());
+           
             instructions[0x20] = new Instruction("JR NZ n", 0x20, 1, (v) => this.JR_NZ_n((sbyte)v));
             instructions[0x21] = new Instruction("LD hl nn", 0x21, 2, (v) => this.LD_hl_nn(v));
             instructions[0x22] = new Instruction("LDI (hl) a", 0x22, 0, (v) => this.LDI_hlp_a());
@@ -403,7 +405,6 @@ namespace DMG
             instructions[0x45] = new Instruction("LD b l", 0x45, 0, (v) => this.LD_b_l());
             instructions[0x46] = new Instruction("LD b (hl)", 0x46, 0, (v) => this.LD_b_hlp());
             instructions[0x47] = new Instruction("LD b a", 0x47, 0, (v) => this.LD_b_a());
-
             instructions[0x48] = new Instruction("LD c b", 0x48, 0, (v) => this.LD_c_b());
             instructions[0x49] = new Instruction("LD c c", 0x49, 0, (v) => this.LD_c_c());
             instructions[0x4A] = new Instruction("LD c d", 0x4A, 0, (v) => this.LD_c_d());
@@ -421,7 +422,6 @@ namespace DMG
             instructions[0x55] = new Instruction("LD d l", 0x55, 0, (v) => this.LD_d_l());
             instructions[0x56] = new Instruction("LD d (hl)", 0x56, 0, (v) => this.LD_d_hlp());
             instructions[0x57] = new Instruction("LD d a", 0x57, 0, (v) => this.LD_d_a());
-
             instructions[0x58] = new Instruction("LD e b", 0x58, 0, (v) => this.LD_e_b());
             instructions[0x59] = new Instruction("LD e c", 0x59, 0, (v) => this.LD_e_c());
             instructions[0x5A] = new Instruction("LD e d", 0x5A, 0, (v) => this.LD_e_d());
@@ -439,7 +439,6 @@ namespace DMG
             instructions[0x65] = new Instruction("LD h l", 0x65, 0, (v) => this.LD_h_l());
             instructions[0x66] = new Instruction("LD h (hl)", 0x66, 0, (v) => this.LD_h_hlp());
             instructions[0x67] = new Instruction("LD h a", 0x67, 0, (v) => this.LD_h_a());
-
             instructions[0x68] = new Instruction("LD l b", 0x68, 0, (v) => this.LD_l_b());
             instructions[0x69] = new Instruction("LD l c", 0x69, 0, (v) => this.LD_l_c());
             instructions[0x6A] = new Instruction("LD l d", 0x6A, 0, (v) => this.LD_l_d());
@@ -448,7 +447,7 @@ namespace DMG
             instructions[0x6D] = new Instruction("LD l l", 0x6D, 0, (v) => this.LD_l_l());
             instructions[0x6E] = new Instruction("LD l (hl)", 0x6E, 0, (v) => this.LD_l_hlp());
             instructions[0x6F] = new Instruction("LD l a", 0x6F, 0, (v) => this.LD_l_a());
-
+            
             instructions[0x70] = new Instruction("LD (hl) b", 0x70, 0, (v) => this.LD_hlp_b());
             instructions[0x71] = new Instruction("LD (hl) c", 0x71, 0, (v) => this.LD_hlp_c());
             instructions[0x72] = new Instruction("LD (hl) d", 0x72, 0, (v) => this.LD_hlp_d());
@@ -457,7 +456,6 @@ namespace DMG
             instructions[0x75] = new Instruction("LD (hl) l", 0x75, 0, (v) => this.LD_hlp_l());
             instructions[0x76] = new Instruction("HALT", 0x76, 0, (v) => this.HALT());
             instructions[0x77] = new Instruction("LD (hl) a", 0x77, 0, (v) => this.LD_hlp_a());
-
             instructions[0x78] = new Instruction("LD a b", 0x78, 0, (v) => this.LD_a_b());
             instructions[0x79] = new Instruction("LD a c", 0x79, 0, (v) => this.LD_a_c());
             instructions[0x7A] = new Instruction("LD a d", 0x7A, 0, (v) => this.LD_a_d());
@@ -475,7 +473,6 @@ namespace DMG
             instructions[0x85] = new Instruction("ADD a l", 0x85, 0, (v) => this.ADD_a_l());
             instructions[0x86] = new Instruction("ADD a (hl)", 0x86, 0, (v) => this.ADD_a_hlp());
             instructions[0x87] = new Instruction("ADD a a", 0x87, 0, (v) => this.ADD_a_a());
-
             instructions[0x88] = new Instruction("ADC a b", 0x88, 0, (v) => this.ADC_a_b());
             instructions[0x89] = new Instruction("ADC a c", 0x89, 0, (v) => this.ADC_a_c());
             instructions[0x8A] = new Instruction("ADC a d", 0x8A, 0, (v) => this.ADC_a_d());
@@ -493,7 +490,6 @@ namespace DMG
             instructions[0x95] = new Instruction("SUB a l", 0x95, 0, (v) => this.SUB_a_l());
             instructions[0x96] = new Instruction("SUB a (hl)", 0x96, 0, (v) => this.SUB_a_hlp());
             instructions[0x97] = new Instruction("SUB a a", 0x97, 0, (v) => this.SUB_a_a());
-
             instructions[0x98] = new Instruction("SBC a b", 0x98, 0, (v) => this.SBC_a_b());
             instructions[0x99] = new Instruction("SBC a c", 0x99, 0, (v) => this.SBC_a_c());
             instructions[0x9A] = new Instruction("SBC a d", 0x9A, 0, (v) => this.SBC_a_d());
@@ -511,7 +507,6 @@ namespace DMG
             instructions[0xA5] = new Instruction("AND l", 0xA5, 0, (v) => this.AND_l());
             instructions[0xA6] = new Instruction("AND (hl)", 0xA6, 0, (v) => this.AND_hlp());
             instructions[0xA7] = new Instruction("AND a", 0xA7, 0, (v) => this.AND_a());
-
             instructions[0xA8] = new Instruction("XOR b", 0xA8, 0, (v) => this.XOR_b());
             instructions[0xA9] = new Instruction("XOR c", 0xA9, 0, (v) => this.XOR_c());
             instructions[0xAA] = new Instruction("XOR d", 0xAA, 0, (v) => this.XOR_d());
@@ -529,7 +524,6 @@ namespace DMG
             instructions[0xB5] = new Instruction("OR l", 0xB5, 0, (v) => this.OR_l());
             instructions[0xB6] = new Instruction("OR (hl)", 0xB6, 0, (v) => this.OR_hlp());
             instructions[0xB7] = new Instruction("OR a", 0xB7, 0, (v) => this.OR_a());
-
             instructions[0xB8] = new Instruction("CP b", 0xB8, 0, (v) => this.CP_b());
             instructions[0xB9] = new Instruction("CP c", 0xB9, 0, (v) => this.CP_c());
             instructions[0xBA] = new Instruction("CP d", 0xBA, 0, (v) => this.CP_d());
@@ -616,7 +610,7 @@ namespace DMG
                     if (rhs == null) continue;
 
                     if (instruction.OpCode == rhs.OpCode ||
-                        instruction.Handler == rhs.Handler)
+                        instruction.Handler.Method == rhs.Handler.Method)
                     {
                         throw new ArgumentException("Bad opcode");
                     }
@@ -940,7 +934,7 @@ namespace DMG
                     if (rhs == null) continue;
 
                     if (instruction.OpCode == rhs.OpCode ||
-                        instruction.Handler == rhs.Handler)
+                        instruction.Handler.Method == rhs.Handler.Method)
                     {
                         throw new ArgumentException("Dupe extended opcode");
                     }
