@@ -331,7 +331,7 @@ namespace DMG
 
             if (result == 0) SetFlag(Flags.Zero);
 
-            return value;
+            return result;
         }
 
 
@@ -403,7 +403,8 @@ namespace DMG
         //0x07
         void RLC_a()
         {
-            A = Rlc(A, true);
+            // Gearboy passes false here and the RLCA instruction (0x07) passes true...
+            A = Rlc(A, false);
         }
 
         //0x08
@@ -451,7 +452,8 @@ namespace DMG
         //0x0F
         void RRC_a()
         {
-            A = Rrc(A, true);
+            // See Gearboy
+            A = Rrc(A, false);
         }
 
         //0x10
@@ -499,7 +501,8 @@ namespace DMG
         //0x17
         void RL_a()
         {
-            A = Rl(A, true);
+            // See Gearboy
+            A = Rl(A, false);
         }
 
         //0x18
@@ -547,7 +550,8 @@ namespace DMG
         //0x1F
         void RR_a()
         {
-            A = Rr(A, true);
+            // Gearboy
+            A = Rr(A, false);
         }
 
         //0x20
@@ -1219,7 +1223,7 @@ namespace DMG
 
         void RES_3_h()
         {
-            Res(1 << 3, H);
+            H = Res(1 << 3, H);
         }
 
         void RES_3_l()

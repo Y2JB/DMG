@@ -26,6 +26,12 @@ namespace DMG
             }
         }
 
+        // Continually counts up from 0 to 255 and then when it overflows it starts from 0 again. It does not cause an interupt when it overflows and it cannot be paused 
+        // It is convenient to implement it alongside the timer. Games use this for a random number
+        // It is implemented at Memory Address 0xFF04
+        public byte DividerRegister { get; private set; }
+        UInt32 dividerRegisterElapsedTicks;
+
         public enum TimerFreq
         {
             Hz4096 = 4096,
@@ -58,6 +64,7 @@ namespace DMG
             TimerControllerRegister = 0x00;
 
             lastCpuTickCount = 0;
+            dividerRegisterElapsedTicks = 0;
         }
 
         public void Step()
@@ -68,15 +75,14 @@ namespace DMG
             // TODO : SOMETIMES ELAPSED TICKS == 0 !!!!!!!!!!!!!!XXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
             // Track how many cycles the CPU has done since we last updated
-            Int32 elapsedTicks = (Int32) (cpuTickCount - lastCpuTickCount);
+            UInt32 elapsedTicks = (UInt32) (cpuTickCount - lastCpuTickCount);
             lastCpuTickCount = cpuTickCount;
 
-            // TODO
-            //DoDividerRegister(cycles);
+            UpdateDividerRegister(elapsedTicks);
 
             if (Enabled)
             {              
-                cyclesUntilTimerFires -= elapsedTicks;
+                cyclesUntilTimerFires -= (int) elapsedTicks;
 
                 if (cyclesUntilTimerFires <= 0)
                 {
@@ -98,6 +104,16 @@ namespace DMG
             }
         }
 
+        private void UpdateDividerRegister(UInt32 cycles)
+        {
+            dividerRegisterElapsedTicks += cycles;
+            if (dividerRegisterElapsedTicks >= 255)
+            {
+                dividerRegisterElapsedTicks -= 255;
+
+                DividerRegister++;
+            }
+        }
     }
     
 }

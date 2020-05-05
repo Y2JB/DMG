@@ -97,6 +97,11 @@ namespace DMG
 				// Joypad
 				return dmg.pad.Register;
 			}
+			else if (address == 0xFF04)
+			{
+				// Divider register (RNG)
+				return dmg.timer.DividerRegister;
+			}
 			else if (address == 0xFF07)
 			{
 				// Timer Controller register 

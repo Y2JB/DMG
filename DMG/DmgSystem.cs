@@ -37,11 +37,11 @@ namespace DMG
         public void PowerOn()
         {
             bootstrapRom = new BootRom("../../../../DMG.bin");
-            //rom = new Rom("../../../../roms/tetris.gb");
+            rom = new Rom("../../../../roms/tetris.gb");
             //rom = new Rom("../../../../roms/Dr. Mario.gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
-            rom = new Rom("../../../../roms/tellinglys.gb");
+            //rom = new Rom("../../../../roms/tellinglys.gb");
             
 
             //rom = new Rom("../../../../roms/Tetris (World).gb");
@@ -50,19 +50,16 @@ namespace DMG
 
             //rom = new Rom("../../../../roms/cpu_instrs.gb");
             //rom = new Rom("../../../../roms/01-special.gb");                  // passes
-            //rom = new Rom("../../../../roms/02-interrupts.gb");                 // passes
+            //rom = new Rom("../../../../roms/02-interrupts.gb");               // passes
             //rom = new Rom("../../../../roms/03-op sp,hl.gb");                 // passes
             //rom = new Rom("../../../../roms/04-op r,imm.gb");                 // passes
             //rom = new Rom("../../../../roms/05-op rp.gb");                    // passes
             //rom = new Rom("../../../../roms/06-ld r,r.gb");                   // passes
             //rom = new Rom("../../../../roms/07-jr,jp,call,ret,rst.gb");       // passes
-            //rom = new Rom("../../../../roms/08-misc instrs.gb");                // passes
-
-            // Fails at 0xC9FB reading current scanline from 0xFF44
-            //rom = new Rom("../../../../roms/09-op r,r.gb");                     // fail
-
-            //rom = new Rom("../../../../roms/10-bit ops.gb");                  // fail
-            //rom = new Rom("../../../../roms/11-op a,(hl).gb");                  // fail
+            //rom = new Rom("../../../../roms/08-misc instrs.gb");              // passes
+            //rom = new Rom("../../../../roms/09-op r,r.gb");                   // passes
+            //rom = new Rom("../../../../roms/10-bit ops.gb");                  // passes
+            //rom = new Rom("../../../../roms/11-op a,(hl).gb");                  // passes
 
             //rom = new Rom("../../../../roms/bits_bank1.gb");
 

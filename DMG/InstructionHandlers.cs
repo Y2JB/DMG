@@ -302,6 +302,7 @@ namespace DMG
         //0x07
         void RLCA()
         {
+            /*
             byte carry = (byte) ((A & 0x80) >> 7);
 
             if (carry != 0) SetFlag(Flags.Carry);
@@ -315,6 +316,10 @@ namespace DMG
 
             ClearFlag(Flags.HalfCarry);
             ClearFlag(Flags.Negative);
+            */
+
+            // Same as Gearboy
+            A = Rlc(A, true);
         }
 
         // 0x08
@@ -363,6 +368,7 @@ namespace DMG
         // 0x0F
         void RRCA()
         {
+            /*
             byte carry = (byte) (A & 0x01);
             if (carry != 0) SetFlag(Flags.Carry);
             else ClearFlag(Flags.Carry);
@@ -375,6 +381,10 @@ namespace DMG
 
             ClearFlag(Flags.HalfCarry);
             ClearFlag(Flags.Negative);
+            */
+
+            // Gearboy
+            A = Rrc(A, true);
         }
 
         // 0x10
@@ -437,6 +447,7 @@ namespace DMG
         // 0x17
         void RLA()
         {
+            /*
             int carry = CarryFlag ? 1 : 0;
 
             if ((A & 0x80) != 0) SetFlag(Flags.Carry);
@@ -450,6 +461,10 @@ namespace DMG
 
             ClearFlag(Flags.HalfCarry);
             ClearFlag(Flags.Negative);
+            */
+
+            // Same as Gearboy
+            A = Rl(A, true);
         }
 
         // 0x18
@@ -487,33 +502,7 @@ namespace DMG
         // 0x1F
         void RRA()
         {
-            /*
-            int carry = ((CarryFlag) ? 1 : 0) << 7;
-
-            if ((A & 0x01) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            A >>= 1;
-            A += (byte) carry;
-
-            if (A == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.HalfCarry);
-            ClearFlag(Flags.Negative);
-            */
-
-            byte carry = CarryFlag ? (byte) 0x80 : (byte) 0x00;
-            byte result = A;
-            ClearAllFlags();
-            if ((result & 0x01) != 0) SetFlag(Flags.Carry); 
-            result >>= 1;
-            result |= carry;
-            A = result;
-            //if (!isRegisterA)
-            //{
-            //    ToggleZeroFlagFromResult(result);
-            //}
+            A = Rr(A, true);
         }
 
         // 0x20

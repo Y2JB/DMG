@@ -376,7 +376,7 @@ namespace DMG
 
         public void DumpFrameBufferToPng()
         {
-            string fn = string.Format("../../../../dump/screens/{0}.png", frame);
+            string fn = string.Format("../../../../dump/screen.png");
             FrameBuffer.Save(fn);
         }
     }

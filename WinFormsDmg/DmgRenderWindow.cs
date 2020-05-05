@@ -143,7 +143,7 @@ namespace WinFormDmgRender
             gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, new Rectangle(0, 0 , ClientRectangle.Width, ClientRectangle.Height));
 
 
-            //gfxBuffer.Graphics.FillRectangle(new SolidBrush(Color.Red), new Rectangle(0, 0, 1000, 1000));
+            gfxBuffer.Graphics.FillRectangle(new SolidBrush(Color.White), new Rectangle(ClientRectangle.Width -75, 5, 55, 30));
             gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), new Font("Verdana", 8),  new SolidBrush(Color.Black), new Point(ClientRectangle.Width - 75, 10));
 
             gfxBuffer.Render();            
