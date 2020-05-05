@@ -15,6 +15,12 @@ namespace DMG
         // 0xFF43
         public byte BgScrollX { get; set; }
 
+        // 0xFF4A
+        public byte WindowY { get; set; }
+
+        // 0xFF4B
+        public byte WindowX { get; set; }
+
         public GfxMemoryRegisters()
         {
             LCDC = new LcdControlRegister();
@@ -42,7 +48,7 @@ namespace DMG
         public byte LcdEnable { get { return (Register & (byte)(1 << 7)) == 0 ? (byte)0 : (byte)1; } }
 
         // Bit 6 - Window Tile Map Display Select(0=9800-9BFF, 1=9C00-9FFF)
-        public byte TileMapSelect { get { return (Register & (byte)(1 << 6)) == 0 ? (byte)0 : (byte)1; } }
+        public byte WindowTileMapSelect { get { return (Register & (byte)(1 << 6)) == 0 ? (byte)0 : (byte)1; } }
 
         // Bit 5 - Window Display Enable(0=Off, 1=On)
         public byte WindowDisplay { get { return (Register & (byte)(1 << 5)) == 0 ? (byte)0 : (byte)1; } }
@@ -54,13 +60,13 @@ namespace DMG
         public byte BgTileMapSelect { get { return ((Register & (byte)(1 << 3))) == 0 ? (byte) 0 : (byte) 1; } }
 
         // Bit 2 - OBJ(Sprite) Size(0=8x8, 1=8x16)
-        public byte SpriteSize { get { return (Register & (byte)(1 << 2)) == 0 ? (byte)0 : (byte)1; } }
+        public byte SpriteHeight { get { return (Register & (byte)(1 << 2)) == 0 ? (byte)0 : (byte)1; } }
 
         // Bit 1 - OBJ(Sprite) Display Enable(0=Off, 1=On)
         public byte SpritesDisplay { get { return (Register & (byte)(1 << 1)) == 0 ? (byte)0 : (byte)1; } }
 
         // Bit 0 - BG/Window Display/Priority(0=Off, 1=On)
-        public byte BgWindowDisplay { get { return (Register & (byte)(1 << 0)) == 0 ? (byte)0 : (byte)1; } }
+        public byte BgDisplay { get { return (Register & (byte)(1 << 0)) == 0 ? (byte)0 : (byte)1; } }
     }
 
 
