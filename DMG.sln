@@ -4,7 +4,7 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DmgCore", "DMG\DmgCore.csproj", "{7B689F12-C554-4AEC-B806-E3D1D3F7BCE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinFormsDmg", "WinFormsDmg\WinFormsDmg.csproj", "{C37AB5A1-74B9-413C-8283-3D2277EA945D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinFormsDmgRenderer", "WinFormsDmgRenderer\WinFormsDmgRenderer.csproj", "{C37AB5A1-74B9-413C-8283-3D2277EA945D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

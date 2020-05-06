@@ -33,8 +33,7 @@ namespace WinFormDmgRender
         {
             this.components = new System.ComponentModel.Container();
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(650, 470);
-            this.Text = "DMG";
+            this.ClientSize = new System.Drawing.Size(650, 470);          
 
 
         }

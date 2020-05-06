@@ -57,7 +57,7 @@ namespace WinFormsDmg
             help,
             set,                            // set (register) n/nn
             ticks,
-
+            rom,
             exit
 
         }
@@ -112,8 +112,9 @@ namespace WinFormsDmg
             //breakpoints.Add(0x40);
             //breakpoints.Add(0x50);
             
-            //breakpoints.Add(0x2C7);
-            
+            //breakpoints.Add(0xcb21);
+            //breakpoints.Add(0xc7b2);
+
 
 
             BreakpointStepAvailable = false;
@@ -207,8 +208,13 @@ namespace WinFormsDmg
                     lastTicks = dmg.cpu.Ticks;
                     return true;
 
+                case ConsoleCommand.rom:
+                    ConsoleAddString(String.Format("ROM Info - {0}", dmg.rom.Type.ToString()));
+                    return true;
+
                 case ConsoleCommand.exit:
                     dmg.DumpTty();
+                    dmg.ppu.DumpFrameBufferToPng();
                     dmg.DumpTileSet();
                     dmg.ppu.TileMaps[0].DumpTileMap();
                     dmg.ppu.TileMaps[1].DumpTileMap();

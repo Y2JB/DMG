@@ -43,6 +43,8 @@ namespace WinFormDmgRender
             dmg.PowerOn();
             dmg.OnFrame = () => this.Draw();
 
+            this.Text = dmg.rom.RomName;
+
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
 

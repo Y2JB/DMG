@@ -8,6 +8,7 @@ namespace DMG
     {
         private byte[] romData;
         private readonly int RomNameOffset = 0x134;
+        private readonly int RomBankingOffset = 0x147;
 
         public string RomName { get; private set; }
 
@@ -15,6 +16,37 @@ namespace DMG
 //#define ROM_OFFSET_TYPE 0x147
 //#define ROM_OFFSET_ROM_SIZE 0x148
 //#define ROM_OFFSET_RAM_SIZE 0x149
+         
+        public enum RomType
+        {
+            UnSupported = -1,
+            RomOnly = 0x00,
+            MBC1    = 0x01,
+            MBC1_Ram = 0x02,
+            MBC1_Ram_Battery = 0x03,
+            MBC2 = 0x05,
+            MBC2_Battery = 0x06
+        }
+
+        public RomType Type 
+        { 
+            get 
+            {
+                RomType romType;
+
+                byte type = romData[RomBankingOffset];
+
+                if (type > 6)
+                {
+                    romType = RomType.UnSupported;
+                }
+                else
+                {
+                    romType = (RomType)type;
+                }
+                return romType;
+            } 
+        }
 
         public Rom(string fn)
         {

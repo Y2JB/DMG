@@ -21,6 +21,7 @@ namespace DMG
         // 0xFF4B
         public byte WindowX { get; set; }
 
+
         public GfxMemoryRegisters()
         {
             LCDC = new LcdControlRegister();
@@ -29,19 +30,18 @@ namespace DMG
 
         public void Reset()
         {
+            BgScrollX = 0;
+            BgScrollY = 0;
+            WindowX = 0;
+            WindowY = 0;
             LCDC.Register = 0;
-            //LCDC.LcdEnable = true;  // do we set these to sensible things????
+            STAT.Register = 0;
         }
     }
 
 
     public class LcdControlRegister
     {
-
-        public LcdControlRegister()
-        {
-        }
-
         public byte Register { get; set; }
 
         // Bit 7 - LCD Display Enable(0=Off, 1=On)
@@ -82,13 +82,16 @@ namespace DMG
     //       3: During Transferring Data to LCD Driver
     public class LcdStatusRegister 
     {
-        public LcdStatusRegister()
-        {
-        }
-
         public byte Register { get; set; }
 
-        public bool VBlamkInterruptEnable { get { return (Register & (byte)(1 << 4)) != 0; } }
+        public bool LycLyCoincidenceInterruptEnable { get { return (Register & (byte)(1 << 6)) != 0; } }
+        public bool OamInterruptEnable { get { return (Register & (byte)(1 << 5)) != 0; } }
+        public bool VBlankInterruptEnable { get { return (Register & (byte)(1 << 4)) != 0; } }
+        public bool HBlankInterruptEnable { get { return (Register & (byte)(1 << 3)) != 0; } }
+
+        public byte CoincidenceFlag { get { return (byte) ((Register & (byte)(1 << 2)) == 0 ? 0 : 1); } }
+
+        public byte ModeFlag { get { return (byte)(Register & (byte)(0x3)); } }
     }
 
 
