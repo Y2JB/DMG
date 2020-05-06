@@ -333,7 +333,12 @@ namespace DMG
 
                 for (int i = 0; i < 8; i++)
                 {
-                    FrameBuffer.SetPixel(spriteXScreenSpace + i, CurrentScanline, palette[tile.renderTile[i, spriteYLine]]);
+                    byte paletteIndex = tile.renderTile[i, spriteYLine];
+
+                    if (paletteIndex != 0)
+                    {
+                        FrameBuffer.SetPixel(spriteXScreenSpace + i, CurrentScanline, palette[paletteIndex]);
+                    }
                 }
 
                 // TODO: obj/obj priority (sprite wil smallest x position draws on top)

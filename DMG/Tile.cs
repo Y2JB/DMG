@@ -11,9 +11,7 @@ namespace DMG
     {
         const int size = 150;
         const int quality = 75;
-
-        Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
-
+       
         public byte[,] renderTile { get; private set; }
 
         public ushort VRamAddress { get; private set; }
@@ -56,6 +54,8 @@ namespace DMG
 
         public void DumptToImageFile(string fn)
         {
+            Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
+
             var image = new Bitmap(8, 8);
             for (int y = 0; y < 8; y++)
             {
