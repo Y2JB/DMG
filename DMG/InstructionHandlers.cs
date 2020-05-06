@@ -35,22 +35,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Inc(byte value)
         {
-            /*
-            byte result = (byte) (value + 1);
-
-            if (result == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-
-            if ((result & 0x0F) == 0x00)
-            {
-                SetFlag(Flags.HalfCarry);
-            }
-            return result;
-            */
-
-
             byte result = (byte) (value + 1);
 
             if (CarryFlag)
@@ -170,21 +154,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Dec(byte value)
         {
-            /*
-            byte result = (byte)(value - 1);
-
-            SetFlag(Flags.Negative);
-
-            if (result == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            if ((result & 0x0F) == 0x0F) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry); 
-
-            return result;
-            */
-
-
             byte result = (byte) (value - 1);
 
             if (CarryFlag)
@@ -302,23 +271,6 @@ namespace DMG
         //0x07
         void RLCA()
         {
-            /*
-            byte carry = (byte) ((A & 0x80) >> 7);
-
-            if (carry != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            A <<= 1;
-            A += carry;
-
-            if (A == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.HalfCarry);
-            ClearFlag(Flags.Negative);
-            */
-
-            // Same as Gearboy
             A = Rlc(A, true);
         }
 
@@ -368,22 +320,6 @@ namespace DMG
         // 0x0F
         void RRCA()
         {
-            /*
-            byte carry = (byte) (A & 0x01);
-            if (carry != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            A >>= 1;
-            if (carry != 0) A |= 0x80;
-
-            if (A == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.HalfCarry);
-            ClearFlag(Flags.Negative);
-            */
-
-            // Gearboy
             A = Rrc(A, true);
         }
 
@@ -447,23 +383,6 @@ namespace DMG
         // 0x17
         void RLA()
         {
-            /*
-            int carry = CarryFlag ? 1 : 0;
-
-            if ((A & 0x80) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            A <<= 1;
-            A += (byte) carry;
-
-            if (A == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.HalfCarry);
-            ClearFlag(Flags.Negative);
-            */
-
-            // Same as Gearboy
             A = Rl(A, true);
         }
 
@@ -2002,22 +1921,6 @@ namespace DMG
         // 0xF8
         void LDH_hl_sp_n(sbyte n)
         {
-            /*
-            int result = SP + n;
-
-            if ((result & 0xFFFF0000) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            if (((SP & 0x0f) + (n & 0x0f)) > 0x0f) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-
-            ClearFlag(Flags.Zero);
-            ClearFlag(Flags.Negative);
-
-            HL = (ushort)(result & 0xFFFF);
-            */
-
-
             // LD HL,SP+n
             ushort result = (ushort) (SP + n);
             ClearAllFlags();
@@ -2049,18 +1952,6 @@ namespace DMG
         // 0xFE
         void CP_n(byte n)
         {
-            /*
-            SetFlag(Flags.Negative);
-
-            if (A == n) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            if (n > A) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            if ((n & 0x0F) > (A & 0x0F)) SetFlag(Flags.HalfCarry);
-            else ClearFlag(Flags.HalfCarry);
-            */
             Cmp(n);
         }
 

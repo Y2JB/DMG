@@ -37,19 +37,16 @@ namespace DMG
         public void PowerOn()
         {
             bootstrapRom = new BootRom("../../../../DMG.bin");
-            rom = new Rom("../../../../roms/tetris.gb");
-            //rom = new Rom("../../../../roms/Dr. Mario.gb");
+            //rom = new Rom("../../../../roms/games/tetris.gb");
+            //rom = new Rom("../../../../roms/games/Dr. Mario.gb");
+            //rom = new Rom("../../../../roms/games/Bubble Ghost (J).gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
             //rom = new Rom("../../../../roms/tellinglys.gb");
-            
 
-            //rom = new Rom("../../../../roms/Tetris (World).gb");
-
-            //rom = new Rom("../../../..//roms/cpu_instrs.gb");
-
+            // Blargg CPU tests
             //rom = new Rom("../../../../roms/cpu_instrs.gb");
-            //rom = new Rom("../../../../roms/01-special.gb");                  // passes
+            rom = new Rom("../../../../roms/01-special.gb");                  // passes
             //rom = new Rom("../../../../roms/02-interrupts.gb");               // passes
             //rom = new Rom("../../../../roms/03-op sp,hl.gb");                 // passes
             //rom = new Rom("../../../../roms/04-op r,imm.gb");                 // passes
@@ -59,7 +56,8 @@ namespace DMG
             //rom = new Rom("../../../../roms/08-misc instrs.gb");              // passes
             //rom = new Rom("../../../../roms/09-op r,r.gb");                   // passes
             //rom = new Rom("../../../../roms/10-bit ops.gb");                  // passes
-            //rom = new Rom("../../../../roms/11-op a,(hl).gb");                  // passes
+            //rom = new Rom("../../../../roms/11-op a,(hl).gb");                // passes
+
 
             //rom = new Rom("../../../../roms/bits_bank1.gb");
 

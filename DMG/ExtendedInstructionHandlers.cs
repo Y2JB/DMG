@@ -7,27 +7,12 @@ namespace DMG
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void TestBit(byte bit, byte value)
-        {
-            
+        {          
             if ((value & bit) == 0) SetFlag(Flags.Zero);
             else ClearFlag(Flags.Zero);           
 
             ClearFlag(Flags.Negative);
-            SetFlag(Flags.HalfCarry);
-        
-
-            /* this is WRONG!! bit is passed as a shifter value not 0-7
-            if (((value >> bit) & 0x01) == 0)
-            {
-                SetFlag(Flags.Zero);
-            }
-            else
-            {
-                ClearFlag(Flags.Zero);
-            }            
-            SetFlag(Flags.HalfCarry);
-            ClearFlag(Flags.Negative);
-            */
+            SetFlag(Flags.HalfCarry);       
         }
 
 
@@ -35,22 +20,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Rl(byte value, bool isRegisterA)
         {
-            /*
-            int carry = CarryFlag ? 1 : 0;
-
-            if ((value & 0x80) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            value <<= 1;
-            value += (byte) carry;
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-            ClearFlag(Flags.HalfCarry);
-            */
-
             byte carry = CarryFlag ? (byte) 1 : (byte) 0;
             byte result = value;
             
@@ -81,20 +50,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Rr(byte value, bool isRegisterA)
         {
-            /*
-            value >>= 1;
-            if (CarryFlag) value |= 0x80;
-
-            if ((value & 0x01) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-            ClearFlag(Flags.HalfCarry);
-            */
-
             byte carry = CarryFlag ? (byte) 0x80 : (byte) 0x00;
             byte result = value;
 
@@ -118,24 +73,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Rlc(byte value, bool isRegisterA)
         {
-            /*
-            int carry = (value & 0x80) >> 7;
-
-            if ((value & 0x80) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            value <<= 1;
-            value += (byte) carry;
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-            ClearFlag(Flags.HalfCarry);
-
-            return value;
-            */
-
             byte result = value;
             if ((result & 0x80) != 0)
             {
@@ -164,27 +101,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Rrc(byte value, bool isRegisterA)
         {
-            /*
-            int carry = (value & 0x01);
-
-            value >>= 1;
-
-            if (carry != 0)
-            {
-                SetFlag(Flags.Carry);
-                value |= 0x80;
-            }
-            else ClearFlag(Flags.Carry);
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-            ClearFlag(Flags.HalfCarry);
-
-            return value;
-            */
-
             byte  result = value;
             if ((result & 0x01) != 0)
             {
@@ -212,21 +128,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Sla(byte value)
         {
-            /*
-            if ((value & 0x80) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            value <<= 1;
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-            ClearFlag(Flags.HalfCarry);
-
-            return value;
-            */
-
             ClearAllFlags();
             if((value & 0x80) != 0) SetFlag(Flags.Carry);
 
@@ -241,21 +142,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Sra(byte value)
         {
-            /*
-            if((value & 0x01) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            value = (byte) ((byte)(value & 0x80) | (byte)(value >> 1));
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-            ClearFlag(Flags.HalfCarry);
-
-            return value;
-            */
-
             byte result = value;
             ClearAllFlags();
             if ((result & 0x01) != 0) SetFlag(Flags.Carry);
@@ -279,20 +165,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Srl(byte value)
         {
-            /*
-            if ((byte) (value & 0x01) != 0) SetFlag(Flags.Carry);
-            else ClearFlag(Flags.Carry);
-
-            value >>= 1;
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-            ClearFlag(Flags.HalfCarry);
-            */
-
-
             byte result = value;
 
             ClearAllFlags();
@@ -310,19 +182,6 @@ namespace DMG
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         byte Swap(byte value)
         {
-            /*
-            value = (byte)( (byte)(((value & 0xf) << 4)) | (byte) (((value & 0xf0) >> 4)));
-
-
-            if (value == 0) SetFlag(Flags.Zero);
-            else ClearFlag(Flags.Zero);
-
-            ClearFlag(Flags.Negative);
-            ClearFlag(Flags.Carry);
-            ClearFlag(Flags.HalfCarry);
-            */
-
-
             byte low_half = (byte) (value & 0x0F);
             byte high_half = (byte) ((value >> 4) & 0x0F);
             byte result = (byte)((low_half << 4) + high_half);
@@ -403,7 +262,7 @@ namespace DMG
         //0x07
         void RLC_a()
         {
-            // Gearboy passes false here and the RLCA instruction (0x07) passes true...
+            // Pass false here and the RLCA instruction (0x07) passes true...
             A = Rlc(A, false);
         }
 
@@ -452,7 +311,6 @@ namespace DMG
         //0x0F
         void RRC_a()
         {
-            // See Gearboy
             A = Rrc(A, false);
         }
 
@@ -501,7 +359,6 @@ namespace DMG
         //0x17
         void RL_a()
         {
-            // See Gearboy
             A = Rl(A, false);
         }
 
@@ -550,7 +407,6 @@ namespace DMG
         //0x1F
         void RR_a()
         {
-            // Gearboy
             A = Rr(A, false);
         }
 
@@ -745,7 +601,6 @@ namespace DMG
         {
             A = Srl(A);
         }
-
 
         //0x40
        void BIT_0_b()
@@ -1069,7 +924,6 @@ namespace DMG
         {
             TestBit(1 << 7, A);
         }
-
 
         //0x80
         void RES_0_b()
