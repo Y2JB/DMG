@@ -1,20 +1,19 @@
-﻿using System;
+﻿//#define THREADED_PIXEL_TRANSFER
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading;
 
 namespace DMG
 {
     public class Ppu : IPpu
     {
-        // Note the values of the enum matter as the state of the PPU is stored in a memory register
-        public enum PpuMode
-        {
-            HBlank = 0,
-            VBlank,
-            OamSearch,
-            PixelTransfer
-        }
+#if THREADED_PIXEL_TRANSFER
+        bool drawLine = false;
+        Thread pixelWriterThread;
+#endif 
 
         const byte Screen_X_Resolution = 160;
         const byte Screen_Y_Resolution = 144;
@@ -26,11 +25,10 @@ namespace DMG
 
         public Bitmap FrameBuffer { get; private set; }
 
-        PpuMode Mode { get; set; }
+        public PpuMode Mode { get; private set; }
 
         public IMemoryReaderWriter Memory { get; set; }
-
-        
+   
         public GfxMemoryRegisters MemoryRegisters { get; private set; }
 
         public TileMap[] TileMaps { get; private set; }
@@ -53,6 +51,7 @@ namespace DMG
         // temp palette
         Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
 
+
         public Ppu(DmgSystem dmg)
         {
             this.dmg = dmg;
@@ -63,7 +62,7 @@ namespace DMG
         {
             FrameBuffer = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution); // new Color[Screen_X_Resolution * Screen_Y_Resolution];
 
-            MemoryRegisters = new GfxMemoryRegisters();
+            MemoryRegisters = new GfxMemoryRegisters(this);
             MemoryRegisters.Reset();
 
             TileMaps = new TileMap[2];
@@ -84,7 +83,14 @@ namespace DMG
             lastCpuTickCount = 0;
             elapsedTicks = 0;
 
-            Mode = PpuMode.HBlank;
+            Mode = PpuMode.VBlank;
+
+#if THREADED_PIXEL_TRANSFER
+            drawLine = false;
+            pixelWriterThread = new Thread(new ThreadStart(PixelThread));
+            pixelWriterThread.Start();
+#endif 
+
         }
 
 
@@ -117,6 +123,8 @@ namespace DMG
             elapsedTicks += (cpuTickCount - lastCpuTickCount);
             lastCpuTickCount = cpuTickCount;
 
+            LcdStatusRegister lcdStat = MemoryRegisters.STAT;
+
             switch (Mode)
             {
                 case PpuMode.OamSearch:
@@ -127,6 +135,9 @@ namespace DMG
 
                         Mode = PpuMode.PixelTransfer;
 
+#if THREADED_PIXEL_TRANSFER                        
+                        drawLine = true;
+#endif
                         elapsedTicks -= 80;
                     }
                     break;
@@ -136,11 +147,23 @@ namespace DMG
                 // The emulator must also work this way as the cpu is still running and many graphical effects change the state of the system between scanlines
                 case PpuMode.PixelTransfer:
                     if (elapsedTicks >= 172)
-                    {
-                        Mode = PpuMode.HBlank;
-
+                    {                      
+#if THREADED_PIXEL_TRANSFER
+                        // Wait for line to finish
+                        while (drawLine)
+                        {
+                        }
+#else
                         // In theory this could be async while waiting for the ticks
                         RenderScanline();
+#endif
+
+                        Mode = PpuMode.HBlank;
+
+                        if (lcdStat.HBlankInterruptEnable)
+                        {
+                            dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
+                        }
 
                         elapsedTicks -= 172;
                     }
@@ -151,21 +174,38 @@ namespace DMG
                 case PpuMode.HBlank:
                     // 51 machine cycles ticks (1mhz vs 4mhz mean ours are 4x the value found in some documents)
                     if (elapsedTicks >= 204)
-                    {
+                    {                        
                         CurrentScanline++;
 
-                        // TODO: Shouldn't this be 144???????
-
-                        if (CurrentScanline == 143)
+                        // Coincidence interrupt checks if the scanline is equal to the value in FF45
+                        if(lcdStat.LycLyCoincidenceInterruptEnable &&
+                            CurrentScanline == lcdStat.LYC)
                         {
+                            dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
+                        }
+
+                        // TODO: Shouldn't this be 144??????? Not 143!
+                        if (CurrentScanline == 144)
+                        {
+                            Mode = PpuMode.VBlank;
+
                             //This will only fire the interrupt if IE for vblank is set
                             dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_VBLANK);
 
-                            Mode = PpuMode.VBlank;
+                            if(lcdStat.VBlankInterruptEnable)
+                            {
+                                dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
+                            }
+                            
                         }
                         else
                         {
                             Mode = PpuMode.OamSearch;
+
+                            if (lcdStat.OamInterruptEnable)
+                            {
+                                dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
+                            }
                         }
 
                         // Don't lose any ticks, cannot set to zero
@@ -181,7 +221,7 @@ namespace DMG
                     {
                         CurrentScanline++;
 
-                        if (CurrentScanline > 153)
+                        if (CurrentScanline == 154)
                         {
                             CurrentScanline = 0;
                             Mode = PpuMode.OamSearch;
@@ -249,6 +289,19 @@ namespace DMG
             oamSearchResults.OrderByDescending(o => o.X).ToList();
         }
 
+#if THREADED_PIXEL_TRANSFER
+        void PixelThread()
+        {
+            while(true)
+            {
+                if(drawLine)
+                {
+                    RenderScanline();
+                    drawLine = false;
+                }
+            }
+        }
+#endif
 
         // Gamebopy screen resolution = 160x144
         void RenderScanline()
@@ -270,18 +323,29 @@ namespace DMG
             {
                 TileMap tileMap = TileMaps[MemoryRegisters.LCDC.BgTileMapSelect];
 
-                byte y = CurrentScanline;
+                byte screenY = CurrentScanline;
+
+                // Where are we viewing the logical 256x256 tile map?
+                byte viewPortX = MemoryRegisters.BgScrollX;
+                byte viewPortY = MemoryRegisters.BgScrollY;
+
+                int bgY = viewPortY + screenY;
+                if (bgY >= 256) bgY -= 256;
 
                 // What row are we rendering within a tile?
-                int tilePixelY = ((y + MemoryRegisters.BgScrollY) % 8);
+                byte tilePixelY = (byte) (bgY % 8);
 
-                for (byte x = 0; x < Screen_X_Resolution; x++)
+                for (byte screenX = 0; screenX < Screen_X_Resolution; screenX++)
                 {
-                    // What column are we rendering within a tile?
-                    byte tilePixelX = (byte)((x + MemoryRegisters.BgScrollX) % 8);
+                    int bgX = viewPortX + screenX;
+                    if (bgX >= 256) bgX -= 256;
 
-                    Tile tile = tileMap.TileFromXY((byte)(x + MemoryRegisters.BgScrollX), (byte)(y + MemoryRegisters.BgScrollY));
-                    FrameBuffer.SetPixel(x, y, palette[tile.renderTile[tilePixelX, tilePixelY]]);
+                    // What column are we rendering within a tile?
+                    byte tilePixelX = (byte)(bgX % 8);
+
+                    Tile tile = tileMap.TileFromXY((byte)(bgX), (byte)(bgY));
+
+                    FrameBuffer.SetPixel(screenX, screenY, palette[tile.renderTile[tilePixelX, tilePixelY]]);
                 }
             }
 
@@ -299,7 +363,7 @@ namespace DMG
                     byte windowXPos = 0;
                     byte windowYPos = (byte)(y - MemoryRegisters.WindowY);
 
-                    int tilePixelY = (y % 8);
+                    int tilePixelY = (windowYPos % 8);
 
                     // WindowX should always be used -7
                     for (byte x = (byte) (MemoryRegisters.WindowX - 7); x < Screen_X_Resolution; x++)
@@ -332,22 +396,38 @@ namespace DMG
                 Tile tile = GetSpriteTileByIndex(sprite.TileIndex);
 
                 for (int i = 0; i < 8; i++)
-                {
-                    byte paletteIndex = tile.renderTile[i, spriteYLine];
+                {                 
+                    // Offscreen 
+                    if (spriteXScreenSpace + i >= Screen_X_Resolution)
+                    {
+                        break;
+                    }
 
+                    if(spriteXScreenSpace + i < 0)
+                    {
+                        continue;
+                    }
+
+                    int sprPixelX = i;
+                    int sprPixelY = spriteYLine;
+                    if (sprite.XFlip) sprPixelX = 7 - sprPixelX;
+                    if (sprite.YFlip) sprPixelY = 7 - sprPixelY;
+                    byte paletteIndex = tile.renderTile[sprPixelX, sprPixelY];
+
+                    // Palette entry 0 == translucent for sprites
                     if (paletteIndex != 0)
                     {
                         FrameBuffer.SetPixel(spriteXScreenSpace + i, CurrentScanline, palette[paletteIndex]);
                     }
                 }
 
-                // TODO: obj/obj priority (sprite wil smallest x position draws on top)
+        
 
                 // TODO : obj/BG priority, BG can render on top??
 
                 // TODO: Sprites have two palettes, use the right one!
 
-                // Palette entry 0 == translucent for sprites
+                
             }
 
 
@@ -356,6 +436,20 @@ namespace DMG
 
         }
 
+
+        public void Enable(bool toggle)
+        {
+            if(toggle == false)
+            {
+                Mode = PpuMode.OamSearch;
+                CurrentScanline = 0;
+                elapsedTicks = 0;                
+            }
+            else
+            {
+                lastCpuTickCount = dmg.cpu.Ticks;
+            }
+        }
 
 
         // TODO: This could be faster 

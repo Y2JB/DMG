@@ -38,9 +38,12 @@ namespace DMG
         {
             bootstrapRom = new BootRom("../../../../DMG.bin");
             //rom = new Rom("../../../../roms/games/tetris.gb");
-            rom = new Rom("../../../../roms/games/Dr. Mario.gb");
+            //rom = new Rom("../../../../roms/games/Dr. Mario.gb");
             //rom = new Rom("../../../../roms/games/Bubble Ghost (J).gb");
-            //rom = new Rom("../../../../roms/games/Super Mario Land.gb");
+            rom = new Rom("../../../../roms/games/Super Mario Land.gb");
+            //rom = new Rom("../../../../roms/games/TMNT.gb");
+            //rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (G).gb");
+            //rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
             //rom = new Rom("../../../../roms/tellinglys.gb");

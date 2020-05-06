@@ -22,10 +22,10 @@ namespace DMG
         public byte WindowX { get; set; }
 
 
-        public GfxMemoryRegisters()
+        public GfxMemoryRegisters(IPpu ppu)
         {
-            LCDC = new LcdControlRegister();
-            STAT = new LcdStatusRegister();
+            LCDC = new LcdControlRegister(ppu);
+            STAT = new LcdStatusRegister(ppu);
         }
 
         public void Reset()
@@ -42,7 +42,30 @@ namespace DMG
 
     public class LcdControlRegister
     {
-        public byte Register { get; set; }
+        byte register;
+        public byte Register 
+        {
+            get { return register; }
+            set
+            {
+                bool lcdState = ((register & (byte)(1 << 7)) != 0);
+                bool lcdNewState = ((value & (byte)(1 << 7)) != 0);
+
+                register = value;
+
+                if(lcdState != lcdNewState)
+                {
+                    ppu.Enable(lcdNewState);
+                }
+            }                
+        }
+
+        IPpu ppu;
+
+        public LcdControlRegister(IPpu ppu)
+        {
+            this.ppu = ppu;
+        }
 
         // Bit 7 - LCD Display Enable(0=Off, 1=On)
         public byte LcdEnable { get { return (Register & (byte)(1 << 7)) == 0 ? (byte)0 : (byte)1; } }
@@ -75,14 +98,56 @@ namespace DMG
     // Bit 4 - Mode 1 V-Blank Interrupt(1=Enable) (Read/Write)
     // Bit 3 - Mode 0 H-Blank Interrupt(1=Enable) (Read/Write)
     // Bit 2 - Coincidence Flag(0:LYC<> LY, 1:LYC= LY) (Read Only)
-    // Bit 1-0 - Mode Flag(Mode 0-3, see below) (Read Only)
+    // Bit 1-0 - Mode Flag(Mode 0-3) (Read Only)
     //       0: During H-Blank
     //       1: During V-Blank
     //       2: During Searching OAM
     //       3: During Transferring Data to LCD Driver
+    // 0xFF41
     public class LcdStatusRegister 
     {
-        public byte Register { get; set; }
+        byte register;
+        public byte Register 
+        {
+            get
+            {
+                byte low3Bits = 0;
+                byte ppuMode = (byte)ppu.Mode;
+                low3Bits |= ppuMode;
+
+                // Bit 2 (Coincidence Flag) is set to 1 if register(0xFF44) is the same value as (0xFF45) otherwise it is set to 0
+                if(ppu.CurrentScanline == LYC)
+                {
+                    low3Bits |= 0x04;
+                }
+
+                return (byte) (register | low3Bits);
+            }
+
+            set
+            {
+                // Mask off the read only bits
+                register = (byte) (value & 0xF8);
+
+
+                //if (lcdStat.OamInterruptEnable)
+                //{
+                //    dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
+                //}
+            }
+
+        }
+
+        // Set at 0xFF45 by the program to drive the coincidence interrupt
+        public byte LYC { get; set; }
+
+
+        IPpu ppu;
+
+        public LcdStatusRegister(IPpu ppu)
+        {
+            this.ppu = ppu;
+        }
 
         public bool LycLyCoincidenceInterruptEnable { get { return (Register & (byte)(1 << 6)) != 0; } }
         public bool OamInterruptEnable { get { return (Register & (byte)(1 << 5)) != 0; } }

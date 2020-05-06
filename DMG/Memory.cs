@@ -21,7 +21,7 @@ namespace DMG
 
 	public class Memory : IMemoryReaderWriter
 	{
-		private IMemoryReader GameRom { get; set; }
+		private IRom GameRom { get; set; }
 		private IMemoryReader BootstrapRom { get; set; }
 		public byte[] Ram { get; set; }
 		public byte[] VRam { get; set; }
@@ -70,9 +70,12 @@ namespace DMG
 				}
 			}
 
-
+			// ROM space is 0x0000 - 0x7FFFF. To access anything over that requires bank switching (which most games use)
+			// The lower half of the ROM is fixed and always available 0 - 0x3FFF (16K)
+			// The upper half of ROM can be bank switched 
 			if (address <= 0x7fff)
 			{
+				// Bank switching is done inside the ROM code 
 				return GameRom.ReadByte(address);
 			}
 			else if (address >= 0xC000 && address <= 0xDFFF)
@@ -128,6 +131,10 @@ namespace DMG
 				// Read only
 				return ppu.CurrentScanline;
 			}
+			else if (address == 0xFF45)
+			{
+				return ppu.MemoryRegisters.STAT.LYC;
+			}
 			else if (address == 0xFF4A)
 			{
 				return ppu.MemoryRegisters.WindowY;
@@ -165,18 +172,30 @@ namespace DMG
 		}
 
 
-		void copy(ushort destination, ushort source, int length)
+		void DmaCopy(ushort destination, ushort source, int length)
 		{
-			uint i;
-			for (i = 0; i < length; i++) WriteByte((ushort)(destination + i), ReadByte((ushort)(source + i)));
+			for (int i = 0; i < length; i++)
+			{
+				WriteByte((ushort)(destination + i), ReadByte((ushort)(source + i)));
+			}
 		}
 
 
 		public void WriteByte(ushort address, byte value)
 		{
-			if (address >= 0x2000 && address <= 0x3FFF)
+			if (address < 0x8000)
 			{
-				// TODO: Writing to this address space selects the lower 5 bits of the ROM Bank Number(in range 01 - 1Fh)
+				// Rom Banking is triigered by 'writing' to the Rom
+				GameRom.BankSwitch(address, value);
+			}
+			else if ((address >= 0xA000) && (address < 0xC000))
+			{
+				// RAM Banking
+				//if (m_EnableRAM)
+				//{
+				//	WORD newAddress = address - 0xA000;
+				//	m_RAMBanks[newAddress + (m_CurrentRAMBank * 0x2000)] = data;
+				//}
 			}
 			else if (address >= 0xC000 && address <= 0xDFFF)
 			{
@@ -244,10 +263,19 @@ namespace DMG
 			{
 				ppu.MemoryRegisters.BgScrollX = value;
 			}
+			else if (address == 0xFF44)
+			{
+				// reset scanline if the program tries to write to it
+				//ppu.CurrentScanline = 0;
+			}
+			else if (address == 0xFF45)
+			{
+				ppu.MemoryRegisters.STAT.LYC = value;
+			}
 			else if (address == 0xFF46)
 			{
-				// DMA
-				copy(0xfe00, (ushort)(value << 8), 160); // OAM DMA
+				// OAM DMA
+				DmaCopy(0xfe00, (ushort)(value << 8), 160); 
 			}
 			else if (address == 0xFF4A)
 			{
