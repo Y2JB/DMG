@@ -234,6 +234,8 @@ namespace DMG
                     sw.Write(cpu.ToString());
 
                     sw.Write("\n\n");
+                    
+                    sw.Write(ppu.MemoryRegisters.ToString());
 
                     if (ex != null)
                     {

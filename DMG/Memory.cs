@@ -100,6 +100,10 @@ namespace DMG
 			{
 				// OAM table read. Should only be accessed by PPU.
 				return OamRam[address - 0xFE00];
+			}			
+			else if (address >= 0xFF80 && address <= 0xFFFE)
+			{
+				return HRam[address - 0xFF80];
 			}
 			else if (address == 0xFF00)
 			{
@@ -141,6 +145,18 @@ namespace DMG
 			{
 				return ppu.MemoryRegisters.STAT.LYC;
 			}
+			else if (address == 0xFF47)
+			{
+				return ppu.Palettes.BackgroundGbPalette;
+			}
+			else if (address == 0xFF48)
+			{
+				return ppu.Palettes.ObjGbPalette0;
+			}
+			else if (address == 0xFF49)
+			{
+				return ppu.Palettes.ObjGbPalette1;
+			}
 			else if (address == 0xFF4A)
 			{
 				return ppu.MemoryRegisters.WindowY;
@@ -157,13 +173,8 @@ namespace DMG
 			{
 				return interrupts.InterruptEnableRegister;
 			}
-			else if (address >= 0xFF80 && address <= 0xFFFE)
-			{
-				return HRam[address - 0xFF80];
-			}
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{
-				// TODO: Move all the specific IO calls FF40 etc etc into this else if
 				return Io[address - 0xFF00];
 			}
 
@@ -229,9 +240,9 @@ namespace DMG
 			else if (address >= 0xFF80 && address <= 0xFFFE)
 			{
 				HRam[address - 0xFF80] = value;
-			}
+			}						
 			else if (address == 0xFF00)
-			{					
+			{
 				// Joypad writes 2 bits to select if it is reading pad or buttons 			
 				dmg.pad.Register = value;
 			}
@@ -277,7 +288,19 @@ namespace DMG
 			else if (address == 0xFF46)
 			{
 				// OAM DMA
-				DmaCopy(0xfe00, (ushort)(value << 8), 160); 
+				DmaCopy(0xfe00, (ushort)(value << 8), 160);
+			}
+			else if (address == 0xFF47)
+			{
+				ppu.Palettes.BackgroundGbPalette = value;
+			}
+			else if (address == 0xFF48)
+			{
+				ppu.Palettes.ObjGbPalette0 = value;
+			}
+			else if (address == 0xFF49)
+			{
+				ppu.Palettes.ObjGbPalette1 = value;
 			}
 			else if (address == 0xFF4A)
 			{
@@ -290,7 +313,7 @@ namespace DMG
 			else if (address == 0xFF50)
 			{
 				bootRomMask = value;
-			}			
+			}
 			else if (address == 0xFF0F)
 			{
 				interrupts.InterruptFlags = value;
@@ -299,9 +322,8 @@ namespace DMG
 			{
 				interrupts.InterruptEnableRegister = value;
 			}
-			
 			else if (address >= 0xFF00 && address <= 0xFF7F)
-			{
+			{				
 				// TODO: Move all the specific IO calls FF40 etc etc into this else if
 				Io[address - 0xFF00] = value;
 			}

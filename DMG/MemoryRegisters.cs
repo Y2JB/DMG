@@ -37,9 +37,19 @@ namespace DMG
             LCDC.Register = 0;
             STAT.Register = 0;
         }
+
+
+        public override string ToString()
+        {
+            
+            return String.Format("{0}{1}Window X: {2}{3}Window Y: {4}{5}BG Scroll X: {6}{7}BG Scroll Y: {8}{9}", LCDC.ToString(), STAT.ToString(), 
+                WindowX - 7, Environment.NewLine, WindowY, Environment.NewLine, BgScrollX, Environment.NewLine, BgScrollY, Environment.NewLine);
+        }
+
     }
 
 
+    // 0xFF40
     public class LcdControlRegister
     {
         byte register;
@@ -88,8 +98,21 @@ namespace DMG
         // Bit 1 - OBJ(Sprite) Display Enable(0=Off, 1=On)
         public byte SpritesDisplay { get { return (Register & (byte)(1 << 1)) == 0 ? (byte)0 : (byte)1; } }
 
-        // Bit 0 - BG/Window Display/Priority(0=Off, 1=On)
-        public byte BgDisplay { get { return (Register & (byte)(1 << 0)) == 0 ? (byte)0 : (byte)1; } }
+        // Bit 0 - BG/Window Display(0=Off, 1=On)
+        // When Bit 0 is cleared, both background and window become blank(white), and the Window Display Bit is ignored in that case. Only Sprites may still be displayed(if enabled in Bit 1).
+        public byte BgWinDisplay { get { return (Register & (byte)(1 << 0)) == 0 ? (byte)0 : (byte)1; } }
+
+        public override string ToString()
+        {
+            string sprHeight = SpriteHeight == 0 ? "8x8" : "8x16";
+            string bgTileMap = BgTileMapSelect == 0 ? "9800-9BFF" : "9C00-9FFF";
+            string bgAddressingMode = BgAndWindowTileAddressingMode == 0 ? "8800-9BFF" : "8000-8FFF";
+            string windowTileMap = WindowTileMapSelect == 0 ? "9800-9BFF" : "9C00-9FFF";
+
+            return String.Format("LCDC:{0}LCD Enabled: {1}{2}BGWin Display: {3}{4}Sprites Enabled: {5}{6}Sprite Height: {7}{8}BG Tilemap: {9}{10}BG/Window Addressing Mode: {11}{12}Window Enabled: {13}{14}Window Tilemap: {15}{16}", 
+                Environment.NewLine, LcdEnable.ToString(), Environment.NewLine, BgWinDisplay.ToString(), Environment.NewLine, SpritesDisplay.ToString(), Environment.NewLine, sprHeight, Environment.NewLine,
+                bgTileMap, Environment.NewLine, bgAddressingMode, Environment.NewLine, WindowDisplay.ToString(), Environment.NewLine, windowTileMap, Environment.NewLine);
+        }
     }
 
 
@@ -157,6 +180,15 @@ namespace DMG
         public byte CoincidenceFlag { get { return (byte) ((Register & (byte)(1 << 2)) == 0 ? 0 : 1); } }
 
         public byte ModeFlag { get { return (byte)(Register & (byte)(0x3)); } }
+
+
+        public override string ToString()
+        {
+            return String.Format("STAT:{0}Current Mode: {1}{2}LYC Flag: {3}{4}HBlank IRQ: {5}{6}VBlank IRQ: {7}{8}OAM IRQ: {9}{10}LYC IRQ: {11}{12}LYC: {13}{14}", 
+                Environment.NewLine, ppu.Mode.ToString(), Environment.NewLine, CoincidenceFlag.ToString(), Environment.NewLine, HBlankInterruptEnable.ToString(), 
+                Environment.NewLine, VBlankInterruptEnable.ToString(), Environment.NewLine, OamInterruptEnable.ToString(), Environment.NewLine, 
+                LycLyCoincidenceInterruptEnable.ToString(), Environment.NewLine, LYC.ToString(), Environment.NewLine);
+        }
     }
 
 

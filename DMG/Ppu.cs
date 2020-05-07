@@ -40,6 +40,7 @@ namespace DMG
 
         public byte CurrentScanline { get; private set; }
 
+        public DmgPalettes Palettes { get; set; }
         
         UInt32 lastCpuTickCount;
         UInt32 elapsedTicks;
@@ -49,7 +50,7 @@ namespace DMG
         DmgSystem dmg;
 
         // temp palette
-        Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
+        //Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
 
 
         public Ppu(DmgSystem dmg)
@@ -84,6 +85,8 @@ namespace DMG
             elapsedTicks = 0;
 
             Mode = PpuMode.VBlank;
+
+            Palettes = new DmgPalettes();
 
 #if THREADED_PIXEL_TRANSFER
             drawLine = false;
@@ -319,7 +322,9 @@ namespace DMG
             // Render the BG
             // Total BG size in VRam is 32x32 tiles
             // Viewport is 20x18 tiles
-            if (MemoryRegisters.LCDC.BgDisplay == 1)
+
+            // TODO: NOT SURE THIS FLAG IS BEING USED RIGHT HERE!!!
+            if (MemoryRegisters.LCDC.BgWinDisplay == 1)
             {
                 TileMap tileMap = TileMaps[MemoryRegisters.LCDC.BgTileMapSelect];
 
@@ -345,7 +350,7 @@ namespace DMG
 
                     Tile tile = tileMap.TileFromXY((byte)(bgX), (byte)(bgY));
 
-                    FrameBuffer.SetPixel(screenX, screenY, palette[tile.renderTile[tilePixelX, tilePixelY]]);
+                    FrameBuffer.SetPixel(screenX, screenY, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
                 }
             }
 
@@ -372,7 +377,7 @@ namespace DMG
                         byte tilePixelX = (byte)(windowXPos % 8);             
 
                         Tile tile = tileMap.TileFromXY(windowXPos, windowYPos);
-                        FrameBuffer.SetPixel(x, y, palette[tile.renderTile[tilePixelX, tilePixelY]]);
+                        FrameBuffer.SetPixel(x, y, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
 
                         windowXPos++;
                     }
@@ -393,6 +398,8 @@ namespace DMG
                 // Which row of the sprite is being rendered on this line?
                 int spriteYLine =  CurrentScanline - spriteYScreenSpace;
 
+                Color[] palette = Palettes.ObjPalette0;
+                if (sprite.PaletteNumber == 1) palette = Palettes.ObjPalette1;
                 
                 Tile tile = GetSpriteTileByIndex(sprite.TileIndex);
 

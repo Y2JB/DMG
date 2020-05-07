@@ -18,7 +18,7 @@ namespace WinFormsDmg
 {
     public partial class DmgConsoleWindow : Form
     {
-        TextBox console = new TextBox();     
+        RichTextBox console = new RichTextBox();     
         TextBox commandInput = new TextBox();
         TextBox dmgSnapshot = new TextBox();
         Button okButton = new Button();
@@ -54,6 +54,7 @@ namespace WinFormsDmg
             loadmemory,                     // param must be a text file containing hex for 8K. EG: 10 2A FF ...
             loadregisters,
             mem,                            // mem 0 = read(0)   mem 0 10 = wrtie(0, 10)
+            lcd,                            // Shows Stat and LCDC
             help,
             set,                            // set (register) n/nn
             ticks,
@@ -89,10 +90,10 @@ namespace WinFormsDmg
 
             console.Location = new System.Drawing.Point(10, 10);
             console.Multiline = true;
-            console.ScrollBars = ScrollBars.Vertical;
+            console.ReadOnly = true;
             console.Width = 620;
             console.Height = 400;            
-            console.Enabled = false;
+            console.Enabled = true;        
             this.Controls.Add(console);
 
             dmgSnapshot.Location = new System.Drawing.Point(console.Location.X + console.Width + 10, 10);
@@ -179,6 +180,9 @@ namespace WinFormsDmg
 
                 case ConsoleCommand.mem:
                     return MemCommand(parameters);
+
+                case ConsoleCommand.lcd:
+                    return LcdCommand();
 
                 case ConsoleCommand.set:
                     return SetCommand(parameters);
@@ -278,6 +282,14 @@ namespace WinFormsDmg
             ConsoleAddString(String.Format("mem usage: 'mem n' for read, 'mem n n' for write. n can be of the form 255 or 0xFF"));
             return false;
         }
+
+
+        bool LcdCommand() 
+        {
+            ConsoleAddString(dmg.ppu.MemoryRegisters.ToString());
+            return true;
+        }
+
 
         bool BreakpointCommand(string[] parameters)
         {
@@ -486,6 +498,7 @@ namespace WinFormsDmg
         void ConsoleAddString(string str)
         {
             console.AppendText(str + Environment.NewLine);
+            console.ScrollToCaret();
         }
 
 
