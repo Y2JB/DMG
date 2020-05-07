@@ -40,10 +40,14 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/tetris.gb");
             //rom = new Rom("../../../../roms/games/Dr. Mario.gb");
             //rom = new Rom("../../../../roms/games/Bubble Ghost (J).gb");
-            rom = new Rom("../../../../roms/games/Super Mario Land.gb");
-            //rom = new Rom("../../../../roms/games/TMNT.gb");
-            //rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (G).gb");
+            //rom = new Rom("../../../../roms/games/Super Mario Land.gb");
             //rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
+            //rom = new Rom("../../../../roms/games/Warioland.gb");
+            //rom = new Rom("../../../../roms/games/TMNT.gb");
+            rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
+            //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
+
+            //rom = new Rom("../../../../roms/games/Wave race.gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
             //rom = new Rom("../../../../roms/tellinglys.gb");
@@ -300,8 +304,8 @@ namespace DMG
 
                 }
             }
-
-            image.Save("../../../../dump/tileset.png");
+       
+            image.Save(string.Format("../../../../dump/tileset_{0}.png", rom.RomName));
         }        
     }
 }

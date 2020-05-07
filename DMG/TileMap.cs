@@ -70,7 +70,7 @@ namespace DMG
                     {
                         for (int x = 0; x < 32; x++)
                         {
-                            string tileIndex = string.Format("0x{0:X2} ", memory.ReadByte((ushort)(vramOffset + (y * 32) + x)));
+                            string tileIndex = string.Format("{0:X2} ", memory.ReadByte((ushort)(vramOffset + (y * 32) + x)));
                             sw.Write(tileIndex);
                         }
                         sw.Write(Environment.NewLine);

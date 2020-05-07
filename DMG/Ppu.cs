@@ -393,7 +393,15 @@ namespace DMG
                 // Which row of the sprite is being rendered on this line?
                 int spriteYLine =  CurrentScanline - spriteYScreenSpace;
 
+                
                 Tile tile = GetSpriteTileByIndex(sprite.TileIndex);
+
+                // if using 16 pixel high sprites (2 tiles) then adjust to the next tile and fix up the line
+                if (MemoryRegisters.LCDC.SpriteHeight == 1 && spriteYLine >= 8)
+                {
+                    tile = GetSpriteTileByIndex((byte) (sprite.TileIndex + 1));
+                    spriteYLine -= 8;
+                }
 
                 for (int i = 0; i < 8; i++)
                 {                 

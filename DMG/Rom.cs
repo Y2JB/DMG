@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace DMG
@@ -50,6 +51,11 @@ namespace DMG
         public byte CurrentRomBank { get; private set;  }
         bool IsRomBanking { get; set; }
 
+        // MBC1 carts had Max of 4 ram banks (8K per bank). NB: Only MCB1 supported Ram Banks
+        public byte CurrentRamBank { get; private set; }
+        bool ramBankingEnabled;
+        byte[] ramBanks;
+
         public Rom(string fn)
         {
             romData = new MemoryStream(File.ReadAllBytes(fn)).ToArray();
@@ -59,9 +65,15 @@ namespace DMG
             // RomBank 0 is classed as the first 16K of the ROM which is always available. Therefore the current ROM bank is always 1 or more.
             CurrentRomBank = 1;
             IsRomBanking = false;
+
+            // Enough to cover the max ram they ever added to a cart (4 * 8K)
+            ramBanks = new byte[0x8000];
+            CurrentRamBank = 0;
+            ramBankingEnabled = false;
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public byte ReadByte(ushort address)
         {
             if(address < 0x4000)
@@ -79,10 +91,30 @@ namespace DMG
         }
 
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ushort ReadShort(ushort address)
         {
             // NB: Little Endian
             return (ushort)((ReadByte((ushort)(address+1)) << 8) | ReadByte(address));
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte ReadRamBankByte(ushort address)
+        {
+            // Address has already been adjusted
+            return ramBanks[address + (CurrentRamBank * 0x2000)];
+        }
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void WriteRamBankByte(ushort address, byte value)
+        {
+            // Address has already been adjusted
+            if (ramBankingEnabled)
+            {
+                ramBanks[address + (CurrentRamBank * 0x2000)] = value;
+            }
         }
 
 
@@ -97,18 +129,19 @@ namespace DMG
             return (Type == RomType.MBC2 || Type == RomType.MBC2_Battery);
         }
 
+
+        // ROM & RAM bank switching 
         public void BankSwitch(ushort address, byte data)
-        {
-            /*
-            // do RAM enabling
+        {           
+            // RAM banking enabling
             if (address < 0x2000)
             {
-                if (m_MBC1 || m_MBC2)
+                if (IsMBC1Rom() || IsMBC2Rom())
                 {
-                    DoRamBankEnable(address, data);
+                    EnableRamBanking(address, data);
                 }
             }
-            */
+            
 
             // do ROM bank change
             if ((address >= 0x200) && (address < 0x4000))
@@ -130,14 +163,13 @@ namespace DMG
                         WriteRomBankHighBits(data);
                     }
                     else
-                    {
-                       // DoRAMBankChange(value);
+                    { 
+                        SelectRAMBank(data);
                     }
                 }
             }
 
-            // this will change whether we are doing ROM banking
-            // or RAM banking with the above if statement
+            // Pick if we are doing ROM banking or RAM banking 
             else if ((address >= 0x6000) && (address < 0x8000))
             {
                 if (IsMBC1Rom())
@@ -145,6 +177,32 @@ namespace DMG
                     UpdateRomRamMode(data);
                 }
             }
+        }
+
+
+        void EnableRamBanking(ushort address, byte data)
+        {
+            if (IsMBC2Rom())
+            {
+                // MBC2 has the same logic as MBC1 except there is an additional clause that bit 4 of the address byte must be 0.
+                if ((address | (1 << 4)) != 0) return;
+            }
+
+            byte testData = (byte) (data & 0x0F);
+            if (testData == 0x0A)
+            {
+                ramBankingEnabled = true;
+            }
+            else if (testData == 0x00)
+            {
+                ramBankingEnabled = false;
+            }
+        }
+
+
+        void SelectRAMBank(byte data)
+        {
+            CurrentRamBank = (byte) (data & 0x03);
         }
 
 
@@ -189,8 +247,10 @@ namespace DMG
             byte newData = (byte) (data & 0x01);
             IsRomBanking = (newData == 0) ? true : false;
             
-            //if (IsRomBanking)
-            //    m_CurrentRAMBank = 0;
+            if (IsRomBanking)
+            {
+                CurrentRamBank = 0;
+            }
         }
     }
 }

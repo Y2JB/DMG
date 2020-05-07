@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace DMG
@@ -53,6 +54,7 @@ namespace DMG
 			HRam = new Byte[0x80];		
 		}
 
+
 		public byte ReadByte(ushort address)
 		{
 			if (address <= 0xFF)
@@ -78,6 +80,10 @@ namespace DMG
 				// Bank switching is done inside the ROM code 
 				return GameRom.ReadByte(address);
 			}
+			else if ((address >= 0xA000) && (address <= 0xBFFF))
+			{
+				return GameRom.ReadRamBankByte((ushort)(address - 0xA000));
+			}
 			else if (address >= 0xC000 && address <= 0xDFFF)
 			{
 				return Ram[address - 0xC000];
@@ -95,7 +101,7 @@ namespace DMG
 				// OAM table read. Should only be accessed by PPU.
 				return OamRam[address - 0xFE00];
 			}
-			else if(address == 0xFF00)
+			else if (address == 0xFF00)
 			{
 				// Joypad
 				return dmg.pad.Register;
@@ -190,12 +196,8 @@ namespace DMG
 			}
 			else if ((address >= 0xA000) && (address < 0xC000))
 			{
-				// RAM Banking
-				//if (m_EnableRAM)
-				//{
-				//	WORD newAddress = address - 0xA000;
-				//	m_RAMBanks[newAddress + (m_CurrentRAMBank * 0x2000)] = data;
-				//}
+				// Ram Bank on cart
+				GameRom.WriteRamBankByte((ushort)(address - 0xA000), value);
 			}
 			else if (address >= 0xC000 && address <= 0xDFFF)
 			{
