@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace DMG
@@ -25,8 +26,10 @@ namespace DMG
         public Bitmap FrameBuffer { get; }
 
         public TileMap[] TileMaps { get; }
-        public Tile[] Tiles { get; }
-        Tile GetTileByVRamAdrress(ushort address);
+        public Dictionary<int, Tile> Tiles { get; }
+
+        Tile GetTileByVRamAdrressFast(ushort address);
+        Tile GetTileByVRamAdrressSlow(ushort address);
     }
 
 

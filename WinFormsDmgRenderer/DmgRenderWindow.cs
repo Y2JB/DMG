@@ -13,6 +13,7 @@ using System.Windows.Input;
 
 using DMG;
 using WinFormsDmg;
+using System.Threading;
 
 namespace WinFormDmgRender
 {
@@ -27,6 +28,12 @@ namespace WinFormDmgRender
         int framesDrawn;
         int fps;
 
+        long frameMs;
+
+        bool drawFrame = false;
+        bool exitThread = false;
+        Thread renderThread;
+
         BufferedGraphicsContext gfxBufferedContext;
         BufferedGraphics gfxBuffer;
 
@@ -34,6 +41,8 @@ namespace WinFormDmgRender
         {
             InitializeComponent();
             
+            Application.ApplicationExit += new EventHandler(this.OnApplicationExit);
+
             // 4X gameboy resolution
             Width = 640;
             Height = 576;
@@ -41,7 +50,8 @@ namespace WinFormDmgRender
 
             dmg = new DmgSystem();
             dmg.PowerOn();
-            dmg.OnFrame = () => this.Draw();
+            //dmg.OnFrame = () => this.Draw();
+            dmg.OnFrame = () => this.OnDraw();
 
             this.Text = dmg.rom.RomName;
 
@@ -55,7 +65,14 @@ namespace WinFormDmgRender
             System.Windows.Forms.Application.Idle += new EventHandler(OnApplicationIdle);
 
             timer.Start();
+
+            frameMs = 0;
+
+            drawFrame = false;
+            renderThread = new Thread(new ThreadStart(RenderThread));
+            renderThread.Start();
         }
+
 
         protected override void OnLoad(EventArgs e)
         {
@@ -74,6 +91,7 @@ namespace WinFormDmgRender
             // dimensions the same size as the drawing surface of Form1.
             gfxBuffer = gfxBufferedContext.Allocate(this.CreateGraphics(), this.DisplayRectangle);
         }
+
 
         private void OnKeyDown(Object o, KeyEventArgs a)
         {
@@ -112,7 +130,7 @@ namespace WinFormDmgRender
 
         private void OnApplicationIdle(object sender, EventArgs e)
         {
-            
+
             while (IsApplicationIdle())
             {
                 if (timer.ElapsedMilliseconds - elapsedMs >= 1000)
@@ -121,7 +139,7 @@ namespace WinFormDmgRender
                     fps = framesDrawn;
                     framesDrawn = 0;
                 }
-
+                 
                 if (consoleWindow.DmgMode == DmgConsoleWindow.Mode.Running)
                 {
                     dmg.Step();
@@ -130,28 +148,75 @@ namespace WinFormDmgRender
                 }
 
                 else if (consoleWindow.DmgMode == DmgConsoleWindow.Mode.BreakPoint &&
-                         consoleWindow.BreakpointStepAvailable)
+                            consoleWindow.BreakpointStepAvailable)
                 {
                     dmg.Step();
                     consoleWindow.OnBreakpointStep();
                 }
+                
             }
         }
 
+        private void RenderThread()
+        {
+            while(exitThread == false)
+            {
+                if (drawFrame)
+                {
+                    framesDrawn++;
+
+                    lock (dmg.FrameBuffer)
+                    {
+                        gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height));
+
+
+                        gfxBuffer.Graphics.FillRectangle(new SolidBrush(Color.White), new Rectangle(ClientRectangle.Width - 75, 5, 55, 30));
+                        gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), new Font("Verdana", 8), new SolidBrush(Color.Black), new Point(ClientRectangle.Width - 75, 10));
+
+                        gfxBuffer.Render();
+                    }
+                    drawFrame = false;
+                }
+            }
+        }
+
+
+        private void OnDraw()
+        {     
+            while ((timer.ElapsedMilliseconds - frameMs) < 16)
+            {
+                Thread.Sleep(1);
+            }
+
+            // Wait for previous frame to finish drawing while also locking to 60fps
+            while (drawFrame)
+            {
+                Thread.Sleep(1);
+            }
+            frameMs = timer.ElapsedMilliseconds;
+            drawFrame = true;
+        }
+
+
+        /*
         private void Draw()
         {
-            framesDrawn++;
-
-            gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, new Rectangle(0, 0 , ClientRectangle.Width, ClientRectangle.Height));
-
+            framesDrawn++;                
+            gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height));
+         
 
             gfxBuffer.Graphics.FillRectangle(new SolidBrush(Color.White), new Rectangle(ClientRectangle.Width -75, 5, 55, 30));
             gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), new Font("Verdana", 8),  new SolidBrush(Color.Black), new Point(ClientRectangle.Width - 75, 10));
 
             gfxBuffer.Render();            
         }
+        */
 
-
+        private void OnApplicationExit(object sender, EventArgs e)
+        {
+            exitThread = true;
+            Thread.Sleep(500);
+        }
 
 
         [StructLayout(LayoutKind.Sequential)]

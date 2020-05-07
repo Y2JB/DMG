@@ -258,14 +258,10 @@ namespace DMG
             int tileX = 0;
             int tileY = 0;
 
-            //int offset =  0;
 
-            Tile[] tiles = ppu.Tiles; // new Tile[tileMapX * tileMapY];
-            for (int i = 0; i < tiles.Length; i++)
+            foreach (var t in ppu.Tiles)
             {
-                //tiles[i] = new Tile((ushort)(0x8000 + offset));
-                //Tile tile = tiles[i];
-                tiles[i].Parse(memory.VRam);
+                t.Value.Parse(memory.VRam);
 
                 // 16 bytes per tile
                 //offset += 16;            
@@ -275,7 +271,7 @@ namespace DMG
                 {
                     for (int x = 0; x < 8; x++)
                     {
-                        image.SetPixel(x + (tileX * 8), y + (tileY * 8), palette[tiles[i].renderTile[x, y]]);
+                        image.SetPixel(x + (tileX * 8), y + (tileY * 8), palette[t.Value.renderTile[x, y]]);
                     }
                 }
 

@@ -24,6 +24,10 @@ namespace DMG
         const ushort MaxTiles = 384;
 
         public Bitmap FrameBuffer { get; private set; }
+        Bitmap drawBuffer;
+        Bitmap frameBuffer0;
+        Bitmap frameBuffer1;
+ 
 
         public PpuMode Mode { get; private set; }
 
@@ -32,8 +36,8 @@ namespace DMG
         public GfxMemoryRegisters MemoryRegisters { get; private set; }
 
         public TileMap[] TileMaps { get; private set; }
-        public Tile[] Tiles { get; private set; }
-
+        //public Tile[] Tiles { get; private set; }
+        public Dictionary<int, Tile> Tiles { get; private set; }
         const int MaxSpritesPerLine = 10;
         public OamEntry[] Sprites { get; private set; }
         private List<OamEntry> oamSearchResults = new List<OamEntry>();
@@ -61,7 +65,10 @@ namespace DMG
 
         public void Reset()
         {
-            FrameBuffer = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution); // new Color[Screen_X_Resolution * Screen_Y_Resolution];
+            frameBuffer0 = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution); 
+            frameBuffer1 = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution); 
+            FrameBuffer = frameBuffer0;
+            drawBuffer = frameBuffer1;
 
             MemoryRegisters = new GfxMemoryRegisters(this);
             MemoryRegisters.Reset();
@@ -69,10 +76,11 @@ namespace DMG
             TileMaps = new TileMap[2];
             TileMaps[0] = new TileMap(this, Memory, 0x9800);
             TileMaps[1] = new TileMap(this, Memory, 0x9C00);
-            Tiles = new Tile[MaxTiles];
-            for (int i = 0; i < Tiles.Length; i++)
+            Tiles = new Dictionary<int, Tile>();
+            for (int i = 0; i < MaxTiles; i++)
             {
-                Tiles[i] = new Tile((ushort)(0x8000 + (i * 16)));
+                int address = (0x8000 + (i * 16));
+                Tiles.Add(address, new Tile((ushort)address));
             }
 
             Sprites = new OamEntry[Max_Sprites];
@@ -231,11 +239,26 @@ namespace DMG
 
                             frame++;
 
+                            lock (FrameBuffer)
+                            {
+                                // Flip frames 
+                                if (FrameBuffer == frameBuffer0)
+                                {
+                                    FrameBuffer = frameBuffer1;
+                                    drawBuffer = frameBuffer0;
+                                }
+                                else
+                                {
+                                    FrameBuffer = frameBuffer0;
+                                    drawBuffer = frameBuffer1;
+                                }                              
+                            }
+
                             if (dmg.OnFrame != null)
                             {
                                 dmg.OnFrame();
                             }
-                            //DumpFrameBufferToPng();
+
                         }
 
                         elapsedTicks -= 456;
@@ -350,7 +373,7 @@ namespace DMG
 
                     Tile tile = tileMap.TileFromXY((byte)(bgX), (byte)(bgY));
 
-                    FrameBuffer.SetPixel(screenX, screenY, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
+                    drawBuffer.SetPixel(screenX, screenY, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
                 }
             }
 
@@ -377,7 +400,7 @@ namespace DMG
                         byte tilePixelX = (byte)(windowXPos % 8);             
 
                         Tile tile = tileMap.TileFromXY(windowXPos, windowYPos);
-                        FrameBuffer.SetPixel(x, y, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
+                        drawBuffer.SetPixel(x, y, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
 
                         windowXPos++;
                     }
@@ -432,23 +455,13 @@ namespace DMG
                     // Palette entry 0 == translucent for sprites
                     if (paletteIndex != 0)
                     {
-                        FrameBuffer.SetPixel(spriteXScreenSpace + i, CurrentScanline, palette[paletteIndex]);
+                        drawBuffer.SetPixel(spriteXScreenSpace + i, CurrentScanline, palette[paletteIndex]);
                     }
                 }
 
-        
-
                 // TODO : obj/BG priority, BG can render on top??
-
-                // TODO: Sprites have two palettes, use the right one!
-
                 
             }
-
-
-
- 
-
         }
 
 
@@ -467,14 +480,20 @@ namespace DMG
         }
 
 
-        // TODO: This could be faster 
-        public Tile GetTileByVRamAdrress(ushort address)
+        public Tile GetTileByVRamAdrressFast(ushort address)
         {
-            foreach (Tile t in Tiles)
+            return Tiles[address];
+        }
+
+
+        // TODO: This could be faster 
+        public Tile GetTileByVRamAdrressSlow(ushort address)
+        {
+            foreach (var t in Tiles)
             {
-                if (address >= t.VRamAddress && address < (t.VRamAddress + 16))
+                if (address >= t.Value.VRamAddress && address < (t.Value.VRamAddress + 16))
                 {
-                    return t;
+                    return t.Value;
                 }
             }
 
@@ -484,14 +503,17 @@ namespace DMG
 
         public Tile GetSpriteTileByIndex(byte index)
         {
-            return GetTileByVRamAdrress((ushort) (0x8000 + (index * 16)));
+            return GetTileByVRamAdrressFast((ushort) (0x8000 + (index * 16)));
         }
 
 
         public void DumpFrameBufferToPng()
         {
             string fn = string.Format("../../../../dump/screen.png");
-            FrameBuffer.Save(fn);
+            lock (FrameBuffer)
+            {
+                FrameBuffer.Save(fn);
+            }
         }
     }
 }

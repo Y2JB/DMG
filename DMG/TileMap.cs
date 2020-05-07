@@ -56,7 +56,7 @@ namespace DMG
                 vramPointer = (ushort)(0x8000 + (ushort)(tileIndex * 16));
             }
 
-            return ppu.GetTileByVRamAdrress(vramPointer);
+            return ppu.GetTileByVRamAdrressFast(vramPointer);
         }
 
         public void DumpTileMap()

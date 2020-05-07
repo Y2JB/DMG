@@ -228,8 +228,10 @@ namespace DMG
 				// Whenever we write to a tile in vram, update the rendering data. (Remember tile maps start at 0x9800)
 				if (address <= 0x97ff)
 				{
-					Tile tile = ppu.GetTileByVRamAdrress(address);
-					tile.Parse(VRam, tile.VRamAddress - 0x8000);
+					// Calculate the start address of the tile
+					int tileAddress = (address - (address % 16));
+					Tile tile = ppu.GetTileByVRamAdrressFast((ushort)tileAddress);
+					tile.Parse(VRam, tileAddress - 0x8000);
 				}
 			}
 			else if (address >= 0xFE00 && address <= 0xFEFF)
