@@ -97,6 +97,13 @@ namespace WinFormDmgRender
         }
 
 
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+
+            gfxBuffer = gfxBufferedContext.Allocate(this.CreateGraphics(), this.DisplayRectangle);
+        }
+
         private void OnKeyDown(Object o, KeyEventArgs a)
         {
             if (InvokeRequired)
