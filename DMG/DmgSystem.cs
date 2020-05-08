@@ -20,17 +20,20 @@ namespace DMG
 
         public Joypad pad { get; private set; }
 
-        public Timer timer { get; private set; }
+        public DmgTimer timer { get; private set; }
 
         public StringBuilder Tty { get; private set; }
 
         public Bitmap FrameBuffer { get { return ppu.FrameBuffer; } }
 
+
+        public Stopwatch EmulatorTimer { get; private set; }
         public Action OnFrame{ get; set;  }
 
         public DmgSystem()
         {
             Tty = new StringBuilder(1024 * 256);
+            EmulatorTimer = new Stopwatch();
         }
 
 
@@ -77,7 +80,7 @@ namespace DMG
             ppu = new Ppu(this);
             memory = new Memory(this);
             cpu = new Cpu(memory, interrupts);
-            timer = new Timer(this);
+            timer = new DmgTimer(this);
             pad = new Joypad(interrupts, this);
 
 
@@ -93,6 +96,8 @@ namespace DMG
             // Peek the first instruction (done this way so we can always see the next instruction)
             cpu.PeekNextInstruction();
 
+            EmulatorTimer.Reset();
+            EmulatorTimer.Start();
             //Mode mode = Mode.Running;
 
 

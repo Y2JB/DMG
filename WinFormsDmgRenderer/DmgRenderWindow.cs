@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define THREADED_RENDERER
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -28,11 +30,13 @@ namespace WinFormDmgRender
         int framesDrawn;
         int fps;
 
-        long frameMs;
 
+
+#if THREADED_RENDERER
         bool drawFrame = false;
         bool exitThread = false;
         Thread renderThread;
+#endif 
 
         BufferedGraphicsContext gfxBufferedContext;
         BufferedGraphics gfxBuffer;
@@ -50,8 +54,8 @@ namespace WinFormDmgRender
 
             dmg = new DmgSystem();
             dmg.PowerOn();
-            //dmg.OnFrame = () => this.Draw();
-            dmg.OnFrame = () => this.OnDraw();
+
+            dmg.OnFrame = () => this.Draw();
 
             this.Text = dmg.rom.RomName;
 
@@ -66,11 +70,11 @@ namespace WinFormDmgRender
 
             timer.Start();
 
-            frameMs = 0;
-
+#if THREADED_RENDERER
             drawFrame = false;
             renderThread = new Thread(new ThreadStart(RenderThread));
             renderThread.Start();
+#endif
         }
 
 
@@ -157,9 +161,20 @@ namespace WinFormDmgRender
             }
         }
 
+
+#if THREADED_RENDERER
         private void RenderThread()
         {
-            while(exitThread == false)
+            var whiteBrush = new SolidBrush(Color.White);
+            var redBrush = new SolidBrush(Color.Red);
+            var amberBrush = new SolidBrush(Color.Orange);
+            var greenBrush = new SolidBrush(Color.Green);
+            var font = new Font("Verdana", 8);
+            var pt = new Point(ClientRectangle.Width - 75, 10);
+            var fpsRect = new Rectangle(ClientRectangle.Width - 75, 5, 55, 30);
+            var clientRect = new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height);
+
+            while (exitThread == false)
             {
                 if (drawFrame)
                 {
@@ -167,11 +182,19 @@ namespace WinFormDmgRender
 
                     lock (dmg.FrameBuffer)
                     {
-                        gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height));
+                        gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, clientRect);
 
 
-                        gfxBuffer.Graphics.FillRectangle(new SolidBrush(Color.White), new Rectangle(ClientRectangle.Width - 75, 5, 55, 30));
-                        gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), new Font("Verdana", 8), new SolidBrush(Color.Black), new Point(ClientRectangle.Width - 75, 10));
+                        // Only show fps if we are dipping and then use a colour code
+                        if (fps < 58)
+                        {
+                            var brush = redBrush;
+                            if (fps >= 50) brush = greenBrush;
+                            else if (fps >= 35) brush = amberBrush;
+
+                            gfxBuffer.Graphics.FillRectangle(brush, fpsRect);
+                            gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), font, whiteBrush, pt);
+                        }
 
                         gfxBuffer.Render();
                     }
@@ -180,25 +203,16 @@ namespace WinFormDmgRender
             }
         }
 
-
-        private void OnDraw()
+        private void Draw()
         {     
-            while ((timer.ElapsedMilliseconds - frameMs) < 16)
-            {
-                Thread.Sleep(1);
-            }
-
             // Wait for previous frame to finish drawing while also locking to 60fps
             while (drawFrame)
             {
-                Thread.Sleep(1);
             }
-            frameMs = timer.ElapsedMilliseconds;
             drawFrame = true;
         }
 
-
-        /*
+#else
         private void Draw()
         {
             framesDrawn++;                
@@ -210,7 +224,7 @@ namespace WinFormDmgRender
 
             gfxBuffer.Render();            
         }
-        */
+#endif
 
         private void OnApplicationExit(object sender, EventArgs e)
         {

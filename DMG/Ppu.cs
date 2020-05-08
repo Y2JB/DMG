@@ -50,6 +50,7 @@ namespace DMG
         UInt32 elapsedTicks;
 
         int frame;
+        double lastFrameTime;
 
         DmgSystem dmg;
 
@@ -91,6 +92,9 @@ namespace DMG
 
             lastCpuTickCount = 0;
             elapsedTicks = 0;
+
+            frame = 0;
+            lastFrameTime = dmg.EmulatorTimer.Elapsed.TotalMilliseconds;
 
             Mode = PpuMode.VBlank;
 
@@ -253,6 +257,13 @@ namespace DMG
                                     drawBuffer = frameBuffer1;
                                 }                              
                             }
+
+                            // lock to 60fps
+                            double fps60 = 1000 / 60.0;
+                            while(dmg.EmulatorTimer.Elapsed.TotalMilliseconds - lastFrameTime < fps60)
+                            { }
+
+                            lastFrameTime = dmg.EmulatorTimer.Elapsed.TotalMilliseconds;
 
                             if (dmg.OnFrame != null)
                             {

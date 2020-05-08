@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DMG
 {
-    public class Timer
+    public class DmgTimer
     {
         public bool Enabled { get; set; }
 
@@ -47,7 +47,7 @@ namespace DMG
 
         DmgSystem dmg;
 
-        public Timer(DmgSystem dmg)
+        public DmgTimer(DmgSystem dmg)
         {
             this.dmg = dmg;
         }
