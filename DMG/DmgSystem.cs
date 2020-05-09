@@ -49,6 +49,7 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/TMNT.gb");
             rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
+            //rom = new Rom("../../../../roms/games/Gargoyle's Quest - Ghosts'n Goblins.gb");
 
             //rom = new Rom("../../../../roms/games/Wave race.gb");
 
@@ -69,6 +70,8 @@ namespace DMG
             //rom = new Rom("../../../../roms/10-bit ops.gb");                  // passes
             //rom = new Rom("../../../../roms/11-op a,(hl).gb");                // passes
 
+            //rom = new Rom("../../../../roms/instr_timing.gb");
+            
             if (rom.Type == Rom.RomType.UnSupported)
             {
                 throw new InvalidDataException("Unsupported ROM type");
@@ -98,6 +101,13 @@ namespace DMG
 
             EmulatorTimer.Reset();
             EmulatorTimer.Start();
+
+            if(rom.Type == Rom.RomType.MBC1_Ram_Battery)
+            {
+                rom.LoadMbc1BatteryBackData();
+            }
+
+
             //Mode mode = Mode.Running;
 
 

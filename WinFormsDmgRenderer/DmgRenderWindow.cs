@@ -30,7 +30,8 @@ namespace WinFormDmgRender
         int framesDrawn;
         int fps;
 
-
+        Rectangle fpsRect;
+        Point fpsPt;
 
 #if THREADED_RENDERER
         bool drawFrame = false;
@@ -101,7 +102,13 @@ namespace WinFormDmgRender
         {
             base.OnSizeChanged(e);
 
-            gfxBuffer = gfxBufferedContext.Allocate(this.CreateGraphics(), this.DisplayRectangle);
+            fpsRect = new Rectangle(ClientRectangle.Width - 75, 5, 55, 30);
+            fpsPt = new Point(ClientRectangle.Width - 75, 10); ;
+
+            if (gfxBufferedContext != null)
+            {
+                gfxBuffer = gfxBufferedContext.Allocate(this.CreateGraphics(), this.DisplayRectangle);
+            }
         }
 
         private void OnKeyDown(Object o, KeyEventArgs a)
@@ -176,10 +183,9 @@ namespace WinFormDmgRender
             var redBrush = new SolidBrush(Color.Red);
             var amberBrush = new SolidBrush(Color.Orange);
             var greenBrush = new SolidBrush(Color.Green);
-            var font = new Font("Verdana", 8);
-            var pt = new Point(ClientRectangle.Width - 75, 10);
-            var fpsRect = new Rectangle(ClientRectangle.Width - 75, 5, 55, 30);
-            var clientRect = new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height);
+            var font = new Font("Verdana", 8);            
+            
+            //var clientRect = new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height);
 
             while (exitThread == false)
             {
@@ -189,7 +195,7 @@ namespace WinFormDmgRender
 
                     lock (dmg.FrameBuffer)
                     {
-                        gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, clientRect);
+                        gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, ClientRectangle);
 
 
                         // Only show fps if we are dipping and then use a colour code
@@ -200,7 +206,7 @@ namespace WinFormDmgRender
                             else if (fps >= 35) brush = amberBrush;
 
                             gfxBuffer.Graphics.FillRectangle(brush, fpsRect);
-                            gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), font, whiteBrush, pt);
+                            gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), font, whiteBrush, fpsPt);
                         }
 
                         gfxBuffer.Render();

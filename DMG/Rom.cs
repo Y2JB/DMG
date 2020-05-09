@@ -13,9 +13,11 @@ namespace DMG
 
         public string RomName { get; private set; }
 
-//#define ROM_OFFSET_ROM_SIZE 0x148
-//#define ROM_OFFSET_RAM_SIZE 0x149
-         
+        //#define ROM_OFFSET_ROM_SIZE 0x148
+        //#define ROM_OFFSET_RAM_SIZE 0x149
+
+        const int MaxRamSize = 0x8000;
+
         public enum RomType
         {
             UnSupported = -1,
@@ -48,6 +50,8 @@ namespace DMG
             } 
         }
 
+        string romFileName;
+
         public byte CurrentRomBank { get; private set;  }
         bool IsRomBanking { get; set; }
 
@@ -58,6 +62,8 @@ namespace DMG
 
         public Rom(string fn)
         {
+            romFileName = fn;
+
             romData = new MemoryStream(File.ReadAllBytes(fn)).ToArray();
 
             RomName = Encoding.UTF8.GetString(romData, RomNameOffset, 16).TrimEnd((Char)0);
@@ -67,7 +73,7 @@ namespace DMG
             IsRomBanking = false;
 
             // Enough to cover the max ram they ever added to a cart (4 * 8K)
-            ramBanks = new byte[0x8000];
+            ramBanks = new byte[MaxRamSize];
             CurrentRamBank = 0;
             ramBankingEnabled = false;
         }
@@ -250,6 +256,36 @@ namespace DMG
             if (IsRomBanking)
             {
                 CurrentRamBank = 0;
+            }
+        }
+
+
+        public void LoadMbc1BatteryBackData()
+        {
+            try
+            {
+                using (FileStream fs = File.Open(Path.ChangeExtension(romFileName, "sav"), FileMode.Open))
+                {
+                    using (BinaryReader bw = new BinaryReader(fs))
+                    {
+                        bw.Read(ramBanks, 0, MaxRamSize);
+                    }
+                }
+            }
+            catch(FileNotFoundException ex)
+            {
+            }
+        }
+
+
+        public void SaveMbc1BatteryBackData()
+        {          
+            using (FileStream fs = File.Open(Path.ChangeExtension(romFileName, "sav"), FileMode.Create))
+            {
+                using (BinaryWriter bw = new BinaryWriter(fs))
+                {
+                    bw.Write(ramBanks, 0, MaxRamSize);
+                }
             }
         }
     }

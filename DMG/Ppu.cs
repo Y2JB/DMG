@@ -398,15 +398,21 @@ namespace DMG
                 {
                     TileMap tileMap = TileMaps[MemoryRegisters.LCDC.WindowTileMapSelect];
 
-                    // Regardless of where on the screen we are drawing the Window, the drawing of the window data starts from window x = 0
-                    byte windowXPos = 0;
+                    // Window X, Y tell you where on screen to start drawing the tiles found at 0,0 in the tilemap.
+                    // The Window DOES NOT WRAP
+                    // WindowX should always be used -7
+                    byte windowXPos = (byte) (MemoryRegisters.WindowX - 7);
                     byte windowYPos = (byte)(y - MemoryRegisters.WindowY);
 
                     int tilePixelY = (windowYPos % 8);
-
-                    // WindowX should always be used -7
-                    for (byte x = (byte) (MemoryRegisters.WindowX - 7); x < Screen_X_Resolution; x++)
+                    
+                    for (byte x = 0; x < Screen_X_Resolution; x++)
                     {
+                        if(windowXPos > Screen_X_Resolution)
+                        {
+                            windowXPos++;
+                            continue;
+                        }
                         // What column are we rendering within a tile?
                         byte tilePixelX = (byte)(windowXPos % 8);             
 
@@ -457,11 +463,23 @@ namespace DMG
                         continue;
                     }
 
+
+
                     int sprPixelX = i;
                     int sprPixelY = spriteYLine;
                     if (sprite.XFlip) sprPixelX = 7 - sprPixelX;
                     if (sprite.YFlip) sprPixelY = 7 - sprPixelY;
                     byte paletteIndex = tile.renderTile[sprPixelX, sprPixelY];
+
+                    // If the priority is 0, sprites redner on top. If it is 1 then sprite pixels only render on top of 'white' otherwise they are obscured 
+                    if (sprite.ObjPriority == 1)
+                    {
+                        Color pixel = drawBuffer.GetPixel(spriteXScreenSpace + i, CurrentScanline);
+                        if(pixel != Palettes.BackgroundPalette[0])
+                        {
+                            continue;
+                        }
+                    }
 
                     // Palette entry 0 == translucent for sprites
                     if (paletteIndex != 0)
@@ -525,6 +543,70 @@ namespace DMG
             {
                 FrameBuffer.Save(fn);
             }
+        }
+
+
+        public void DumpFullCurrentBgToPng(bool renderViewPortBox)
+        {
+            DumpFullBgToPng(renderViewPortBox, 0, false);
+            DumpFullBgToPng(renderViewPortBox, 1, false);
+        }
+
+
+        public void DumpWindowToPng(bool renderViewPortBox)
+        {
+            DumpFullBgToPng(renderViewPortBox, 0, true);
+            DumpFullBgToPng(renderViewPortBox, 1, true);
+        }
+
+            
+        public void DumpFullBgToPng(bool renderViewPortBox, int bgSelect, bool isWindow)
+        {
+            Bitmap png = new Bitmap(256, 256);
+
+            TileMap tileMap = TileMaps[bgSelect];
+
+
+            for (int y = 0; y < 256; y++)
+            {
+                for (int x = 0; x < 256; x++)
+                {
+                    Tile tile = tileMap.TileFromXY((byte)(x), (byte)(y));
+                        
+                    png.SetPixel(x, y, Palettes.BackgroundPalette[tile.renderTile[x % 8, y % 8]]);
+                }
+            }
+
+
+            if (renderViewPortBox)
+            {
+                byte viewPortX;
+                byte viewPortY;
+                if (isWindow)
+                {
+                    viewPortX = (byte) (MemoryRegisters.WindowX - 7);
+                    viewPortY = MemoryRegisters.WindowY;
+                }
+                else
+                {
+                    // Where are we viewing the logical 256x256 tile map?
+                    viewPortX = MemoryRegisters.BgScrollX;
+                    viewPortY = MemoryRegisters.BgScrollY;
+                }
+                Pen pen = new Pen(Color.RoyalBlue, 1.0f);
+                using (var graphics = Graphics.FromImage(png))
+                {                        
+                    graphics.DrawLine(pen, viewPortX, viewPortY, viewPortX + Screen_X_Resolution, viewPortY);
+                    graphics.DrawLine(pen, viewPortX, viewPortY + Screen_Y_Resolution, viewPortX + Screen_X_Resolution, viewPortY + Screen_Y_Resolution);
+
+                    graphics.DrawLine(pen, viewPortX, viewPortY, viewPortX, viewPortY + Screen_Y_Resolution);
+                    graphics.DrawLine(pen, viewPortX + Screen_X_Resolution, viewPortY, viewPortX + Screen_X_Resolution, viewPortY + Screen_Y_Resolution);
+                }
+            }
+
+            string fn = isWindow ? "Window" : "BG";
+            string tileMapLocation = bgSelect == 0 ? "9800" : "9C00";
+            png.Save(string.Format("../../../../dump/{0}_{1}.png", fn, tileMapLocation));
         }
     }
 }

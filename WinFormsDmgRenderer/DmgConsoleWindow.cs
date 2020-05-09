@@ -50,6 +50,8 @@ namespace WinFormsDmg
             delete,
             dumptiles,                      // param = fn else dumpttiles.txt
             dumptilemaps,
+            dumpbg,
+            dumpwin,
             dumpmemory,                     // Dumps a text file containing hex for 8K. EG: 10 2A FF ...
             loadmemory,                     // param must be a text file containing hex for 8K. EG: 10 2A FF ...
             loadregisters,
@@ -207,6 +209,14 @@ namespace WinFormsDmg
                     dmg.ppu.TileMaps[1].DumpTileMap();
                     return true;
 
+                case ConsoleCommand.dumpbg:
+                    dmg.ppu.DumpFullCurrentBgToPng(true);
+                    return true;
+
+                case ConsoleCommand.dumpwin:
+                    dmg.ppu.DumpWindowToPng(true);
+                    return true;
+
                 case ConsoleCommand.ticks:
                     ConsoleAddString(String.Format("ticks - {0}", dmg.cpu.Ticks - lastTicks));
                     lastTicks = dmg.cpu.Ticks;
@@ -217,6 +227,7 @@ namespace WinFormsDmg
                     return true;
 
                 case ConsoleCommand.exit:
+                    dmg.rom.SaveMbc1BatteryBackData();
                     dmg.DumpTty();
                     dmg.ppu.DumpFrameBufferToPng();
                     dmg.DumpTileSet();
