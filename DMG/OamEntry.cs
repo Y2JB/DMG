@@ -21,7 +21,7 @@ namespace DMG
         // (0=Normal, 1=Vertically mirrored)
         public bool YFlip { get { return (Flags & (byte)(1 << 6)) != 0; } }
 
-        // B(0=Normal, 1=Vertically mirrored)
+        // (0=Normal, 1=Horizontally mirrored)
         public bool XFlip { get { return (Flags & (byte)(1 << 5)) != 0; } }
 
         // 0=OBP0, 1=OBP1

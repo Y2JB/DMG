@@ -440,14 +440,27 @@ namespace DMG
 
                 Color[] palette = Palettes.ObjPalette0;
                 if (sprite.PaletteNumber == 1) palette = Palettes.ObjPalette1;
-                
-                Tile tile = GetSpriteTileByIndex(sprite.TileIndex);
 
-                // if using 16 pixel high sprites (2 tiles) then adjust to the next tile and fix up the line
-                if (MemoryRegisters.LCDC.SpriteHeight == 1 && spriteYLine >= 8)
+                Tile tile = null;
+                if (MemoryRegisters.LCDC.SpriteHeight == 0)
                 {
-                    tile = GetSpriteTileByIndex((byte) (sprite.TileIndex + 1));
-                    spriteYLine -= 8;
+                    tile = GetSpriteTileByIndex(sprite.TileIndex);
+                }
+                // if using 16 pixel high sprites (2 tiles) then potentially adjust to the next tile and fix up the line if we are drawing the sewcond tile
+                // The tiles themselves also index opposite when Y flipped 
+                else 
+                {
+                    if (spriteYLine >= 8)
+                    {
+                        if (sprite.YFlip == false) tile = GetSpriteTileByIndex((byte)(sprite.TileIndex + 1));
+                        else tile = GetSpriteTileByIndex((byte)(sprite.TileIndex));
+                        spriteYLine -= 8;
+                    }
+                    else
+                    {
+                        if (sprite.YFlip == false) tile = GetSpriteTileByIndex((byte)(sprite.TileIndex));
+                        else tile = GetSpriteTileByIndex((byte)(sprite.TileIndex + 1));
+                    }              
                 }
 
                 for (int i = 0; i < 8; i++)

@@ -50,7 +50,9 @@ namespace DMG
             rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
             //rom = new Rom("../../../../roms/games/Gargoyle's Quest - Ghosts'n Goblins.gb");
-
+            //rom = new Rom("../../../../roms/games/Mega Man V.gb");
+            //rom = new Rom("../../../../roms/games/Donkey Kong.gb");
+            //rom = new Rom("../../../../roms/games/X - Xekkusu.gb");
             //rom = new Rom("../../../../roms/games/Wave race.gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
@@ -71,7 +73,7 @@ namespace DMG
             //rom = new Rom("../../../../roms/11-op a,(hl).gb");                // passes
 
             //rom = new Rom("../../../../roms/instr_timing.gb");
-            
+
             if (rom.Type == Rom.RomType.UnSupported)
             {
                 throw new InvalidDataException("Unsupported ROM type");
