@@ -432,11 +432,11 @@ namespace DMG
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
 
-                Ticks += 12;
+                Ticks += 3;
             }
             else
             {
-                Ticks += 8;
+                Ticks += 2;
             }
         }
 
@@ -522,11 +522,11 @@ namespace DMG
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
 
-                Ticks += 12;
+                Ticks += 3;
             }
             else
             {
-                Ticks += 8;
+                Ticks += 2;
             }
         }
 
@@ -582,14 +582,14 @@ namespace DMG
         {
             if (CarryFlag)
             {
-                Ticks += 8;
+                Ticks += 2;
             }
             else
             {
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
 
-                Ticks += 12;
+                Ticks += 3;
             }
         }
 
@@ -646,11 +646,11 @@ namespace DMG
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
 
-                Ticks += 12;
+                Ticks += 3;
             }
             else
             {
-                Ticks += 8;
+                Ticks += 2;
             }
         }        
 
@@ -1034,8 +1034,8 @@ namespace DMG
                 // execution after the HALT when that returns.
                 IsHalted = true;
 
-                //JB: account for the cycles below
-                Ticks += 4;
+                //JB: account for the cycles below, wew use M cycles 
+                Ticks += 1;
 
                 /*
                 while halted:
@@ -1511,11 +1511,11 @@ namespace DMG
             if (ZeroFlag == false)
             {
                 PC = StackPop();
-                Ticks += 20;
+                Ticks += 5;
             }
             else
             {
-                Ticks += 8;
+                Ticks += 2;
             }
         }
         
@@ -1531,11 +1531,11 @@ namespace DMG
             if (ZeroFlag == false)
             {
                 PC = nn;
-                Ticks += 16;
+                Ticks += 4;
             }
             else
             {
-                Ticks += 12;
+                Ticks += 3;
             }
         }
 
@@ -1550,13 +1550,13 @@ namespace DMG
         {
             if (ZeroFlag)
             {
-                Ticks += 12;
+                Ticks += 3;
             }
             else
             {
                 StackPush(PC);
                 PC = nn;
-                Ticks += 24;
+                Ticks += 6;
             }
         }
 
@@ -1585,11 +1585,11 @@ namespace DMG
             if (ZeroFlag)
             {
                 PC = StackPop();
-                Ticks += 20;
+                Ticks += 5;
             }
             else
             {
-                Ticks += 8;
+                Ticks += 2;
             }
         }
 
@@ -1605,11 +1605,11 @@ namespace DMG
             if (ZeroFlag)
             {
                 PC = nn;
-                Ticks += 16;
+                Ticks += 4;
             }
             else
             {
-                Ticks += 12;
+                Ticks += 3;
             }
         }
 
@@ -1620,12 +1620,12 @@ namespace DMG
             {
                 StackPush(PC);
                 PC = nn;
-                Ticks += 24;
+                Ticks += 6;
                 
             }
             else
             {
-                Ticks += 12;
+                Ticks += 3;
             }
         }
 
@@ -1655,11 +1655,11 @@ namespace DMG
             if (CarryFlag == false)
             {
                 PC = StackPop();
-                Ticks += 20;
+                Ticks += 5;
             }
             else
             {
-                Ticks += 8;
+                Ticks += 2;
             }
         }
 
@@ -1675,11 +1675,11 @@ namespace DMG
             if (CarryFlag == false)
             {
                 PC = nn;
-                Ticks += 16;
+                Ticks += 4;
             }
             else
             {
-                Ticks += 12;
+                Ticks += 3;
             }
         }
 
@@ -1688,13 +1688,13 @@ namespace DMG
         {
             if (CarryFlag)
             {
-                Ticks += 12;
+                Ticks += 3;
             }
             else
             {
                 StackPush(PC);
                 PC = nn;
-                Ticks += 24;
+                Ticks += 6;
             }
         }
 
@@ -1723,11 +1723,11 @@ namespace DMG
             if (CarryFlag)
             {
                 PC = StackPop();
-                Ticks += 20;
+                Ticks += 5;
             }
             else
             {
-                Ticks += 8;
+                Ticks += 2;
             }
         }
 
@@ -1743,11 +1743,11 @@ namespace DMG
             if (CarryFlag)
             {
                 PC = nn;
-                Ticks += 16;
+                Ticks += 4;
             }
             else
             {
-                Ticks += 12;
+                Ticks += 3;
             }
         }
 
@@ -1758,11 +1758,11 @@ namespace DMG
             {
                 StackPush(PC);
                 PC = nn;
-                Ticks += 24;                
+                Ticks += 6;                
             }
             else
             {
-                Ticks += 12;
+                Ticks += 3;
             }
         }
 

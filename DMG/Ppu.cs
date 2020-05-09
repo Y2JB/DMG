@@ -111,17 +111,16 @@ namespace DMG
 
 
 
-        // We clock our CPU at 4mhz so for our values are 4x higher than you will see in some documents
+        // We clock our CPU at 1mhz so we use MCycles 
 
         // The GPU state machine works ayncronously to the CPU (in HW but not in the emulator). It works like this, measured in CPU cycles:
-        // [OAM Search 80 cycles] -> [Pixel Transfer 172 cycles] -> [HBlank 204] * 144 times (Y resolution)
-        // [VBlank 456 cycles]
+        // [OAM Search 20 cycles] -> [Pixel Transfer 43 cycles] -> [HBlank 51] * 144 times (Y resolution)
+        // [VBlank 1140 cycles]
 
-        // At our 4mhz our cpu ticks:
-        // 80 + 172 + 204 = 456 ticks to render 1 scanline
-        // 456 * 154 lines = 70,224 ticks to render 1 screen
-        // Our 4hmz CPU = 4,194,304 ticks per second
-        // 4,194,304 / 70,224 = 59.72 frames per second
+        // 144 lines on screen + 10 lines vblank = 154 lines 
+
+        // 114 * 154 = 17,556 clocks per screen
+        // 1,048,576 / 17,556 = 59.72hz refresh rate
         public void Step()
         {
             UInt32 cpuTickCount = dmg.cpu.Ticks;
@@ -143,17 +142,14 @@ namespace DMG
             switch (Mode)
             {
                 case PpuMode.OamSearch:
-                    if (elapsedTicks >= 80)
+                    if (elapsedTicks >= 20)
                     {
                         // In theory this could be async while waiting for the ticks
                         OamSearch();
 
                         Mode = PpuMode.PixelTransfer;
 
-#if THREADED_PIXEL_TRANSFER                        
-                        drawLine = true;
-#endif
-                        elapsedTicks -= 80;
+                        elapsedTicks -= 20;
                     }
                     break;
 
@@ -161,17 +157,11 @@ namespace DMG
                 // Transfers one scanline of pixels to the screen
                 // The emulator must also work this way as the cpu is still running and many graphical effects change the state of the system between scanlines
                 case PpuMode.PixelTransfer:
-                    if (elapsedTicks >= 172)
+                    if (elapsedTicks >= 43)
                     {                      
-#if THREADED_PIXEL_TRANSFER
-                        // Wait for line to finish
-                        while (drawLine)
-                        {
-                        }
-#else
+
                         // In theory this could be async while waiting for the ticks
                         RenderScanline();
-#endif
 
                         Mode = PpuMode.HBlank;
 
@@ -180,15 +170,15 @@ namespace DMG
                             dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
                         }
 
-                        elapsedTicks -= 172;
+                        elapsedTicks -= 43;
                     }
                     break;
 
 
                 // PPU is idle during hblank
                 case PpuMode.HBlank:
-                    // 51 machine cycles ticks (1mhz vs 4mhz mean ours are 4x the value found in some documents)
-                    if (elapsedTicks >= 204)
+                    // 51 machine cycles ticks (mcycles) 
+                    if (elapsedTicks >= 51)
                     {                        
                         CurrentScanline++;
 
@@ -199,7 +189,6 @@ namespace DMG
                             dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
                         }
 
-                        // TODO: Shouldn't this be 144??????? Not 143!
                         if (CurrentScanline == 144)
                         {
                             Mode = PpuMode.VBlank;
@@ -211,38 +200,9 @@ namespace DMG
                             {
                                 dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
                             }
-                            
-                        }
-                        else
-                        {
-                            Mode = PpuMode.OamSearch;
-
-                            if (lcdStat.OamInterruptEnable)
-                            {
-                                dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
-                            }
-                        }
-
-                        // Don't lose any ticks, cannot set to zero
-                        elapsedTicks -= 204;
-                    }
-                    break;
 
 
-                // PPU is idle during vblank
-                // The vblank takes the equivilant of 10 scanlines
-                case PpuMode.VBlank:
-                    if (elapsedTicks >= 456)
-                    {
-                        CurrentScanline++;
-
-                        if (CurrentScanline == 154)
-                        {
-                            CurrentScanline = 0;
-                            Mode = PpuMode.OamSearch;
-
-                            frame++;
-
+                            // We can set the renderer drawing the frame as soon as we enter vblank
                             lock (FrameBuffer)
                             {
                                 // Flip frames 
@@ -255,12 +215,12 @@ namespace DMG
                                 {
                                     FrameBuffer = frameBuffer0;
                                     drawBuffer = frameBuffer1;
-                                }                              
+                                }
                             }
 
                             // lock to 60fps
                             double fps60 = 1000 / 60.0;
-                            while(dmg.EmulatorTimer.Elapsed.TotalMilliseconds - lastFrameTime < fps60)
+                            while (dmg.EmulatorTimer.Elapsed.TotalMilliseconds - lastFrameTime < fps60)
                             { }
 
                             lastFrameTime = dmg.EmulatorTimer.Elapsed.TotalMilliseconds;
@@ -271,9 +231,38 @@ namespace DMG
                             }
 
                         }
+                        else
+                        {
+                            Mode = PpuMode.OamSearch;
 
-                        elapsedTicks -= 456;
+                            if (lcdStat.OamInterruptEnable)
+                            {
+                                dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
+                            }
+                        }
+
+                        // Don't lose any ticks, cannot set to zero
+                        elapsedTicks -= 51;
                     }
+                    break;
+
+
+                // PPU is idle during vblank
+                // The vblank takes the equivilant of 10 scanlines
+                case PpuMode.VBlank:
+                    if (elapsedTicks >= 114)
+                    {
+                        CurrentScanline++;
+                        elapsedTicks -= 114;
+                    }
+
+                    if (CurrentScanline == 154)
+                    {
+                        CurrentScanline = 0;
+                        Mode = PpuMode.OamSearch;
+
+                        frame++;                     
+                    }                                       
                     break;
             }
         }
@@ -499,10 +488,7 @@ namespace DMG
                     {
                         drawBuffer.SetPixel(spriteXScreenSpace + i, CurrentScanline, palette[paletteIndex]);
                     }
-                }
-
-                // TODO : obj/BG priority, BG can render on top??
-                
+                }                
             }
         }
 
