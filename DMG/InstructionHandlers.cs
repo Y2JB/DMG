@@ -241,7 +241,7 @@ namespace DMG
         // 0x02
         void LD_bcp_a()
         {
-            memory.WriteByte(BC, A);
+            memory.WriteByteAndCycle(BC, A);
         }
 
         // 0x03
@@ -277,7 +277,7 @@ namespace DMG
         // 0x08
         void LD_nn_sp(ushort nn)
         {
-            memory.WriteShort(nn, SP);
+            memory.WriteShortAndCycle(nn, SP);
         }        
 
         
@@ -290,7 +290,7 @@ namespace DMG
         // 0x0A
         void LD_a_bcp()
         {
-            A = memory.ReadByte(BC);
+            A = memory.ReadByteAndCycle(BC);
         }
 
         // 0x0B
@@ -341,7 +341,7 @@ namespace DMG
         // 0x12
         void LD_dep_a()
         {
-            memory.WriteByte(DE, A);
+            memory.WriteByteAndCycle(DE, A);
         }
 
         // 0x13       
@@ -403,7 +403,7 @@ namespace DMG
         // 0x1A
         void LD_a_dep()
         {
-            A = memory.ReadByte(DE);
+            A = memory.ReadByteAndCycle(DE);
         }
 
         // 0x1D
@@ -431,12 +431,8 @@ namespace DMG
             {
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
-
-                Ticks += 3;
-            }
-            else
-            {
-                Ticks += 2;
+                
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -450,7 +446,7 @@ namespace DMG
         // 0x22
         void LDI_hlp_a()
         {
-            memory.WriteByte(HL, A);
+            memory.WriteByteAndCycle(HL, A);
             HL++;
         }
 
@@ -522,11 +518,7 @@ namespace DMG
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
 
-                Ticks += 3;
-            }
-            else
-            {
-                Ticks += 2;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -539,7 +531,7 @@ namespace DMG
         // 0x2A
         void LDI_a_hlp()
         {
-            A = memory.ReadByte(HL);
+            A = memory.ReadByteAndCycle(HL);
             HL++;
         }
 
@@ -580,16 +572,12 @@ namespace DMG
         // 0x30
         void JR_NC_n(sbyte n)
         {
-            if (CarryFlag)
-            {
-                Ticks += 2;
-            }
-            else
+            if (CarryFlag == false)
             {
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
 
-                Ticks += 3;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -602,7 +590,7 @@ namespace DMG
         void LDD_hlp_a()
         {
             // Put A into memory address HL. Decrement HL.
-            memory.WriteByte(HL, A);
+            memory.WriteByteAndCycle(HL, A);
             HL--;
         }
 
@@ -615,19 +603,19 @@ namespace DMG
         // 0x34
         void INC_hlp()
         {
-            memory.WriteByte(HL, Inc(memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Inc(memory.ReadByteAndCycle(HL)));
         }
 
         // 0x35
         void DEC_hlp()
         {
-            memory.WriteByte(HL, Dec(memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Dec(memory.ReadByteAndCycle(HL)));
         }
 
         // 0x36
         void LD_hlp_n(byte n)
         {
-            memory.WriteByte(HL, n);
+            memory.WriteByteAndCycle(HL, n);
         }
 
         // 0x37
@@ -646,11 +634,7 @@ namespace DMG
                 int pc = (int)(PC) + n;
                 PC = (ushort)pc;
 
-                Ticks += 3;
-            }
-            else
-            {
-                Ticks += 2;
+                dmg.cpu.CycleCpu(1);
             }
         }        
 
@@ -663,7 +647,7 @@ namespace DMG
         // 0x3A
         void LDD_a_hlp()
         {
-            A = memory.ReadByte(HL);
+            A = memory.ReadByteAndCycle(HL);
             HL--;
         }
 
@@ -740,7 +724,7 @@ namespace DMG
         //0x46        
         void LD_b_hlp()
         {
-            B = memory.ReadByte(HL);
+            B = memory.ReadByteAndCycle(HL);
         }
 
         //0x47        
@@ -788,7 +772,7 @@ namespace DMG
         //0x4E        
         void LD_c_hlp()
         {
-            C = memory.ReadByte(HL);
+            C = memory.ReadByteAndCycle(HL);
         }
 
         // 0x4F
@@ -836,7 +820,7 @@ namespace DMG
         //0x56        
         void LD_d_hlp()
         {
-            D = memory.ReadByte(HL);
+            D = memory.ReadByteAndCycle(HL);
         }
 
         //0x57        
@@ -884,7 +868,7 @@ namespace DMG
         //0x5E        
         void LD_e_hlp()
         {
-            E = memory.ReadByte(HL);
+            E = memory.ReadByteAndCycle(HL);
         }
 
         // 0x5F
@@ -932,7 +916,7 @@ namespace DMG
         //0x66        
         void LD_h_hlp()
         {
-            H = memory.ReadByte(HL);
+            H = memory.ReadByteAndCycle(HL);
         }
 
         //0x67        
@@ -980,7 +964,7 @@ namespace DMG
         //0x6E        
         void LD_l_hlp()
         {
-            L = memory.ReadByte(HL);
+            L = memory.ReadByteAndCycle(HL);
         }
 
         // 0x6F
@@ -992,36 +976,36 @@ namespace DMG
         // 0x70
         void LD_hlp_b()
         {
-            memory.WriteByte(HL, B);
+            memory.WriteByteAndCycle(HL, B);
         }
 
         // 0x71
         void LD_hlp_c()
         {
-            memory.WriteByte(HL, C);
+            memory.WriteByteAndCycle(HL, C);
         }
 
         // 0x72
         void LD_hlp_d()
         {
-            memory.WriteByte(HL, D);
+            memory.WriteByteAndCycle(HL, D);
         }
         // 0x73
         void LD_hlp_e()
         {
-            memory.WriteByte(HL, E);
+            memory.WriteByteAndCycle(HL, E);
         }
 
         // 0x74
         void LD_hlp_h()
         {
-            memory.WriteByte(HL, H);
+            memory.WriteByteAndCycle(HL, H);
         }
 
         // 0x75
         void LD_hlp_l()
         {
-            memory.WriteByte(HL, L);
+            memory.WriteByteAndCycle(HL, L);
         }
 
         // 0x76
@@ -1034,8 +1018,8 @@ namespace DMG
                 // execution after the HALT when that returns.
                 IsHalted = true;
 
-                //JB: account for the cycles below, wew use M cycles 
-                Ticks += 1;
+                //JB: account for the cycles below, we use M cycles 
+                dmg.cpu.CycleCpu(1);
 
                 /*
                 while halted:
@@ -1067,7 +1051,7 @@ namespace DMG
         // 0x77
         void LD_hlp_a()
         {
-            memory.WriteByte(HL, A);
+            memory.WriteByteAndCycle(HL, A);
         }
 
 
@@ -1110,7 +1094,7 @@ namespace DMG
         //0x7E        
         void LD_a_hlp()
         {
-            A = memory.ReadByte(HL);
+            A = memory.ReadByteAndCycle(HL);
         }
 
         // 0x7F
@@ -1158,7 +1142,7 @@ namespace DMG
         //0x86
         void ADD_a_hlp()
         {
-            Add(memory.ReadByte(HL));
+            Add(memory.ReadByteAndCycle(HL));
         }
 
         //0x87
@@ -1206,7 +1190,7 @@ namespace DMG
         // 0x8E
         void ADC_a_hlp()
         {
-            Adc(memory.ReadByte(HL));
+            Adc(memory.ReadByteAndCycle(HL));
         }
 
         // 0x8F
@@ -1253,7 +1237,7 @@ namespace DMG
         //0x96
         void SUB_a_hlp()
         {
-            Sub(memory.ReadByte(HL));
+            Sub(memory.ReadByteAndCycle(HL));
         }
 
         //0x97
@@ -1302,7 +1286,7 @@ namespace DMG
         // 0x9E
         void SBC_a_hlp()
         {
-            Sbc(memory.ReadByte(HL));
+            Sbc(memory.ReadByteAndCycle(HL));
         }
 
         // 0x9F
@@ -1350,7 +1334,7 @@ namespace DMG
         //0xA6
         void AND_hlp()
         {
-            And(memory.ReadByte(HL));
+            And(memory.ReadByteAndCycle(HL));
         }
 
         //0xA7
@@ -1399,7 +1383,7 @@ namespace DMG
         //0xAE
         void XOR_hlp()
         {
-            Xor(memory.ReadByte(HL));
+            Xor(memory.ReadByteAndCycle(HL));
         }
 
         //0xAF
@@ -1448,7 +1432,7 @@ namespace DMG
         //0xB6
         void OR_hlp()
         {
-            Or(memory.ReadByte(HL));
+            Or(memory.ReadByteAndCycle(HL));
         }
 
         //0xB7
@@ -1496,7 +1480,7 @@ namespace DMG
         // 0xBE
         void CP_hlp()
         {
-            Cmp(memory.ReadByte(HL));
+            Cmp(memory.ReadByteAndCycle(HL));
         }
 
         // 0xBF
@@ -1511,11 +1495,7 @@ namespace DMG
             if (ZeroFlag == false)
             {
                 PC = StackPop();
-                Ticks += 5;
-            }
-            else
-            {
-                Ticks += 2;
+                dmg.cpu.CycleCpu(1);
             }
         }
         
@@ -1531,11 +1511,7 @@ namespace DMG
             if (ZeroFlag == false)
             {
                 PC = nn;
-                Ticks += 4;
-            }
-            else
-            {
-                Ticks += 3;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -1548,15 +1524,11 @@ namespace DMG
         // 0xC4
         void CALL_NZ_nn(ushort nn)
         {
-            if (ZeroFlag)
-            {
-                Ticks += 3;
-            }
-            else
+            if (ZeroFlag == false)
             {
                 StackPush(PC);
                 PC = nn;
-                Ticks += 6;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -1585,11 +1557,11 @@ namespace DMG
             if (ZeroFlag)
             {
                 PC = StackPop();
-                Ticks += 5;
+                dmg.cpu.CycleCpu(2);
             }
             else
             {
-                Ticks += 2;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -1605,11 +1577,7 @@ namespace DMG
             if (ZeroFlag)
             {
                 PC = nn;
-                Ticks += 4;
-            }
-            else
-            {
-                Ticks += 3;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -1620,12 +1588,7 @@ namespace DMG
             {
                 StackPush(PC);
                 PC = nn;
-                Ticks += 6;
-                
-            }
-            else
-            {
-                Ticks += 3;
+                dmg.cpu.CycleCpu(1);           
             }
         }
 
@@ -1655,11 +1618,12 @@ namespace DMG
             if (CarryFlag == false)
             {
                 PC = StackPop();
-                Ticks += 5;
+
+                dmg.cpu.CycleCpu(2);
             }
             else
             {
-                Ticks += 2;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -1675,26 +1639,18 @@ namespace DMG
             if (CarryFlag == false)
             {
                 PC = nn;
-                Ticks += 4;
-            }
-            else
-            {
-                Ticks += 3;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
         // 0xD4
         void CALL_NC_nn(ushort nn)
         {
-            if (CarryFlag)
-            {
-                Ticks += 3;
-            }
-            else
+            if (CarryFlag == false)
             {
                 StackPush(PC);
                 PC = nn;
-                Ticks += 6;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
@@ -1723,19 +1679,24 @@ namespace DMG
             if (CarryFlag)
             {
                 PC = StackPop();
-                Ticks += 5;
+                dmg.cpu.CycleCpu(2);
             }
             else
             {
-                Ticks += 2;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
         // 0xD9
         void RETI()
-        {
-            interrupts.ReturnFromInterrupt();
+        {      
+            dmg.interrupts.InterruptsMasterEnable = true;
+
+            dmg.cpu.PC = dmg.cpu.StackPop();
+            dmg.cpu.CycleCpu(1);
+            dmg.cpu.PeekNextInstruction();
         }
+
 
         // 0xDA
         void JP_C_nn(ushort nn)
@@ -1743,26 +1704,22 @@ namespace DMG
             if (CarryFlag)
             {
                 PC = nn;
-                Ticks += 4;
-            }
-            else
-            {
-                Ticks += 3;
+                dmg.cpu.CycleCpu(1);
             }
         }
 
         // 0xDC
         void CALL_C_nn(ushort nn)
         {
+            // TODO: Look at this instruction here:
+            // https://izik1.github.io/gbops/
+            // Claims 6 mcycles but if you add it up, would be 7.
+            // We are not cycle accurate on PC / SP writes!
             if (CarryFlag)
             {
                 StackPush(PC);
                 PC = nn;
-                Ticks += 6;                
-            }
-            else
-            {
-                Ticks += 3;
+                dmg.cpu.CycleCpu(1);                
             }
         }
 
@@ -1782,7 +1739,7 @@ namespace DMG
         // 0xE0
         void LDH_ff_n_a(byte n)
         {
-            memory.WriteByte((ushort)((ushort)0xFF00 + (ushort)n), A);
+            memory.WriteByteAndCycle((ushort)((ushort)0xFF00 + (ushort)n), A);
         }
 
         // 0xE1
@@ -1794,7 +1751,7 @@ namespace DMG
         // 0xE2
         void LDH_ff_c_a()
         {
-            memory.WriteByte((ushort)((ushort) 0xFF00 + (ushort) C), A);
+            memory.WriteByteAndCycle((ushort)((ushort) 0xFF00 + (ushort) C), A);
         }
 
 
@@ -1855,7 +1812,7 @@ namespace DMG
         // 0xEA
         void LD_nnp_a(ushort nn)
         {
-            memory.WriteByte(nn, A);
+            memory.WriteByteAndCycle(nn, A);
         }
 
         // 0xEE
@@ -1875,7 +1832,7 @@ namespace DMG
         void LDH_a_ff_n(byte n)
         {
             ushort address = (ushort) (0xFF00 + n);
-            A = memory.ReadByte(address);
+            A = memory.ReadByteAndCycle(address);
         }
 
         // 0xF1
@@ -1890,7 +1847,7 @@ namespace DMG
         // 0xF2
         void LD_a_ff_c()
         {
-            A = memory.ReadByte((ushort)(0xFF00 + C));
+            A = memory.ReadByteAndCycle((ushort)(0xFF00 + C));
         }
 
         // F3
@@ -1940,7 +1897,7 @@ namespace DMG
         // 0xFA
         void LD_a_nnp(ushort nn)
         {
-            A = memory.ReadByte(nn);
+            A = memory.ReadByteAndCycle(nn);
         }
 
         // 0xFB

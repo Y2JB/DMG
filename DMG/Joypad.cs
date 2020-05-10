@@ -89,11 +89,11 @@ namespace DMG
             elapsedTicks += (cpuTickCount - lastCpuTickCount);
             lastCpuTickCount = cpuTickCount;
 
-
             // Joypad Poll Speed (64 Hz)
-            if (elapsedTicks >= 65536)
+            //if (elapsedTicks >= 65536)        // tcycles
+            if (elapsedTicks >= 16384)          // mcycles
             {
-                elapsedTicks -= 65536;
+                elapsedTicks -= 16384;
                 UpdateRegister();
             }
         }

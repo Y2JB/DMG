@@ -20,7 +20,7 @@ namespace DMG
 	// FFFF FFFF    Interrupts Enable Register(IE)
 
 
-	public class Memory : IMemoryReaderWriter
+	public class Memory : IDmgMemoryReaderWriter
 	{
 		private IRom GameRom { get; set; }
 		private IMemoryReader BootstrapRom { get; set; }
@@ -110,16 +110,16 @@ namespace DMG
 				// Joypad
 				return dmg.pad.Register;
 			}
-			else if (address == 0xFF04)
-			{
+			//else if (address == 0xFF04)
+			//{
 				// Divider register (RNG)
-				return dmg.timer.DividerRegister;
-			}
-			else if (address == 0xFF07)
-			{
+			//	return dmg.timer.DividerRegister;
+			//}
+			//else if (address == 0xFF07)
+			//{
 				// Timer Controller register 
-				return dmg.timer.TimerControllerRegister;
-			}
+			//	return dmg.timer.TimerControllerRegister;
+		//	}
 			else if (address == 0xFF40)
 			{
 				return ppu.MemoryRegisters.LCDC.Register;
@@ -181,11 +181,28 @@ namespace DMG
 			throw new ArgumentException("Invalid memory read");
 		}
 
+		public byte ReadByteAndCycle(ushort address)
+		{			
+			byte b = ReadByte(address);
+			dmg.cpu.CycleCpu(1);
+			return b;
+		}
 
 		public ushort ReadShort(ushort address)
 		{
 			// NB: Little Endian
 			return (ushort)((ReadByte((ushort)(address+1)) << 8) | ReadByte(address));
+		}
+
+		public ushort ReadShortAndCycle(ushort address)
+		{
+			byte b1 = ReadByte((ushort)(address + 1));
+			dmg.cpu.CycleCpu(1);
+			byte b2 = ReadByte(address);
+			dmg.cpu.CycleCpu(1);
+
+			// NB: Little Endian
+			return (ushort)((b1 << 8) | b2);
 		}
 
 
@@ -257,14 +274,23 @@ namespace DMG
 			else if (address == 0xFF02)
 			{
 			}
-			else if (address == 0xFF07)
-			{
+			//else if (address == 0xFF04)
+			//{
+				// Writing any value to the divider register restes it 
+			//	dmg.timer.DividerRegister = 0;
+			//}
+			//else if (address == 0xFF07)
+			//{
 				// Timer Controller register 
-				dmg.timer.TimerControllerRegister = value;
-			}
+			//	dmg.timer.TimerControllerRegister = value;
+			//}
 			else if (address == 0xFF40)
 			{
 				ppu.MemoryRegisters.LCDC.Register = value;
+				if (ppu.MemoryRegisters.LCDC.LcdEnable == 0)
+				{
+					int foo = 0;
+				}
 			}
 			else if (address == 0xFF41)
 			{
@@ -339,6 +365,12 @@ namespace DMG
 		}
 
 
+		public void WriteByteAndCycle(ushort address, byte value)
+		{
+			WriteByte(address, value);
+			dmg.cpu.CycleCpu(1);
+		}
+
 		public void WriteShort(ushort address, ushort value)
 		{
 			WriteByte(address, (byte)(value & 0x00ff));
@@ -346,8 +378,17 @@ namespace DMG
 		}
 
 
+		public void WriteShortAndCycle(ushort address, ushort value)
+		{
+			WriteByte(address, (byte)(value & 0x00ff));
+			dmg.cpu.CycleCpu(1);
+			WriteByte((ushort)(address + 1), (byte)((value & 0xff00) >> 8));
+			dmg.cpu.CycleCpu(1);
+		}
+
+
 
 	}
-        
-			    
+
+
 }

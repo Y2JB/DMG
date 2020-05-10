@@ -75,10 +75,12 @@ namespace DMG
 	                                                2, 2, 2, 2, 2,  2, 4, 2,  2, 2, 2, 2, 2, 2, 4, 2  // 0xf_
 };
 
-        public UInt32 Ticks { get; set; }
+        public UInt32 Ticks { get; private set; }
+        int cyclesThisInstruction;
 
         // Ticks per second
-        public readonly UInt32 ClockSpeedHz = 4194304;
+        //public readonly UInt32 ClockSpeedHz = 4194304;
+        public readonly UInt32 ClockSpeedHz = 1048576;
 
         public enum Flags
         {
@@ -92,18 +94,20 @@ namespace DMG
 
         bool enableInterruptsNextCycle;
 
-        IMemoryReaderWriter memory;
+        IDmgMemoryReaderWriter memory;
         
         Instruction[] instructions = new Instruction[256];
         ExtendedInstruction[] extendedInstructions = new ExtendedInstruction[256];
 
         Interrupts interrupts;
 
+        DmgSystem dmg;
 
-        public Cpu(IMemoryReaderWriter memory, Interrupts interrupts)
+        public Cpu(IDmgMemoryReaderWriter memory, Interrupts interrupts, DmgSystem dmg)
         {
             this.memory = memory;
             this.interrupts = interrupts;
+            this.dmg = dmg;
 
             RegisterInstructionHandlers();
             RegisterExtendedInstructionHandlers();
@@ -155,13 +159,16 @@ namespace DMG
 
         public void Step()
         {
-            if(IsHalted)
+            cyclesThisInstruction = 0;
+
+            if (IsHalted)
             {
-                Ticks += 2;
+                CycleCpu(1);
                 return;
             }
 
-            byte opCode = memory.ReadByte(PC++);
+
+            byte opCode = memory.ReadByteAndCycle(PC++);
 
             var instruction = instructions[opCode];
             if (instruction == null || instruction.Handler == null)
@@ -169,14 +176,25 @@ namespace DMG
                 throw new ArgumentException(String.Format("Unsupported instruction 0x{0:X2} {1}", opCode, instruction == null ? "-" : instruction.Name));
             }
 
-            ushort operandValue;
-            if (instruction.OperandLength == 1) operandValue = memory.ReadByte(PC);
-            else operandValue = memory.ReadShort(PC);
+            ushort operandValue=0;
+            if (instruction.OperandLength == 1)
+            {
+                operandValue = memory.ReadByteAndCycle(PC);
+            }
+            else if (instruction.OperandLength == 2)
+            {
+                operandValue = memory.ReadShortAndCycle(PC);
+            }
             PC += instruction.OperandLength;
 
             instruction.Handler(operandValue);
 
-            Ticks += instructionTicks[opCode];
+
+            // Catch any missed cycles. Things like 16 bit add that are multi cycle but don't access memory
+            if (instructionTicks[opCode] > cyclesThisInstruction)
+            {
+                CycleCpu((uint) (instructionTicks[opCode] - cyclesThisInstruction));
+            }
 
             // Enable interrupts instruction is delayed by one instruction
             if(enableInterruptsNextCycle && instruction.OpCode != 0xFB)
@@ -190,16 +208,24 @@ namespace DMG
         }
 
 
+        public void CycleCpu(uint cycles)
+        {
+            cyclesThisInstruction++;
+            Ticks += cycles;
+            dmg.ppu.Step();
+        }
+
+
         public void StackPush(ushort value)
         {
             SP -= 2;
-            memory.WriteShort(SP, value);
+            memory.WriteShortAndCycle(SP, value);
         }
 
 
         public ushort StackPop()
         {
-            ushort value = memory.ReadShort(SP);
+            ushort value = memory.ReadShortAndCycle(SP);
 
             SP += 2;
 
@@ -262,60 +288,11 @@ namespace DMG
         void extended(byte opCode)
         {
             extendedInstructions[opCode].Handler();
-            Ticks += extendedInstructionTicks[opCode];
-        }
 
-
-        public void OutputState()
-        {
-            Console.ForegroundColor = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ConsoleColor.Black : ConsoleColor.White;
-
-            Console.SetCursorPosition(0, 5);
-            Console.Write("                    ");
-            Console.SetCursorPosition(0, 5);
-            Console.Write(String.Format("A: 0x{0:X2} ({1}{2}{3}{4})", A, CarryFlag ? "C" : "-", HalfCarryFlag ? "H" : "-", NegativeFlag ? "N" : "-", ZeroFlag ? "Z" : "-"));
-
-            Console.SetCursorPosition(0, 6);
-            Console.Write(String.Format("B: 0x{0:X2}", B));
-            Console.SetCursorPosition(0, 7);
-            Console.Write(String.Format("C: 0x{0:X2}", C));
-            Console.SetCursorPosition(0, 8);
-            Console.Write(String.Format("D: 0x{0:X2}", D));
-            Console.SetCursorPosition(0, 9);
-            Console.Write(String.Format("E: 0x{0:X2}", E));
-            Console.SetCursorPosition(0, 10);
-            Console.Write(String.Format("H: 0x{0:X2}", H));
-            Console.SetCursorPosition(0, 11);
-            Console.Write(String.Format("L: 0x{0:X2}", L));
-            Console.SetCursorPosition(0, 12);
-            Console.Write(String.Format("SP: 0x{0:X2}", SP));
-            Console.SetCursorPosition(0, 13);
-            Console.Write(String.Format("PC: 0x{0:X2}", PC));
-
-            Console.SetCursorPosition(0, 15);
-            Console.Write(String.Format("Scroll X: {0}       Scroll Y: {1}        ", ScrollX, ScrollY));
-
-
-
-            Console.SetCursorPosition(20, 5);
-            Console.Write(String.Format("AF: 0x{0:X4}", AF));
-            Console.SetCursorPosition(20, 6);
-            Console.Write(String.Format("BC: 0x{0:X4}", BC));
-            Console.SetCursorPosition(20, 7);
-            Console.Write(String.Format("DE: 0x{0:X4}", DE));
-            Console.SetCursorPosition(20, 8);
-            Console.Write(String.Format("HL: 0x{0:X4}", HL));
-
-
-            var ins = instructions[memory.ReadByte(PC)];
-            if (ins != null)
+            // Catch any missed cycles. Things like 16 bit add that are multi cycle but don't access memory
+            if (instructionTicks[opCode] > cyclesThisInstruction)
             {
-                Console.SetCursorPosition(0, 20);
-                Console.Write(String.Format("Instruction: {0}                                ", ins.Name));
-            }
-            else
-            {
-                Console.Write("                                 ");
+                CycleCpu((uint)(extendedInstructionTicks[opCode] - cyclesThisInstruction));
             }
         }
 

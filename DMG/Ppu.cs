@@ -1,6 +1,4 @@
-﻿//#define THREADED_PIXEL_TRANSFER
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,11 +8,6 @@ namespace DMG
 {
     public class Ppu : IPpu
     {
-#if THREADED_PIXEL_TRANSFER
-        bool drawLine = false;
-        Thread pixelWriterThread;
-#endif 
-
         const byte Screen_X_Resolution = 160;
         const byte Screen_Y_Resolution = 144;
         
@@ -48,16 +41,14 @@ namespace DMG
         
         UInt32 lastCpuTickCount;
         UInt32 elapsedTicks;
-
+        UInt32 frameStartTicks;
+        UInt32 lastframeTotalTicks;
         int frame;
         double lastFrameTime;
 
         DmgSystem dmg;
 
-        // temp palette
-        //Color[] palette = new Color[4] { Color.FromArgb(0xFF, 0xFF, 0xFF, 0xFF), Color.FromArgb(0xFF, 0xC0, 0xC0, 0xC0), Color.FromArgb(0xFF, 0x60, 0x60, 0x60), Color.FromArgb(0xFF, 0x00, 0x00, 0x00) };
-
-
+    
         public Ppu(DmgSystem dmg)
         {
             this.dmg = dmg;
@@ -96,16 +87,13 @@ namespace DMG
             frame = 0;
             lastFrameTime = dmg.EmulatorTimer.Elapsed.TotalMilliseconds;
 
-            Mode = PpuMode.VBlank;
+            //Mode = PpuMode.VBlank;
+            //CurrentScanline = 145;
+
+            Mode = PpuMode.OamSearch;
+            CurrentScanline = 0;
 
             Palettes = new DmgPalettes();
-
-#if THREADED_PIXEL_TRANSFER
-            drawLine = false;
-            pixelWriterThread = new Thread(new ThreadStart(PixelThread));
-            pixelWriterThread.Start();
-#endif 
-
         }
 
 
@@ -114,7 +102,7 @@ namespace DMG
         // We clock our CPU at 1mhz so we use MCycles 
 
         // The GPU state machine works ayncronously to the CPU (in HW but not in the emulator). It works like this, measured in CPU cycles:
-        // [OAM Search 20 cycles] -> [Pixel Transfer 43 cycles] -> [HBlank 51] * 144 times (Y resolution)
+        // [OAM Search 20 cycles] -> [Pixel Transfer 43 cycles] -> [HBlank 51] = 114 clocks per line
         // [VBlank 1140 cycles]
 
         // 144 lines on screen + 10 lines vblank = 154 lines 
@@ -148,7 +136,7 @@ namespace DMG
                         OamSearch();
 
                         Mode = PpuMode.PixelTransfer;
-
+                        ;
                         elapsedTicks -= 20;
                     }
                     break;
@@ -159,8 +147,6 @@ namespace DMG
                 case PpuMode.PixelTransfer:
                     if (elapsedTicks >= 43)
                     {                      
-
-                        // In theory this could be async while waiting for the ticks
                         RenderScanline();
 
                         Mode = PpuMode.HBlank;
@@ -260,7 +246,8 @@ namespace DMG
                     {
                         CurrentScanline = 0;
                         Mode = PpuMode.OamSearch;
-
+                        lastframeTotalTicks = dmg.cpu.Ticks - frameStartTicks;
+                        frameStartTicks = dmg.cpu.Ticks;
                         frame++;                     
                     }                                       
                     break;
@@ -315,19 +302,6 @@ namespace DMG
             oamSearchResults.OrderByDescending(o => o.X).ToList();
         }
 
-#if THREADED_PIXEL_TRANSFER
-        void PixelThread()
-        {
-            while(true)
-            {
-                if(drawLine)
-                {
-                    RenderScanline();
-                    drawLine = false;
-                }
-            }
-        }
-#endif
 
         // Gamebopy screen resolution = 160x144
         void RenderScanline()
@@ -499,10 +473,11 @@ namespace DMG
             {
                 Mode = PpuMode.OamSearch;
                 CurrentScanline = 0;
-                elapsedTicks = 0;                
+                elapsedTicks = 0;
             }
             else
             {
+                frameStartTicks = dmg.cpu.Ticks;
                 lastCpuTickCount = dmg.cpu.Ticks;
             }
         }

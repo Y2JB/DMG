@@ -256,7 +256,7 @@ namespace DMG
         //0x06
         void RLC_hlp()
         {
-            memory.WriteByte(HL, Rlc(memory.ReadByte(HL), false));
+            memory.WriteByteAndCycle(HL, Rlc(memory.ReadByteAndCycle(HL), false));
         }
 
         //0x07
@@ -305,7 +305,7 @@ namespace DMG
         //0x0E
         void RRC_hlp()
         {
-            memory.WriteByte(HL, Rrc(memory.ReadByte(HL), false));
+            memory.WriteByteAndCycle(HL, Rrc(memory.ReadByteAndCycle(HL), false));
         }
 
         //0x0F
@@ -353,7 +353,7 @@ namespace DMG
         //0x16
         void RL_hlp()
         {
-            memory.WriteByte(HL, Rl(memory.ReadByte(HL), false));
+            memory.WriteByteAndCycle(HL, Rl(memory.ReadByteAndCycle(HL), false));
         }
 
         //0x17
@@ -401,7 +401,7 @@ namespace DMG
         //0x1E
         void RR_hlp()
         {
-            memory.WriteByte(HL, Rr(memory.ReadByte(HL), false));
+            memory.WriteByteAndCycle(HL, Rr(memory.ReadByteAndCycle(HL), false));
         }
 
         //0x1F
@@ -449,7 +449,7 @@ namespace DMG
         //0x26
         void SLA_hlp()
         {
-            memory.WriteByte(HL, Sla(memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Sla(memory.ReadByteAndCycle(HL)));
         }
 
         //0x27
@@ -497,7 +497,7 @@ namespace DMG
         //0x2E
         void SRA_hlp()
         {
-            memory.WriteByte(HL, Sra(memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Sra(memory.ReadByteAndCycle(HL)));
         }
 
         //0x2F
@@ -545,7 +545,7 @@ namespace DMG
         //0x36
         void SWAP_hlp()
         {
-            memory.WriteByte(HL, Swap(memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Swap(memory.ReadByteAndCycle(HL)));
         }
 
         //0x37
@@ -593,7 +593,7 @@ namespace DMG
         //0x3E
         void SRL_hlp()
         {
-            memory.WriteByte(HL, Srl(memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Srl(memory.ReadByteAndCycle(HL)));
         }
 
         //0x3F
@@ -636,7 +636,7 @@ namespace DMG
 
         void BIT_0_hlp()
         {
-            TestBit(1 << 0, memory.ReadByte(HL));
+            TestBit(1 << 0, memory.ReadByteAndCycle(HL));
         }
 
         void BIT_0_a()
@@ -677,7 +677,7 @@ namespace DMG
 
         void BIT_1_hlp()
         {
-            TestBit(1 << 1, memory.ReadByte(HL));
+            TestBit(1 << 1, memory.ReadByteAndCycle(HL));
         }
 
         void BIT_1_a()
@@ -717,7 +717,7 @@ namespace DMG
 
         void BIT_2_hlp()
         {
-            TestBit(1 << 2, memory.ReadByte(HL));
+            TestBit(1 << 2, memory.ReadByteAndCycle(HL));
         }
 
         void BIT_2_a()
@@ -757,7 +757,7 @@ namespace DMG
 
         void BIT_3_hlp()
         {
-            TestBit(1 << 3, memory.ReadByte(HL));
+            TestBit(1 << 3, memory.ReadByteAndCycle(HL));
         }
 
         void BIT_3_a()
@@ -797,7 +797,7 @@ namespace DMG
 
         void BIT_4_hlp()
         {
-            TestBit(1 << 4, memory.ReadByte(HL));
+            TestBit(1 << 4, memory.ReadByteAndCycle(HL));
         }
 
         void BIT_4_a()
@@ -837,7 +837,7 @@ namespace DMG
 
         void BIT_5_hlp()
         {
-            TestBit(1 << 5, memory.ReadByte(HL));
+            TestBit(1 << 5, memory.ReadByteAndCycle(HL));
         }
 
         void BIT_5_a()
@@ -877,7 +877,7 @@ namespace DMG
 
         void BIT_6_hlp()
         {
-            TestBit(1 << 6, memory.ReadByte(HL));
+            TestBit(1 << 6, memory.ReadByteAndCycle(HL));
         }
 
         void BIT_6_a()
@@ -917,7 +917,7 @@ namespace DMG
 
         void BIT_7_hlp()
         {
-            TestBit(1 << 7, memory.ReadByte(HL));
+            TestBit(1 << 7, memory.ReadByteAndCycle(HL));
         }
 
         void BIT_7_a()
@@ -959,7 +959,7 @@ namespace DMG
 
         void RES_0_hlp()
         {
-            memory.WriteByte(HL, Res(1 << 0, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Res(1 << 0, memory.ReadByteAndCycle(HL)));
         }
 
         void RES_0_a()
@@ -1001,7 +1001,7 @@ namespace DMG
 
         void RES_1_hlp()
         {
-            memory.WriteByte(HL, Res(1 << 1, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Res(1 << 1, memory.ReadByteAndCycle(HL)));
         }
 
         //0x8F
@@ -1045,7 +1045,7 @@ namespace DMG
 
         void RES_2_hlp()
         {
-            memory.WriteByte(HL, Res(1 << 2, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Res(1 << 2, memory.ReadByteAndCycle(HL)));
         }
 
         void RES_2_a()
@@ -1087,7 +1087,7 @@ namespace DMG
 
         void RES_3_hlp()
         {
-            memory.WriteByte(HL, Res(1 << 3, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Res(1 << 3, memory.ReadByteAndCycle(HL)));
         }
 
         //0x9F
@@ -1130,7 +1130,7 @@ namespace DMG
 
         void RES_4_hlp()
         {
-            memory.WriteByte(HL, Res(1 << 4, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Res(1 << 4, memory.ReadByteAndCycle(HL)));
         }
 
         void RES_4_a()
@@ -1172,7 +1172,7 @@ namespace DMG
 
         void RES_5_hlp()
         {
-            memory.WriteByte(HL, Res(1 << 5, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Res(1 << 5, memory.ReadByteAndCycle(HL)));
         }
 
         //0x8F
@@ -1215,7 +1215,7 @@ namespace DMG
 
         void RES_6_hlp()
         {
-            memory.WriteByte(HL, Res(1 << 6, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Res(1 << 6, memory.ReadByteAndCycle(HL)));
         }
 
         void RES_6_a()
@@ -1257,7 +1257,7 @@ namespace DMG
 
         void RES_7_hlp()
         {
-            memory.WriteByte(HL, Res(1 << 7, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Res(1 << 7, memory.ReadByteAndCycle(HL)));
         }
 
         //0xBF
@@ -1300,7 +1300,7 @@ namespace DMG
 
         void SET_0_hlp()
         {
-            memory.WriteByte(HL, Set(1 << 0, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Set(1 << 0, memory.ReadByteAndCycle(HL)));
         }
 
         void SET_0_a()
@@ -1342,7 +1342,7 @@ namespace DMG
 
         void SET_1_hlp()
         {
-            memory.WriteByte(HL, Set(1 << 1, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Set(1 << 1, memory.ReadByteAndCycle(HL)));
         }
 
         //0xCF
@@ -1385,7 +1385,7 @@ namespace DMG
 
         void SET_2_hlp()
         {
-            memory.WriteByte(HL, Set(1 << 2, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Set(1 << 2, memory.ReadByteAndCycle(HL)));
         }
 
         void SET_2_a()
@@ -1427,7 +1427,7 @@ namespace DMG
 
         void SET_3_hlp()
         {
-            memory.WriteByte(HL, Set(1 << 3, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Set(1 << 3, memory.ReadByteAndCycle(HL)));
         }
 
         //0xDF
@@ -1470,7 +1470,7 @@ namespace DMG
 
         void SET_4_hlp()
         {
-            memory.WriteByte(HL, Set(1 << 4, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Set(1 << 4, memory.ReadByteAndCycle(HL)));
         }
 
         void SET_4_a()
@@ -1512,7 +1512,7 @@ namespace DMG
 
         void SET_5_hlp()
         {
-            memory.WriteByte(HL, Set(1 << 5, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Set(1 << 5, memory.ReadByteAndCycle(HL)));
         }
 
         //0xEF
@@ -1555,7 +1555,7 @@ namespace DMG
 
         void SET_6_hlp()
         {
-            memory.WriteByte(HL, Set(1 << 6, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Set(1 << 6, memory.ReadByteAndCycle(HL)));
         }
 
         void SET_6_a()
@@ -1597,7 +1597,7 @@ namespace DMG
 
         void SET_7_hlp()
         {
-            memory.WriteByte(HL, Set(1 << 7, memory.ReadByte(HL)));
+            memory.WriteByteAndCycle(HL, Set(1 << 7, memory.ReadByteAndCycle(HL)));
         }
 
         //0xFF

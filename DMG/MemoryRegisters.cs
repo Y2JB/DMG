@@ -22,8 +22,11 @@ namespace DMG
         public byte WindowX { get; set; }
 
 
+        IPpu ppu;
+
         public GfxMemoryRegisters(IPpu ppu)
         {
+            this.ppu = ppu;
             LCDC = new LcdControlRegister(ppu);
             STAT = new LcdStatusRegister(ppu);
         }
@@ -42,7 +45,7 @@ namespace DMG
         public override string ToString()
         {
             
-            return String.Format("{0}{1}Window X: {2}{3}Window Y: {4}{5}BG Scroll X: {6}{7}BG Scroll Y: {8}{9}", LCDC.ToString(), STAT.ToString(), 
+            return String.Format("{0}{1}Current Line: {2}{3}Window X: {4}{5}Window Y: {6}{7}BG Scroll X: {8}{9}BG Scroll Y: {10}{11}", LCDC.ToString(), STAT.ToString(), ppu.CurrentScanline, Environment.NewLine,  
                 WindowX - 7, Environment.NewLine, WindowY, Environment.NewLine, BgScrollX, Environment.NewLine, BgScrollY, Environment.NewLine);
         }
 
@@ -151,6 +154,9 @@ namespace DMG
             {
                 // Mask off the read only bits
                 register = (byte) (value & 0xF8);
+                
+                // Set the unused bit
+                register |= 0x80;
 
 
                 //if (lcdStat.OamInterruptEnable)

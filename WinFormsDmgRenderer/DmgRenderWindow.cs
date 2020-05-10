@@ -16,12 +16,14 @@ using System.Windows.Input;
 using DMG;
 using WinFormsDmg;
 using System.Threading;
+using DmgConsole;
 
 namespace WinFormDmgRender
 {
     public partial class DmgRenderWindow : Form
     {
         DmgSystem dmg;
+        DmgDebugConsole dbgConsole;
 
         DmgConsoleWindow consoleWindow;
 
@@ -42,6 +44,7 @@ namespace WinFormDmgRender
         BufferedGraphicsContext gfxBufferedContext;
         BufferedGraphics gfxBuffer;
 
+
         public DmgRenderWindow()
         {
             InitializeComponent();
@@ -58,12 +61,14 @@ namespace WinFormDmgRender
 
             dmg.OnFrame = () => this.Draw();
 
+            dbgConsole = new DmgDebugConsole(dmg);
+
             this.Text = dmg.rom.RomName;
 
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
 
-            consoleWindow = new DmgConsoleWindow(dmg);
+            consoleWindow = new DmgConsoleWindow(dmg, dbgConsole);
 
             consoleWindow.Show();
 
@@ -158,18 +163,23 @@ namespace WinFormDmgRender
                     framesDrawn = 0;
                 }
                  
-                if (consoleWindow.DmgMode == DmgConsoleWindow.Mode.Running)
+                if (dbgConsole.DmgMode == DmgDebugConsole.Mode.Running)
                 {
                     dmg.Step();
 
-                    consoleWindow.CheckForBreakpoints();
+                    if(dbgConsole.CheckForBreakpoints())
+                    {
+                        consoleWindow.RefreshDmgSnapshot();
+                    }
                 }
 
-                else if (consoleWindow.DmgMode == DmgConsoleWindow.Mode.BreakPoint &&
-                            consoleWindow.BreakpointStepAvailable)
+                else if (dbgConsole.DmgMode == DmgDebugConsole.Mode.BreakPoint &&
+                            dbgConsole.BreakpointStepAvailable)
                 {
                     dmg.Step();
-                    consoleWindow.OnBreakpointStep();
+                    dbgConsole.OnBreakpointStep();
+                    consoleWindow.RefreshDmgSnapshot();
+                    consoleWindow.RefreshConsoleText();
                 }
                 
             }

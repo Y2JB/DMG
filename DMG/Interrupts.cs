@@ -122,7 +122,10 @@ namespace DMG
             }
         }
 
-
+        // Two wait states are executed(2 machine cycles pass while nothing occurs, presumably the CPU is executing NOPs during this time).
+        // The current PC is pushed onto the stack, this process consumes 2 more machine cycles.
+        // The high byte of the PC is set to 0, the low byte is set to the address of the handler($40,$48,$50,$58,$60). This consumes one last machine cycle.
+        // The entire ISR should consume a total of 5 machine cycles
 
         void vblank()
         {
@@ -138,8 +141,8 @@ namespace DMG
             dmg.cpu.PC = 0x40;
             dmg.cpu.PeekNextInstruction();
 
-
-            dmg.cpu.Ticks += 12;            
+            // 2 Cycles will happen on the stack push above, add the other 3
+            dmg.cpu.CycleCpu(3);           
         }
 
 
@@ -151,7 +154,8 @@ namespace DMG
             dmg.cpu.PC = 0x48;
             dmg.cpu.PeekNextInstruction();
 
-            dmg.cpu.Ticks += 12;
+            // 2 Cycles will happen on the stack push above, add the other 3
+            dmg.cpu.CycleCpu(3);
         }
 
 
@@ -163,7 +167,8 @@ namespace DMG
             dmg.cpu.PC = 0x50;
             dmg.cpu.PeekNextInstruction();
 
-            dmg.cpu.Ticks += 12;
+            // 2 Cycles will happen on the stack push above, add the other 3
+            dmg.cpu.CycleCpu(3);
         }
 
 
@@ -175,7 +180,8 @@ namespace DMG
             dmg.cpu.PC = 0x58;
             dmg.cpu.PeekNextInstruction();
 
-            dmg.cpu.Ticks += 12;
+            // 2 Cycles will happen on the stack push above, add the other 3
+            dmg.cpu.CycleCpu(3);
         }
 
 
@@ -187,15 +193,9 @@ namespace DMG
             dmg.cpu.PC = 0x60;
             dmg.cpu.PeekNextInstruction();
 
-            dmg.cpu.Ticks += 12;
+            // 2 Cycles will happen on the stack push above, add the other 3
+            dmg.cpu.CycleCpu(3);
         }
 
-
-        public void ReturnFromInterrupt()
-        {
-            InterruptsMasterEnable = true;
-            dmg.cpu.PC = dmg.cpu.StackPop();
-            dmg.cpu.PeekNextInstruction();
-        }
     }
 }

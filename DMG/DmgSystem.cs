@@ -44,10 +44,10 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/Dr. Mario.gb");
             //rom = new Rom("../../../../roms/games/Bubble Ghost (J).gb");
             //rom = new Rom("../../../../roms/games/Super Mario Land.gb");
-            //rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
+            rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Warioland.gb");
             //rom = new Rom("../../../../roms/games/TMNT.gb");
-            rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
+            //rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
             //rom = new Rom("../../../../roms/games/Gargoyle's Quest - Ghosts'n Goblins.gb");
             //rom = new Rom("../../../../roms/games/Mega Man V.gb");
@@ -84,7 +84,7 @@ namespace DMG
             interrupts = new Interrupts(this);
             ppu = new Ppu(this);
             memory = new Memory(this);
-            cpu = new Cpu(memory, interrupts);
+            cpu = new Cpu(memory, interrupts, this);
             timer = new DmgTimer(this);
             pad = new Joypad(interrupts, this);
 
