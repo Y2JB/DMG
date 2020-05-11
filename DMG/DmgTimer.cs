@@ -6,51 +6,56 @@ namespace DMG
 {
     public class DmgTimer
     {
-        public bool Enabled { get; set; }
-
         readonly ushort TIMA = 0xFF05;              // Current Timer value 
         readonly ushort TMA = 0xFF06;               // Timer modulator, what value to we reset to when we overflow
 
+        // 1048576 / 16384
+        readonly UInt32 DivTimerFrequency = 64;
+
+
+        // FF07 (TAC)
         byte tmc;
-        public byte TimerControllerRegister {  get { return tmc; }
+        public byte TimerControllerRegister 
+        {  
+            get { return tmc; }
 
             set
             {
                 tmc = value;
-                Enabled = ((tmc & 0x04) != 0);
-                byte freq = (byte) (tmc & 0x03);
-                if (freq == 0) SetFrequency(TimerFreq.Hz4096);
-                else if (freq == 1) SetFrequency(TimerFreq.Hz262144);
-                else if (freq == 2) SetFrequency(TimerFreq.Hz65536);
-                else if (freq == 3) SetFrequency(TimerFreq.Hz16384);
+                ExpireTimer();              
             }
         }
+
+        public bool Enabled
+        {
+            get
+            {
+                return ((tmc & 0x04) != 0);
+            }
+        }
+
+
+        public int TimerSelect()
+        {
+            return (tmc & 0x03);
+        }
+
 
         // Continually counts up from 0 to 255 and then when it overflows it starts from 0 again. It does not cause an interupt when it overflows and it cannot be paused 
         // It is convenient to implement it alongside the timer. Games use this for a random number
         // It is implemented at Memory Address 0xFF04
         public byte DividerRegister { get; set; }
-        UInt32 dividerRegisterElapsedTicks;
 
-        public enum TimerFreq
-        {
-//            Hz4096 = 4096,
-//            Hz16384 = 16384,
-//            Hz65536 = 65536,
-//            Hz262144 = 262144
-            // mcycle values 
-            Hz4096 = 1024,
-            Hz16384 = 4096,
-            Hz65536 = 16384,
-            Hz262144 = 65536
-        }
 
-        //4194304
+        // order is 4khz, 256khz, 64khz, 16khz
+        uint[] timerTicksToFire = new uint[] { 1024, 16, 64, 256 };
 
-        public TimerFreq Freq { get; private set; }
 
         UInt32 lastCpuTickCount;
-        Int32 cyclesUntilTimerFires;
+        UInt32 elapsedDivTicks;
+        UInt32 elapsedTimaTicks;
+
+        UInt32 cyclesUntilTimerFires;
 
         DmgSystem dmg;
 
@@ -61,139 +66,77 @@ namespace DMG
         }
 
 
-        public void SetFrequency(TimerFreq freq)
-        {
-            Freq = freq;
-
-            cyclesUntilTimerFires = (Int32) (dmg.cpu.ClockSpeedHz / (Int32)(freq));
-        }
-
-
         public void Reset()
         {
             // 4mhz, and disabled
             TimerControllerRegister = 0x00;
 
-            lastCpuTickCount = 0;
-            dividerRegisterElapsedTicks = 0;
+            lastCpuTickCount = dmg.cpu.Ticks;
+
+            // Another interesting discovery: the internal timer that is behind DIV starts ticking 2 M-cycles  before the first boot ROM instruction fetch even starts
+            // I have no idea why or what implications this might have, but basically there's a delay of 2 M-cycles before it even starts fetching stuff
+            elapsedDivTicks = 2;
+
+            elapsedTimaTicks = 0;
         }
 
-        UInt32 m_iDIVCycles = 0;
-        UInt32 m_iTIMACycles = 0;
 
+        public void ExpireTimer()
+        {
+            int timerNumber = TimerSelect();
+            cyclesUntilTimerFires = timerTicksToFire[timerNumber];            
+        }
+
+
+        //UInt32 m_iDIVCycles = 0;
+        //UInt32 m_iTIMACycles = 0;
+
+        // https://gbdev.gg8.se/wiki/articles/Timer_Obscure_Behaviour
         public void Step()
         {
-            UInt32 cpuTickCount = dmg.cpu.Ticks;
-            UInt32 elapsedTicks = (UInt32)(cpuTickCount - lastCpuTickCount);
-            lastCpuTickCount = cpuTickCount;
+            UInt32 tickCount = (dmg.cpu.Ticks - lastCpuTickCount);
+            lastCpuTickCount = dmg.cpu.Ticks;
 
-            //elapsedTicks *= 4;
-
-            m_iDIVCycles += elapsedTicks;
-
-            UInt32 div_cycles = 256;
-
-            while (m_iDIVCycles >= div_cycles)
-            {
-                m_iDIVCycles -= div_cycles;
-                byte div = dmg.memory.ReadByte(0xFF04);
-                div++;
-                dmg.memory.WriteByte(0xFF04, div);
-                //dmg.timer.DividerRegister = div;
-            }
-
-            byte tac = dmg.memory.ReadByte(0xFF07);
-
-            // if tima is running
-            if ((tac & 0x04) != 0)
-            {
-                m_iTIMACycles += elapsedTicks;
-
-                UInt32 freq = 0;
-
-                switch (tac & 0x03)
-                {
-                    case 0:
-                        freq = 1024;
-                        break;
-                    case 1:
-                        freq = 16;
-                        break;
-                    case 2:
-                        freq = 64;
-                        break;
-                    case 3:
-                        freq = 256;
-                        break;
-                }
-
-                while (m_iTIMACycles >= freq)
-                {
-                    m_iTIMACycles -= freq;
-                    byte tima = dmg.memory.ReadByte(0xFF05);
-
-                    if (tima == 0xFF)
-                    {
-                        tima = dmg.memory.ReadByte(0xFF06);
-                        dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_TIMER);
-                    }
-                    else
-                        tima++;
-
-                    dmg.memory.WriteByte(0xFF05, tima);
-                }
-            }
-
-
-            /*
-            UInt32 cpuTickCount = dmg.cpu.Ticks;
-
-
-            // TODO : SOMETIMES ELAPSED TICKS == 0 !!!!!!!!!!!!!!XXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-            // Track how many cycles the CPU has done since we last updated
-            UInt32 elapsedTicks = (UInt32) (cpuTickCount - lastCpuTickCount);
-            lastCpuTickCount = cpuTickCount;
-
-            if(elapsedTicks == 0)
-            {
-                throw new ArgumentException("wtf");
-            }
-
-            UpdateDividerRegister(elapsedTicks);
+            UpdateDividerRegister(tickCount);
 
             if (Enabled)
-            {              
-                cyclesUntilTimerFires -= (int) elapsedTicks;
+            {
+                // Track how many cycles the CPU has done since we last changed states
+                elapsedTimaTicks += tickCount;
 
-                if (cyclesUntilTimerFires <= 0)
+                // Don't lose any ticks
+                while (elapsedTimaTicks >= cyclesUntilTimerFires)
                 {
-                    // reset for next cycle count 
-                    SetFrequency(Freq);
+                    elapsedTimaTicks -= cyclesUntilTimerFires;
 
-                    // timer about to overflow
-                    if (dmg.memory.ReadByte(TIMA) == 0xFF)
+                    // reset for next cycle count 
+                    ExpireTimer();
+
+                    // Increment the timer register 
+                    byte tima = dmg.memory.ReadByte(TIMA);
+                    if (tima == 0xFF)
                     {
-                        dmg.memory.WriteByte(TIMA, dmg.memory.ReadByte(TMA));
-                        
+                        // Timer about to overflow
+                        tima = dmg.memory.ReadByte(TMA);
                         dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_TIMER);
                     }
                     else
                     {
-                        dmg.memory.WriteByte(TIMA, (byte) (dmg.memory.ReadByte(TIMA) + 1));
+                        tima++;
                     }
+                    dmg.memory.WriteByte(TIMA, tima);
                 }
-            }
-            */
+            }           
         }
 
-        private void UpdateDividerRegister(UInt32 cycles)
+
+        // This register is incremented at rate of 16384Hz, 256 times per second 
+        private void UpdateDividerRegister(UInt32 elapsedTicks)
         {
-            // We use Mcycles so *4 the cycles
-            dividerRegisterElapsedTicks += (cycles * 4);
-            if (dividerRegisterElapsedTicks >= 255)
+            elapsedDivTicks += elapsedTicks;
+            while (elapsedDivTicks >= DivTimerFrequency)
             {
-                dividerRegisterElapsedTicks -= 255;
+                elapsedDivTicks -= DivTimerFrequency;
 
                 DividerRegister++;
             }
