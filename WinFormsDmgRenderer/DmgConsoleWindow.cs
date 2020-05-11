@@ -1,5 +1,5 @@
 ﻿using DMG;
-using DmgConsole;
+using DmgDebugger;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -53,15 +53,15 @@ namespace WinFormsDmg
             console.Location = new System.Drawing.Point(10, 10);
             console.Multiline = true;
             console.ReadOnly = true;
-            console.Width = 620;
+            console.Width = 500;
             console.Height = 730;            
             console.Enabled = true;        
             this.Controls.Add(console);
 
             dmgSnapshot.Location = new System.Drawing.Point(console.Location.X + console.Width + 10, 10);
             dmgSnapshot.Multiline = true;
-            dmgSnapshot.Width = 240;
-            dmgSnapshot.Height = 400;
+            dmgSnapshot.Width = 420;
+            dmgSnapshot.Height = 730;
             dmgSnapshot.Enabled = false;
             this.Controls.Add(dmgSnapshot);
 
@@ -94,27 +94,39 @@ namespace WinFormsDmg
 
         public void RefreshDmgSnapshot()
         {
-            /*
-            if (dmg.cpu.IsStopped)
-            {
-                dmgSnapshot.Text = "STOPPED - PC = " + dmg.cpu.PC.ToString(); ;
-            }
+            dmgSnapshot.Text = String.Format("CPU State");
 
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText((dbgConsole.DmgMode == DmgDebugConsole.Mode.BreakPoint) ? "BREAK" : "RUNNING");
+
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(dmg.cpu.ToString());
+
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(dmg.cpu.NextInstruction.ToString());
+
+
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(String.Format("PPU State"));
+
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(String.Format("Scanline: {0}", dmg.ppu.CurrentScanline));
+
+
+            // off, sleeping....
+            string ppuState;
+            if (dmg.ppu.MemoryRegisters.LCDC.LcdEnable == 0) ppuState = "LCD: Off";
             else
-            */
             {
-                dmgSnapshot.Text = (dbgConsole.DmgMode == DmgDebugConsole.Mode.BreakPoint) ? "BREAK" : "RUNNING";
-                dmgSnapshot.AppendText(Environment.NewLine);
-                dmgSnapshot.AppendText(dmg.cpu.ToString());
-                dmgSnapshot.AppendText(Environment.NewLine);
-                dmgSnapshot.AppendText(dmg.cpu.NextInstruction.ToString());
+                ppuState = String.Format("LCD: {0} ({1} / {2})\n ({3} / {4})", dmg.ppu.Mode.ToString(), dmg.ppu.ElapsedTicks(), dmg.ppu.TotalTicksForState(), dmg.ppu.ElapsedTicks() * 4, dmg.ppu.TotalTicksForState() * 4);
+            }
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(ppuState);
 
-                dmgSnapshot.AppendText(Environment.NewLine);
-                dmgSnapshot.AppendText(String.Format("ScrollX {0} ScrollY {1}", dmg.ppu.MemoryRegisters.BgScrollX, dmg.ppu.MemoryRegisters.BgScrollY));
 
-                dmgSnapshot.AppendText(Environment.NewLine);
-                dmgSnapshot.AppendText(String.Format("Scanline: {0}", dmg.ppu.CurrentScanline));
-            }         
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(String.Format("ScrollX {0} ScrollY {1}", dmg.ppu.MemoryRegisters.BgScrollX, dmg.ppu.MemoryRegisters.BgScrollY));   
         }
 
 

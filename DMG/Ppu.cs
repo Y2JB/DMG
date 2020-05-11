@@ -11,6 +11,14 @@ namespace DMG
         const byte Screen_X_Resolution = 160;
         const byte Screen_Y_Resolution = 144;
         
+        const UInt32 OAM_Length = 20;
+        const UInt32 Glitched_OAM_Length = 19;
+        const UInt32 PixelTransfer_Length = 43;
+        const UInt32 HBlank_Length = 51;
+        const UInt32 ScanLine_Length = OAM_Length + PixelTransfer_Length + HBlank_Length;
+        const UInt32 VBlank_Length = ScanLine_Length * 10;
+        
+
         const byte Max_Sprites = 40;
 
         // Tile Data is stored in VRAM at addresses $8000-97FF; with one tile being 16 bytes large, this area defines data for 384 Tiles
@@ -26,7 +34,7 @@ namespace DMG
 
         public IMemoryReaderWriter Memory { get; set; }
    
-        public GfxMemoryRegisters MemoryRegisters { get; private set; }
+        public PpuMemoryRegisters MemoryRegisters { get; private set; }
 
         public TileMap[] TileMaps { get; private set; }
         //public Tile[] Tiles { get; private set; }
@@ -41,14 +49,13 @@ namespace DMG
         
         UInt32 lastCpuTickCount;
         UInt32 elapsedTicks;
-        UInt32 frameStartTicks;
-        UInt32 lastframeTotalTicks;
-        int frame;
+        UInt32 vblankTicks;
+        UInt32 frame;
         double lastFrameTime;
 
         DmgSystem dmg;
 
-    
+
         public Ppu(DmgSystem dmg)
         {
             this.dmg = dmg;
@@ -62,7 +69,7 @@ namespace DMG
             FrameBuffer = frameBuffer0;
             drawBuffer = frameBuffer1;
 
-            MemoryRegisters = new GfxMemoryRegisters(this);
+            MemoryRegisters = new PpuMemoryRegisters(this);
             MemoryRegisters.Reset();
 
             TileMaps = new TileMap[2];
@@ -87,11 +94,13 @@ namespace DMG
             frame = 0;
             lastFrameTime = dmg.EmulatorTimer.Elapsed.TotalMilliseconds;
 
-            //Mode = PpuMode.VBlank;
-            //CurrentScanline = 145;
-
-            Mode = PpuMode.OamSearch;
+            Mode = PpuMode.HBlank;
             CurrentScanline = 0;
+            // Debugger hooks
+            if (dmg.OnFrameStart != null)
+            {
+                dmg.OnFrameStart(frame);
+            }
 
             Palettes = new DmgPalettes();
         }
@@ -120,24 +129,35 @@ namespace DMG
             {
                 return;
             }
-                
+
+            UInt32 tickCount = (cpuTickCount - lastCpuTickCount);
             // Track how many cycles the CPU has done since we last changed states
-            elapsedTicks += (cpuTickCount - lastCpuTickCount);
+            elapsedTicks += tickCount;
             lastCpuTickCount = cpuTickCount;
 
             LcdStatusRegister lcdStat = MemoryRegisters.STAT;
 
             switch (Mode)
             {
+                // See the enable function for some details on this
+                case PpuMode.Glitched_OAM:
+                    if (elapsedTicks >= Glitched_OAM_Length)
+                    {
+                        Mode = PpuMode.PixelTransfer;
+                        elapsedTicks -= Glitched_OAM_Length;
+                    }
+                    break;
+
+
                 case PpuMode.OamSearch:
-                    if (elapsedTicks >= 20)
+                    if (elapsedTicks >= OAM_Length)
                     {
                         // In theory this could be async while waiting for the ticks
                         OamSearch();
 
                         Mode = PpuMode.PixelTransfer;
-                        ;
-                        elapsedTicks -= 20;
+                  
+                        elapsedTicks -= OAM_Length;
                     }
                     break;
 
@@ -145,7 +165,7 @@ namespace DMG
                 // Transfers one scanline of pixels to the screen
                 // The emulator must also work this way as the cpu is still running and many graphical effects change the state of the system between scanlines
                 case PpuMode.PixelTransfer:
-                    if (elapsedTicks >= 43)
+                    if (elapsedTicks >= PixelTransfer_Length)
                     {                      
                         RenderScanline();
 
@@ -156,7 +176,7 @@ namespace DMG
                             dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
                         }
 
-                        elapsedTicks -= 43;
+                        elapsedTicks -= PixelTransfer_Length;
                     }
                     break;
 
@@ -164,7 +184,7 @@ namespace DMG
                 // PPU is idle during hblank
                 case PpuMode.HBlank:
                     // 51 machine cycles ticks (mcycles) 
-                    if (elapsedTicks >= 51)
+                    if (elapsedTicks >= HBlank_Length)
                     {                        
                         CurrentScanline++;
 
@@ -178,6 +198,8 @@ namespace DMG
                         if (CurrentScanline == 144)
                         {
                             Mode = PpuMode.VBlank;
+
+                            vblankTicks = 0;
 
                             //This will only fire the interrupt if IE for vblank is set
                             dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_VBLANK);
@@ -228,7 +250,7 @@ namespace DMG
                         }
 
                         // Don't lose any ticks, cannot set to zero
-                        elapsedTicks -= 51;
+                        elapsedTicks -= HBlank_Length;
                     }
                     break;
 
@@ -236,22 +258,77 @@ namespace DMG
                 // PPU is idle during vblank
                 // The vblank takes the equivilant of 10 scanlines
                 case PpuMode.VBlank:
-                    if (elapsedTicks >= 114)
+                    vblankTicks += tickCount;
+                    if (elapsedTicks >= ScanLine_Length)
                     {
                         CurrentScanline++;
-                        elapsedTicks -= 114;
+                        elapsedTicks -= ScanLine_Length;
                     }
 
                     if (CurrentScanline == 154)
                     {
                         CurrentScanline = 0;
+
+                        if((vblankTicks - elapsedTicks) != VBlank_Length)
+                        {
+                            throw new Exception("PPU out of sync");
+                        }
+
                         Mode = PpuMode.OamSearch;
-                        lastframeTotalTicks = dmg.cpu.Ticks - frameStartTicks;
-                        frameStartTicks = dmg.cpu.Ticks;
-                        frame++;                     
+   
+                        // Debugger hooks
+                        if (dmg.OnFrameEnd != null)
+                        {
+                            dmg.OnFrameEnd(frame, false);
+                        }
+
+                        frame++;
+
+                        // Debugger hooks
+                        if (dmg.OnFrameStart != null)
+                        {
+                            dmg.OnFrameStart(frame);
+                        }
                     }                                       
                     break;
             }
+        }
+
+
+        public UInt32 ElapsedTicks()
+        {
+            switch (Mode)
+            {
+                case PpuMode.Glitched_OAM:
+                case PpuMode.OamSearch:
+                case PpuMode.PixelTransfer:
+                case PpuMode.HBlank:
+                    return elapsedTicks;
+                case PpuMode.VBlank:
+                    return vblankTicks;
+            }
+
+            throw new ArgumentException("bad mode");
+        }
+
+
+        public UInt32 TotalTicksForState()
+        {
+            switch (Mode)
+            {
+                case PpuMode.Glitched_OAM:
+                    return Glitched_OAM_Length;
+                case PpuMode.OamSearch:
+                    return OAM_Length;
+                case PpuMode.PixelTransfer:
+                    return PixelTransfer_Length;
+                case PpuMode.HBlank:
+                    return HBlank_Length;
+                case PpuMode.VBlank:
+                    return VBlank_Length;
+            }
+
+            throw new ArgumentException("bad mode");
         }
 
 
@@ -471,13 +548,30 @@ namespace DMG
         {
             if(toggle == false)
             {
+                // Debugger hooks
+                if (dmg.OnFrameEnd != null)
+                {
+                    dmg.OnFrameEnd(frame, true);
+                }
+
                 Mode = PpuMode.OamSearch;
                 CurrentScanline = 0;
                 elapsedTicks = 0;
             }
             else
             {
-                frameStartTicks = dmg.cpu.Ticks;
+                // When you first turn on the LCD, the very first line in the very first frame doesn't have a proper OAM mode
+                // The STAT register will read HBlank instead of OAM and the OAM region will not be locked(and therefore will remain inaccessible to the PPU)
+                Mode = PpuMode.Glitched_OAM;
+                CurrentScanline = 0;
+                elapsedTicks = 0;
+
+                frame++;
+                // Debugger hooks
+                if (dmg.OnFrameStart != null)
+                {
+                    dmg.OnFrameStart(frame);
+                }
                 lastCpuTickCount = dmg.cpu.Ticks;
             }
         }

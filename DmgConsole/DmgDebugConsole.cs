@@ -7,7 +7,7 @@ using System.Text;
 using DMG;
 
 
-namespace DmgConsole
+namespace DmgDebugger
 {
     public class DmgDebugConsole
     {
@@ -21,6 +21,7 @@ namespace DmgConsole
 
         public List<string> consoleText { get; private set; }
 
+        public PpuProfiler ppuProfiler{ get; set; }
 
         public enum Mode
         {
@@ -65,6 +66,8 @@ namespace DmgConsole
             this.dmg = dmg;
             DmgMode = Mode.BreakPoint;
 
+            ppuProfiler = new PpuProfiler(dmg);
+
             consoleText = new List<string>();
 
             // SB : b $64 if [IO_LY] == 2
@@ -72,9 +75,16 @@ namespace DmgConsole
             //breakpoints.Add(0x40);
             //breakpoints.Add(0x50);
 
+            //breakpoints.Add(new Breakpoint(0x64, new ConditionalExpression(dmg.memory, 0xFF44, ConditionalExpression.EqualityCheck.Equal, 143)));
+
+            // Our DMG should transition from OAM to pixel transfer for the first time here
+            //breakpoints.Add(new Breakpoint(0x64));
+            
+            //lcd turn on
+            breakpoints.Add(new Breakpoint(0x5D));
+
+            breakpoints.Add(new Breakpoint(0x72));
             //breakpoints.Add(new Breakpoint(0x64));      // loads scanline      
-            //breakpoints.Add(0x68);
-            //breakpoints.Add(0x6a);
             //breakpoints.Add(new Breakpoint(0x70));
 
 
@@ -271,7 +281,7 @@ namespace DmgConsole
 
 
             // Parse condtiion
-            global::DmgConsole.ConditionalExpression expression = null;
+            global::DmgDebugger.ConditionalExpression expression = null;
 
             if (parameters.Length > 1)
             {
@@ -279,7 +289,7 @@ namespace DmgConsole
 
                 try
                 {
-                    expression = new global::DmgConsole.ConditionalExpression(parameters.Skip(1).ToArray());
+                    expression = new DmgDebugger.ConditionalExpression(dmg.memory, parameters.Skip(1).ToArray());
                 }
                 catch (ArgumentException ex)
                 {

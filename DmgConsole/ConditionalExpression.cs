@@ -1,16 +1,19 @@
-﻿using System;
+﻿using DMG;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
-namespace DmgConsole
+namespace DmgDebugger
 {
     public class ConditionalExpression
     {
-        enum EqualityCheck
+        public enum EqualityCheck
         {
             Equal,
             NotEqual,
+            GtEqual,
+            LtEqual,
 
             Invalid
         }
@@ -18,9 +21,20 @@ namespace DmgConsole
         ushort lhs, rhs;
         EqualityCheck equalitycheck;
 
+        IMemoryReader memory;
 
-        public ConditionalExpression(string[] terms)
+
+        public ConditionalExpression(IMemoryReader memory, ushort lhs, EqualityCheck op, ushort rhs)
         {
+            this.memory = memory;
+            this.lhs = lhs;
+            this.rhs = rhs;
+            this.equalitycheck = op;
+        }
+
+        public ConditionalExpression(IMemoryReader memory, string[] terms)
+        {
+            this.memory = memory;
             if (terms.Length != 4)
             {
                 throw new ArgumentException("ConditionalExpression arguments wrong. Form must be 'if <x> <==> <y>");
@@ -47,10 +61,16 @@ namespace DmgConsole
             switch (equalitycheck)
             {
                 case EqualityCheck.Equal:
-                    return (lhs == rhs);
+                    return (memory.ReadShort(lhs) == rhs);
 
                 case EqualityCheck.NotEqual:
-                    return (lhs != rhs);
+                    return (memory.ReadShort(lhs) != rhs);
+
+                case EqualityCheck.GtEqual:
+                    return (memory.ReadShort(lhs) >= rhs);
+
+                case EqualityCheck.LtEqual:
+                    return (memory.ReadShort(lhs) <= rhs);
             }
             return false;
         }
@@ -83,6 +103,18 @@ namespace DmgConsole
             if (p.Equals("!="))
             {
                 value = EqualityCheck.NotEqual;
+                return true;
+            }
+
+            if (p.Equals(">="))
+            {
+                value = EqualityCheck.GtEqual;
+                return true;
+            }
+
+            if (p.Equals("<="))
+            {
+                value = EqualityCheck.LtEqual;
                 return true;
             }
 

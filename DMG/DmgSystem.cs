@@ -29,6 +29,10 @@ namespace DMG
 
         public Stopwatch EmulatorTimer { get; private set; }
         public Action OnFrame{ get; set;  }
+        
+        // Debugger hooks
+        public Action<UInt32> OnFrameStart { get; set; }
+        public Action<UInt32, bool> OnFrameEnd { get; set; }
 
         public DmgSystem()
         {
@@ -61,7 +65,7 @@ namespace DMG
             // Blargg CPU tests
             //rom = new Rom("../../../../roms/cpu_instrs.gb");
             //rom = new Rom("../../../../roms/01-special.gb");                  // passes
-            //rom = new Rom("../../../../roms/02-interrupts.gb");               // passes
+           // rom = new Rom("../../../../roms/02-interrupts.gb");               // passes
             //rom = new Rom("../../../../roms/03-op sp,hl.gb");                 // passes
             //rom = new Rom("../../../../roms/04-op r,imm.gb");                 // passes
             //rom = new Rom("../../../../roms/05-op rp.gb");                    // passes

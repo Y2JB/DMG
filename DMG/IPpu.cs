@@ -10,16 +10,21 @@ namespace DMG
         HBlank = 0,
         VBlank,
         OamSearch,
-        PixelTransfer
+        PixelTransfer,
+
+        Glitched_OAM
     }
 
     public interface IPpu
     {
         public PpuMode Mode { get; }
 
+        public UInt32 ElapsedTicks();
+        public UInt32 TotalTicksForState();
+
         public void Enable(bool toggle);
 
-        public GfxMemoryRegisters MemoryRegisters { get; }
+        public PpuMemoryRegisters MemoryRegisters { get; }
 
         public byte CurrentScanline { get; }
 

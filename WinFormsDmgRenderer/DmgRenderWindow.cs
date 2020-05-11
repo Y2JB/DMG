@@ -16,7 +16,7 @@ using System.Windows.Input;
 using DMG;
 using WinFormsDmg;
 using System.Threading;
-using DmgConsole;
+using DmgDebugger;
 
 namespace WinFormDmgRender
 {

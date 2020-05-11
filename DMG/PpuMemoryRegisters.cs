@@ -1,7 +1,7 @@
 ﻿using System;
 namespace DMG
 {
-    public class GfxMemoryRegisters
+    public class PpuMemoryRegisters
     {
         // 0xFF40
         public LcdControlRegister LCDC { get; private set; }
@@ -24,7 +24,7 @@ namespace DMG
 
         IPpu ppu;
 
-        public GfxMemoryRegisters(IPpu ppu)
+        public PpuMemoryRegisters(IPpu ppu)
         {
             this.ppu = ppu;
             LCDC = new LcdControlRegister(ppu);
@@ -43,10 +43,13 @@ namespace DMG
 
 
         public override string ToString()
-        {
-            
-            return String.Format("{0}{1}Current Line: {2}{3}Window X: {4}{5}Window Y: {6}{7}BG Scroll X: {8}{9}BG Scroll Y: {10}{11}", LCDC.ToString(), STAT.ToString(), ppu.CurrentScanline, Environment.NewLine,  
-                WindowX - 7, Environment.NewLine, WindowY, Environment.NewLine, BgScrollX, Environment.NewLine, BgScrollY, Environment.NewLine);
+        {                  
+            return String.Format("{0}{1}Scanline: {2}{3}Window X,Y: {4} , {5}{6}BG Scroll X, Y: {7} , {8}{9}", 
+                LCDC.ToString(), 
+                STAT.ToString(),            
+                ppu.CurrentScanline, Environment.NewLine,
+                WindowX, WindowY, Environment.NewLine, 
+                BgScrollX, BgScrollY, Environment.NewLine);
         }
 
     }
@@ -138,7 +141,10 @@ namespace DMG
             get
             {
                 byte low3Bits = 0;
-                byte ppuMode = (byte)ppu.Mode;
+
+                // See the ppu.Enable function for some details on this
+                byte mode = (byte) (ppu.Mode == PpuMode.Glitched_OAM ? PpuMode.HBlank : ppu.Mode);
+                byte ppuMode = mode; 
                 low3Bits |= ppuMode;
 
                 // Bit 2 (Coincidence Flag) is set to 1 if register(0xFF44) is the same value as (0xFF45) otherwise it is set to 0
@@ -190,8 +196,11 @@ namespace DMG
 
         public override string ToString()
         {
+            // See the ppu.Enable function for some details on this
+            string mode = (ppu.Mode == PpuMode.Glitched_OAM ? PpuMode.HBlank.ToString() : ppu.Mode.ToString());
+
             return String.Format("STAT:{0}Current Mode: {1}{2}LYC Flag: {3}{4}HBlank IRQ: {5}{6}VBlank IRQ: {7}{8}OAM IRQ: {9}{10}LYC IRQ: {11}{12}LYC: {13}{14}", 
-                Environment.NewLine, ppu.Mode.ToString(), Environment.NewLine, CoincidenceFlag.ToString(), Environment.NewLine, HBlankInterruptEnable.ToString(), 
+                Environment.NewLine, mode, Environment.NewLine, CoincidenceFlag.ToString(), Environment.NewLine, HBlankInterruptEnable.ToString(), 
                 Environment.NewLine, VBlankInterruptEnable.ToString(), Environment.NewLine, OamInterruptEnable.ToString(), Environment.NewLine, 
                 LycLyCoincidenceInterruptEnable.ToString(), Environment.NewLine, LYC.ToString(), Environment.NewLine);
         }
