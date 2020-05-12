@@ -1495,6 +1495,10 @@ namespace DMG
             if (ZeroFlag == false)
             {
                 PC = StackPop();
+                dmg.cpu.CycleCpu(2);
+            }
+            else
+            {
                 dmg.cpu.CycleCpu(1);
             }
         }

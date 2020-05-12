@@ -199,7 +199,7 @@ namespace DMG
                         {
                             Mode = PpuMode.VBlank;
 
-                            vblankTicks = 0;
+                            vblankTicks = (elapsedTicks - HBlank_Length);
 
                             //This will only fire the interrupt if IE for vblank is set
                             dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_VBLANK);
@@ -541,6 +541,7 @@ namespace DMG
                     }
                 }                
             }
+            oamSearchResults.Clear();
         }
 
 

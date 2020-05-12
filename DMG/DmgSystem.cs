@@ -51,7 +51,7 @@ namespace DMG
             rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Warioland.gb");
             //rom = new Rom("../../../../roms/games/TMNT.gb");
-            //rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
+            // rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
             //rom = new Rom("../../../../roms/games/Gargoyle's Quest - Ghosts'n Goblins.gb");
             //rom = new Rom("../../../../roms/games/Mega Man V.gb");
@@ -60,12 +60,12 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/Wave race.gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
-            //rom = new Rom("../../../../roms/tellinglys.gb");
+            //rom = new Rom("../../../../roms/tellinglys.gb");                  //passes 
 
             // Blargg CPU tests
             //rom = new Rom("../../../../roms/cpu_instrs.gb");
             //rom = new Rom("../../../../roms/01-special.gb");                  // passes
-           // rom = new Rom("../../../../roms/02-interrupts.gb");               // passes
+            //rom = new Rom("../../../../roms/02-interrupts.gb");               // passes
             //rom = new Rom("../../../../roms/03-op sp,hl.gb");                 // passes
             //rom = new Rom("../../../../roms/04-op r,imm.gb");                 // passes
             //rom = new Rom("../../../../roms/05-op rp.gb");                    // passes
@@ -76,7 +76,11 @@ namespace DMG
             //rom = new Rom("../../../../roms/10-bit ops.gb");                  // passes
             //rom = new Rom("../../../../roms/11-op a,(hl).gb");                // passes
 
-            //rom = new Rom("../../../../roms/instr_timing.gb");
+            //rom = new Rom("../../../../roms/instr_timing.gb");                // passes
+            //rom = new Rom("../../../../roms/mem_timing.gb");                  // passes
+            //rom = new Rom("../../../../roms/mem_timing2.gb");                 // passes
+            //rom = new Rom("../../../../roms/interrupt_time.gb");              // fails
+            //rom = new Rom("../../../../roms/halt_bug.gb");
 
             if (rom.Type == Rom.RomType.UnSupported)
             {

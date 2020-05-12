@@ -212,7 +212,10 @@ namespace DMG
         {
             cyclesThisInstruction++;
             Ticks += cycles;
+            
+            // Reading/Writing scanline number or timer registers means we need to update these every cycle
             dmg.ppu.Step();
+            dmg.timer.Step();
         }
 
 
@@ -538,19 +541,26 @@ namespace DMG
             instructions[0xD8] = new Instruction("RET C", 0xD8, 0, (v) => this.RET_C());
             instructions[0xD9] = new Instruction("RETI", 0xD9, 0, (v) => this.RETI());
             instructions[0xDA] = new Instruction("JP C nn", 0xDA, 2, (v) => this.JP_C_nn(v));
+            // DB Illegal
             instructions[0xDC] = new Instruction("CALL C nn", 0xDC, 2, (v) => this.CALL_C_nn(v));
+            // DD Illegal
             instructions[0xDE] = new Instruction("SBC a n", 0xDE, 1, (v) => this.SBC_a_n((byte)v));
             instructions[0xDF] = new Instruction("RST 18", 0xDF, 0, (v) => this.RST_18());
 
             instructions[0xE0] = new Instruction("LDH (0xFF00 + n) a", 0xE0, 1, (v) => this.LDH_ff_n_a((byte) v));
             instructions[0xE1] = new Instruction("POP hl", 0xE1, 0, (v) => this.POP_hl());
             instructions[0xE2] = new Instruction("LDH (0xFF00 + C) a", 0xE2, 0, (v) => this.LDH_ff_c_a());
+            // E3 Illegal
+            // E4 Illegal
             instructions[0xE5] = new Instruction("PUSH hl", 0xE5, 0, (v) => this.PUSH_hl());
             instructions[0xE6] = new Instruction("AND n", 0xE6, 1, (v) => this.AND_n((byte)v));
             instructions[0xE7] = new Instruction("RST 20", 0xE7, 0, (v) => this.RST_20());
             instructions[0xE8] = new Instruction("ADD SP n", 0xE8, 1, (v) => this.ADD_sp_n((sbyte) v));
             instructions[0xE9] = new Instruction("JP hl", 0xE9, 0, (v) => this.JP_hl());
             instructions[0xEA] = new Instruction("LD nn a", 0xEA, 2, (v) => this.LD_nnp_a(v));
+            // EB Illegal
+            // EC Illegal
+            // ED Illegal
             instructions[0xEE] = new Instruction("XOR n", 0xEE, 1, (v) => this.XOR_n((byte) v));
             instructions[0xEF] = new Instruction("RST 28", 0xEF, 0, (v) => this.RST_28());
 
@@ -558,6 +568,7 @@ namespace DMG
             instructions[0xF1] = new Instruction("POP af", 0xF1, 0, (v) => this.POP_af());
             instructions[0xF2] = new Instruction("LD a FF c", 0xF2, 0, (v) => this.LD_a_ff_c());
             instructions[0xF3] = new Instruction("DI", 0xF3, 0, (v) => this.DI());
+            // F4 Illegal
             instructions[0xF5] = new Instruction("PUSH af", 0xF5, 0, (v) => this.PUSH_af());
             instructions[0xF6] = new Instruction("OR n", 0xF6, 1, (v) => this.OR_n((byte) v));
             instructions[0xF7] = new Instruction("RST 30", 0xF7, 0, (v) => this.RST_30());
@@ -565,6 +576,8 @@ namespace DMG
             instructions[0xF9] = new Instruction("LDHL sp hl", 0xF9, 0, (v) => this.LD_sp_hl());
             instructions[0xFA] = new Instruction("LD a (nn)", 0xFA, 2, (v) => this.LD_a_nnp(v));
             instructions[0xFB] = new Instruction("EI", 0xFB, 0, (v) => this.EI());
+            // FC Illegal
+            // FD Illegal
             instructions[0xFE] = new Instruction("CP n", 0xFE, 1, (v) => this.CP_n((byte) v));
             instructions[0xFF] = new Instruction("RST 38", 0xFF, 0, (v) => this.RST_38());
 

@@ -110,16 +110,16 @@ namespace DMG
 				// Joypad
 				return dmg.pad.Register;
 			}
-			//else if (address == 0xFF04)
-			//{
+			else if (address == 0xFF04)
+			{
 				// Divider register (RNG)
-			//	return dmg.timer.DividerRegister;
-			//}
-			//else if (address == 0xFF07)
-			//{
+				return dmg.timer.DividerRegister;
+			}
+			else if (address == 0xFF07)
+			{
 				// Timer Controller register 
-			//	return dmg.timer.TimerControllerRegister;
-		//	}
+				return dmg.timer.TimerControllerRegister;
+			}
 			else if (address == 0xFF40)
 			{
 				return ppu.MemoryRegisters.LCDC.Register;
@@ -274,23 +274,25 @@ namespace DMG
 			else if (address == 0xFF02)
 			{
 			}
-			//else if (address == 0xFF04)
-			//{
+			else if (address == 0xFF04)
+			{
+				// When writing to DIV, the whole counter is reset so the timer is also affected.
 				// Writing any value to the divider register restes it 
-			//	dmg.timer.DividerRegister = 0;
-			//}
-			//else if (address == 0xFF07)
-			//{
-				// Timer Controller register 
-			//	dmg.timer.TimerControllerRegister = value;
-			//}
+				dmg.timer.DividerRegister = 0;
+			}
+			else if (address == 0xFF07)
+			{
+				// Timer Controller register, update if the value is changing  
+				value &= 0x07;
+				if ((dmg.timer.TimerControllerRegister & 0x03) != (value & 0x03))
+				{
+					dmg.timer.ResetTIMACycles();			
+				}
+				dmg.timer.TimerControllerRegister = value;
+			}
 			else if (address == 0xFF40)
 			{
 				ppu.MemoryRegisters.LCDC.Register = value;
-				if (ppu.MemoryRegisters.LCDC.LcdEnable == 0)
-				{
-					int foo = 0;
-				}
 			}
 			else if (address == 0xFF41)
 			{

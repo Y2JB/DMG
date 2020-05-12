@@ -126,7 +126,15 @@ namespace WinFormsDmg
 
 
             dmgSnapshot.AppendText(Environment.NewLine);
-            dmgSnapshot.AppendText(String.Format("ScrollX {0} ScrollY {1}", dmg.ppu.MemoryRegisters.BgScrollX, dmg.ppu.MemoryRegisters.BgScrollY));   
+            dmgSnapshot.AppendText(String.Format("ScrollX {0} ScrollY {1}", dmg.ppu.MemoryRegisters.BgScrollX, dmg.ppu.MemoryRegisters.BgScrollY));
+
+
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(String.Format("Timer"));
+
+            dmgSnapshot.AppendText(Environment.NewLine);
+            dmgSnapshot.AppendText(String.Format("TIMA {0:X2} DIV {1:X2}", dmg.memory.ReadByte(0xFF05), dmg.memory.ReadByte(0xFF04)));
         }
 
 

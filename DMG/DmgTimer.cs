@@ -47,13 +47,14 @@ namespace DMG
         public byte DividerRegister { get; set; }
 
 
+        // 1048576 / 
         // order is 4khz, 256khz, 64khz, 16khz
-        uint[] timerTicksToFire = new uint[] { 1024, 16, 64, 256 };
+        uint[] timerTicksToFire = new uint[] { 256, 4, 16, 64 };
 
 
         UInt32 lastCpuTickCount;
         UInt32 elapsedDivTicks;
-        UInt32 elapsedTimaTicks;
+        public UInt32 elapsedTimaTicks { get; set; }
 
         UInt32 cyclesUntilTimerFires;
 
@@ -88,9 +89,6 @@ namespace DMG
         }
 
 
-        //UInt32 m_iDIVCycles = 0;
-        //UInt32 m_iTIMACycles = 0;
-
         // https://gbdev.gg8.se/wiki/articles/Timer_Obscure_Behaviour
         public void Step()
         {
@@ -117,7 +115,14 @@ namespace DMG
                     if (tima == 0xFF)
                     {
                         // Timer about to overflow
+
+                        // When TIMA overflows, the value from TMA is loaded and IF timer flag is set to 1, but this doesn't happen immediately. Timer interrupt is delayed 1 cycle (4 clocks) from the TIMA overflow. 
+
+                        // The TMA reload to TIMA is also delayed. For one cycle, after overflowing TIMA, the value in TIMA is 00h, not TMA. This happens only when an overflow happens, not when 
+                        // the upper bit goes from 1 to 0, it can't be done manually writing to TIMA, the timer has to increment itself.
+
                         tima = dmg.memory.ReadByte(TMA);
+                        dmg.memory.WriteByte(TIMA, tima);
                         dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_TIMER);
                     }
                     else
@@ -129,6 +134,12 @@ namespace DMG
             }           
         }
 
+
+        public void ResetTIMACycles()
+        {
+            elapsedTimaTicks = 0;
+            dmg.memory.WriteByte(TIMA, dmg.memory.ReadByte(TMA));
+        }
 
         // This register is incremented at rate of 16384Hz, 256 times per second 
         private void UpdateDividerRegister(UInt32 elapsedTicks)

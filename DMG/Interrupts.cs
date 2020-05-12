@@ -48,10 +48,15 @@ namespace DMG
 
         public bool RequestInterrupt(Interrupt interrupt)
         {
-            if ((InterruptEnableRegister & (byte) interrupt) == 0)
-            {
-                return false;                
-            }
+            /*
+             * SAMEBOY...
+    m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | interrupt);
+
+    if ((interrupt == VBlank_Interrupt) && !m_bCGBSpeed)
+    {
+        m_iInterruptDelayCycles = 4;
+    }
+    */
 
             InterruptFlags |= (byte) interrupt;
             
@@ -64,12 +69,20 @@ namespace DMG
             return true;
         }
 
+
         public bool IsAnInterruptPending()
         {
             return ((InterruptEnableRegister & InterruptFlags) != 0);
         }
 
 
+        /*
+         !!!!!!!!!!!!!!!!!!!XXXXXXXXXXXXXXXXXXXXXXXXXX
+         It takes 20 clocks to dispatch an interrupt. If CPU is in HALT mode, another extra 4 clocks are
+needed. This timings are the same in every Game Boy model or in double/single speeds in
+CGB/AGB/AGS.
+         * */
+           
         public void Step()
         {
             if (InterruptsMasterEnable && InterruptEnableRegister != 0 && InterruptFlags != 0)
@@ -129,12 +142,6 @@ namespace DMG
 
         void vblank()
         {
-            //drawFramebuffer();
-            //if (dmg.OnFrame != null)
-            //{
-            //    dmg.OnFrame();
-            //}
-
             InterruptsMasterEnable = false;
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
