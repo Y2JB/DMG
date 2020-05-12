@@ -94,10 +94,22 @@ namespace DMG
 			}
 			else if (address >= 0x8000 && address <= 0x9FFF)
 			{
+				// CPU cannot access vram during Pixel Transfer and if it does it gets 0xFF				
+				if (ppu.Mode == PpuMode.PixelTransfer &&
+					ppu.PpuAccessingVram == false)
+				{
+					return 0xFF;
+				}
 				return VRam[address - 0x8000];
 			}
 			else if (address >= 0xFE00 && address <= 0xFEFF)
 			{
+				// CPU cannot access OAM during OAM Search or Pixel Transfer and if it does it gets 0xFF
+				if( (ppu.Mode == PpuMode.OamSearch || ppu.Mode == PpuMode.PixelTransfer) &&
+					 ppu.PpuAccessingVram == false)
+				{
+					return 0xFF;
+				}
 				// OAM table read. Should only be accessed by PPU.
 				return OamRam[address - 0xFE00];
 			}			
@@ -208,6 +220,14 @@ namespace DMG
 
 		void DmaCopy(ushort destination, ushort source, int length)
 		{
+			// DMA midframe happens but can cause OAM data to change between oam search and pixel transfer which will crash the renderer.
+			// If a midframe DMA happens, just mark OAM 'dirty' and skip rendering sprintes that line.
+			if (ppu.Mode == PpuMode.OamSearch ||
+				ppu.Mode == PpuMode.PixelTransfer)
+			{
+				ppu.OamDirty = true;
+			}
+			
 			for (int i = 0; i < length; i++)
 			{
 				WriteByte((ushort)(destination + i), ReadByte((ushort)(source + i)));
@@ -237,8 +257,11 @@ namespace DMG
 			}
 			else if (address >= 0x8000 && address <= 0x9fff)
 			{
-				// TODO: model that CPU cannot access vram during Pixel Transfer and if it does it gets 0xFF
-				// TODO: model that CPU cannot access OAM during OAM Search or Pixel Transfer and if it does it gets 0xFF
+				// CPU cannot access vram during Pixel Transfer and if it does it gets 0xFF
+				if(ppu.Mode == PpuMode.PixelTransfer)
+				{
+					return;
+				}
 
 				VRam[address - 0x8000] = value;
 
@@ -253,6 +276,13 @@ namespace DMG
 			}
 			else if (address >= 0xFE00 && address <= 0xFEFF)
 			{
+				// CPU cannot access OAM during OAM Search or Pixel Transfer and if it does it gets 0xFF
+				if ((ppu.Mode == PpuMode.OamSearch || ppu.Mode == PpuMode.PixelTransfer) &&
+					 ppu.PpuAccessingVram == false)
+				{
+					return;
+				}
+
 				// Writing to OAM Table 
 				OamRam[address - 0xFE00] = value;
 			}

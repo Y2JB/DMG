@@ -33,6 +33,7 @@ namespace DMG
         // Debugger hooks
         public Action<UInt32> OnFrameStart { get; set; }
         public Action<UInt32, bool> OnFrameEnd { get; set; }
+        public Action<UInt32, UInt32, List<OamEntry>> OnOamSearchComplete { get; set; }
 
         public DmgSystem()
         {
@@ -51,7 +52,7 @@ namespace DMG
             rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Warioland.gb");
             //rom = new Rom("../../../../roms/games/TMNT.gb");
-            // rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
+            //rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
             //rom = new Rom("../../../../roms/games/Gargoyle's Quest - Ghosts'n Goblins.gb");
             //rom = new Rom("../../../../roms/games/Mega Man V.gb");
@@ -79,7 +80,7 @@ namespace DMG
             //rom = new Rom("../../../../roms/instr_timing.gb");                // passes
             //rom = new Rom("../../../../roms/mem_timing.gb");                  // passes
             //rom = new Rom("../../../../roms/mem_timing2.gb");                 // passes
-            //rom = new Rom("../../../../roms/interrupt_time.gb");              // fails
+            //rom = new Rom("../../../../roms/interrupt_time.gb");              // fails (GBC only)
             //rom = new Rom("../../../../roms/halt_bug.gb");
 
             if (rom.Type == Rom.RomType.UnSupported)

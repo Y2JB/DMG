@@ -8,21 +8,21 @@ namespace DMG
 {
     public class Ppu : IPpu
     {
-        const byte Screen_X_Resolution = 160;
-        const byte Screen_Y_Resolution = 144;
-        
-        const UInt32 OAM_Length = 20;
-        const UInt32 Glitched_OAM_Length = 19;
-        const UInt32 PixelTransfer_Length = 43;
-        const UInt32 HBlank_Length = 51;
-        const UInt32 ScanLine_Length = OAM_Length + PixelTransfer_Length + HBlank_Length;
-        const UInt32 VBlank_Length = ScanLine_Length * 10;
-        
+        public const byte Screen_X_Resolution = 160;
+        public const byte Screen_Y_Resolution = 144;
 
-        const byte Max_Sprites = 40;
+        public const UInt32 OAM_Length = 20;
+        public const UInt32 Glitched_OAM_Length = 19;
+        public const UInt32 PixelTransfer_Length = 43;
+        public const UInt32 HBlank_Length = 51;
+        public const UInt32 ScanLine_Length = OAM_Length + PixelTransfer_Length + HBlank_Length;
+        public const UInt32 VBlank_Length = ScanLine_Length * 10;
+
+
+        public const byte Max_Sprites = 40;
 
         // Tile Data is stored in VRAM at addresses $8000-97FF; with one tile being 16 bytes large, this area defines data for 384 Tiles
-        const ushort MaxTiles = 384;
+        public const ushort Max_Tiles = 384;
 
         public Bitmap FrameBuffer { get; private set; }
         Bitmap drawBuffer;
@@ -44,6 +44,12 @@ namespace DMG
         private List<OamEntry> oamSearchResults = new List<OamEntry>();
 
         public byte CurrentScanline { get; private set; }
+
+        // Used to prevent cpu accessing vram and oam ram at incorrect times
+        public bool PpuAccessingVram { get; private set; }
+
+        // Midframe DMA to OAM ram can happen. If it does, it marks the ram dirty and we do not render sprites that line
+        public bool OamDirty { get; set; }
 
         public DmgPalettes Palettes { get; set; }
         
@@ -76,7 +82,7 @@ namespace DMG
             TileMaps[0] = new TileMap(this, Memory, 0x9800);
             TileMaps[1] = new TileMap(this, Memory, 0x9C00);
             Tiles = new Dictionary<int, Tile>();
-            for (int i = 0; i < MaxTiles; i++)
+            for (int i = 0; i < Max_Tiles; i++)
             {
                 int address = (0x8000 + (i * 16));
                 Tiles.Add(address, new Tile((ushort)address));
@@ -103,6 +109,9 @@ namespace DMG
             }
 
             Palettes = new DmgPalettes();
+
+            OamDirty = false;
+            PpuAccessingVram = false;
         }
 
 
@@ -152,7 +161,6 @@ namespace DMG
                 case PpuMode.OamSearch:
                     if (elapsedTicks >= OAM_Length)
                     {
-                        // In theory this could be async while waiting for the ticks
                         OamSearch();
 
                         Mode = PpuMode.PixelTransfer;
@@ -336,6 +344,8 @@ namespace DMG
         // it comes across as we iteratre the oam table
         void OamSearch()
         {
+            PpuAccessingVram = true;
+
             oamSearchResults.Clear();
             int spriteHeight = 8;
             if (MemoryRegisters.LCDC.SpriteHeight == 1) spriteHeight = 16;
@@ -372,11 +382,22 @@ namespace DMG
                     {
                         break;
                     }
-                }
+                }                
             }
 
             // order the list by X decending (we will draw right to left so that lowest X sprite wins)
             oamSearchResults.OrderByDescending(o => o.X).ToList();
+
+            PpuAccessingVram = false;
+            OamDirty = false;
+
+
+            // Debugger hooks
+            // This will get very expensive. Comment it out when not using
+            //if (dmg.OnOamSearchComplete != null)
+            //{
+            //    dmg.OnOamSearchComplete(frame, CurrentScanline, oamSearchResults);
+            //}
         }
 
 
@@ -396,6 +417,8 @@ namespace DMG
             // Render the BG
             // Total BG size in VRam is 32x32 tiles
             // Viewport is 20x18 tiles
+
+            PpuAccessingVram = true;
 
             // TODO: NOT SURE THIS FLAG IS BEING USED RIGHT HERE!!!
             if (MemoryRegisters.LCDC.BgWinDisplay == 1)
@@ -465,83 +488,90 @@ namespace DMG
             }
 
 
-            // Render Sprites, we already know that they all are visible on this scanline and they are already ordered so that the right most is first
-            foreach (var sprite in oamSearchResults)
+            // Skip sprite rendering this line if a dma transfer has occured midframe and stomped all over the OAM entries.
+            // OAM entries will become 'clean' after next OAM search (next line).
+            if (OamDirty == false)
             {
-                byte sx = sprite.X;
-                byte sy = sprite.Y;
-
-                // can be negative 
-                int spriteXScreenSpace = sx - 8;
-                int spriteYScreenSpace = sy - 16;
-
-                // Which row of the sprite is being rendered on this line?
-                int spriteYLine =  CurrentScanline - spriteYScreenSpace;
-
-                Color[] palette = Palettes.ObjPalette0;
-                if (sprite.PaletteNumber == 1) palette = Palettes.ObjPalette1;
-
-                Tile tile = null;
-                if (MemoryRegisters.LCDC.SpriteHeight == 0)
+                // Render Sprites, we already know that they all are visible on this scanline and they are already ordered so that the right most is first
+                foreach (var sprite in oamSearchResults)
                 {
-                    tile = GetSpriteTileByIndex(sprite.TileIndex);
-                }
-                // if using 16 pixel high sprites (2 tiles) then potentially adjust to the next tile and fix up the line if we are drawing the sewcond tile
-                // The tiles themselves also index opposite when Y flipped 
-                else 
-                {
-                    if (spriteYLine >= 8)
+                    byte sx = sprite.X;
+                    byte sy = sprite.Y;
+
+                    // can be negative 
+                    int spriteXScreenSpace = sx - 8;
+                    int spriteYScreenSpace = sy - 16;
+
+                    // Which row of the sprite is being rendered on this line?
+                    int spriteYLine = CurrentScanline - spriteYScreenSpace;
+
+                    Color[] palette = Palettes.ObjPalette0;
+                    if (sprite.PaletteNumber == 1) palette = Palettes.ObjPalette1;
+
+                    Tile tile = null;
+                    if (MemoryRegisters.LCDC.SpriteHeight == 0)
                     {
-                        if (sprite.YFlip == false) tile = GetSpriteTileByIndex((byte)(sprite.TileIndex + 1));
-                        else tile = GetSpriteTileByIndex((byte)(sprite.TileIndex));
-                        spriteYLine -= 8;
+                        tile = GetSpriteTileByIndex(sprite.TileIndex);
                     }
+                    // if using 16 pixel high sprites (2 tiles) then potentially adjust to the next tile and fix up the line if we are drawing the sewcond tile
+                    // The tiles themselves also index opposite when Y flipped 
                     else
                     {
-                        if (sprite.YFlip == false) tile = GetSpriteTileByIndex((byte)(sprite.TileIndex));
-                        else tile = GetSpriteTileByIndex((byte)(sprite.TileIndex + 1));
-                    }              
-                }
-
-                for (int i = 0; i < 8; i++)
-                {                 
-                    // Offscreen 
-                    if (spriteXScreenSpace + i >= Screen_X_Resolution)
-                    {
-                        break;
-                    }
-
-                    if(spriteXScreenSpace + i < 0)
-                    {
-                        continue;
-                    }
-
-
-
-                    int sprPixelX = i;
-                    int sprPixelY = spriteYLine;
-                    if (sprite.XFlip) sprPixelX = 7 - sprPixelX;
-                    if (sprite.YFlip) sprPixelY = 7 - sprPixelY;
-                    byte paletteIndex = tile.renderTile[sprPixelX, sprPixelY];
-
-                    // If the priority is 0, sprites redner on top. If it is 1 then sprite pixels only render on top of 'white' otherwise they are obscured 
-                    if (sprite.ObjPriority == 1)
-                    {
-                        Color pixel = drawBuffer.GetPixel(spriteXScreenSpace + i, CurrentScanline);
-                        if(pixel != Palettes.BackgroundPalette[0])
+                        if (spriteYLine >= 8)
                         {
-                            continue;
+                            if (sprite.YFlip == false) tile = GetSpriteTileByIndex((byte)(sprite.TileIndex + 1));
+                            else tile = GetSpriteTileByIndex((byte)(sprite.TileIndex));
+                            spriteYLine -= 8;
+                        }
+                        else
+                        {
+                            if (sprite.YFlip == false) tile = GetSpriteTileByIndex((byte)(sprite.TileIndex));
+                            else tile = GetSpriteTileByIndex((byte)(sprite.TileIndex + 1));
                         }
                     }
 
-                    // Palette entry 0 == translucent for sprites
-                    if (paletteIndex != 0)
+                    for (int i = 0; i < 8; i++)
                     {
-                        drawBuffer.SetPixel(spriteXScreenSpace + i, CurrentScanline, palette[paletteIndex]);
+                        // Offscreen 
+                        if (spriteXScreenSpace + i >= Screen_X_Resolution)
+                        {
+                            break;
+                        }
+
+                        if (spriteXScreenSpace + i < 0)
+                        {
+                            continue;
+                        }
+
+
+
+                        int sprPixelX = i;
+                        int sprPixelY = spriteYLine;
+                        if (sprite.XFlip) sprPixelX = 7 - sprPixelX;
+                        if (sprite.YFlip) sprPixelY = 7 - sprPixelY;
+                        byte paletteIndex = tile.renderTile[sprPixelX, sprPixelY];
+
+                        // If the priority is 0, sprites redner on top. If it is 1 then sprite pixels only render on top of 'white' otherwise they are obscured 
+                        if (sprite.ObjPriority == 1)
+                        {
+                            Color pixel = drawBuffer.GetPixel(spriteXScreenSpace + i, CurrentScanline);
+                            if (pixel != Palettes.BackgroundPalette[0])
+                            {
+                                continue;
+                            }
+                        }
+
+                        // Palette entry 0 == translucent for sprites
+                        if (paletteIndex != 0)
+                        {
+                            drawBuffer.SetPixel(spriteXScreenSpace + i, CurrentScanline, palette[paletteIndex]);
+                        }
                     }
-                }                
+                }
             }
+
             oamSearchResults.Clear();
+            PpuAccessingVram = false;
         }
 
 
@@ -555,7 +585,8 @@ namespace DMG
                     dmg.OnFrameEnd(frame, true);
                 }
 
-                Mode = PpuMode.OamSearch;
+                // Not modelling this and setting it here was causing the 'Mario World' Level on marioland 2 to not enable the LCD!
+                Mode = PpuMode.Glitched_OAM;
                 CurrentScanline = 0;
                 elapsedTicks = 0;
             }
