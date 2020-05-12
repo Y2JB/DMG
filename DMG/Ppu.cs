@@ -270,6 +270,14 @@ namespace DMG
                     if (elapsedTicks >= ScanLine_Length)
                     {
                         CurrentScanline++;
+
+                        // Coincidence interrupt checks if the scanline is equal to the value in FF45
+                        if (lcdStat.LycLyCoincidenceInterruptEnable &&
+                            CurrentScanline == lcdStat.LYC)
+                        {
+                            dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
+                        }
+
                         elapsedTicks -= ScanLine_Length;
                     }
 
@@ -277,13 +285,20 @@ namespace DMG
                     {
                         CurrentScanline = 0;
 
-                        if((vblankTicks - elapsedTicks) != VBlank_Length)
+                        // Coincidence interrupt checks if the scanline is equal to the value in FF45
+                        if (lcdStat.LycLyCoincidenceInterruptEnable &&
+                            CurrentScanline == lcdStat.LYC)
+                        {
+                            dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
+                        }
+
+                        if ((vblankTicks - elapsedTicks) != VBlank_Length)
                         {
                             throw new Exception("PPU out of sync");
                         }
 
-                        Mode = PpuMode.OamSearch;
-   
+                        Mode = PpuMode.OamSearch;                        
+
                         // Debugger hooks
                         if (dmg.OnFrameEnd != null)
                         {
@@ -453,7 +468,9 @@ namespace DMG
 
 
             // Render Window
-            if (MemoryRegisters.LCDC.WindowDisplay == 1)
+            if (MemoryRegisters.LCDC.WindowDisplay == 1 &&
+                MemoryRegisters.WindowX < Screen_X_Resolution &&
+                MemoryRegisters.WindowY < Screen_Y_Resolution)
             {
                 byte y = CurrentScanline;
 
@@ -464,25 +481,28 @@ namespace DMG
                     // Window X, Y tell you where on screen to start drawing the tiles found at 0,0 in the tilemap.
                     // The Window DOES NOT WRAP
                     // WindowX should always be used -7
-                    byte windowXPos = (byte) (MemoryRegisters.WindowX - 7);
+                    byte windowXPosAdjusted = (byte) (MemoryRegisters.WindowX - 7);
                     byte windowYPos = (byte)(y - MemoryRegisters.WindowY);
 
                     int tilePixelY = (windowYPos % 8);
                     
                     for (byte x = 0; x < Screen_X_Resolution; x++)
                     {
-                        if(windowXPos > Screen_X_Resolution)
+                        // Remember, this is window X adjusted by 7, so this is not wrapping
+                        if(windowXPosAdjusted >= Screen_X_Resolution)
                         {
-                            windowXPos++;
+                            windowXPosAdjusted++;
+                           // continue = zelda works
+                           // break = donkey kong kinda works ?!?!?!?
                             continue;
                         }
                         // What column are we rendering within a tile?
-                        byte tilePixelX = (byte)(windowXPos % 8);             
+                        byte tilePixelX = (byte)(windowXPosAdjusted % 8);             
 
-                        Tile tile = tileMap.TileFromXY(windowXPos, windowYPos);
+                        Tile tile = tileMap.TileFromXY(windowXPosAdjusted, windowYPos);
                         drawBuffer.SetPixel(x, y, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
 
-                        windowXPos++;
+                        windowXPosAdjusted++;
                     }
                 }
             }
