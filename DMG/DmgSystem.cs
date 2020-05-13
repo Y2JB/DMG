@@ -50,15 +50,26 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/Bubble Ghost (J).gb");
             //rom = new Rom("../../../../roms/games/Super Mario Land.gb");
             rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
-            //rom = new Rom("../../../../roms/games/Warioland.gb");
-            //rom = new Rom("../../../../roms/games/TMNT.gb");
+            //rom = new Rom("../../../../roms/games/Wario Land - Super Mario Land 3.gb");            
+            //rom = new Rom("../../../../roms/games/Bootleg Marioland 4.gb");
+            //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles - Back from the Sewers (E).gb");
+            //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles - Fall of the Foot Clan (E).gb");
+            //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles III - Radical Rescue (E) [!].gb");
             //rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
             //rom = new Rom("../../../../roms/games/Gargoyle's Quest - Ghosts'n Goblins.gb");
             //rom = new Rom("../../../../roms/games/Mega Man V.gb");
             //rom = new Rom("../../../../roms/games/Donkey Kong.gb");
+            //rom = new Rom("../../../../roms/games/Donkey Kong Land (U) [S][!].gb");
+            //rom = new Rom("../../../../roms/games/Donkey Kong Land 2 (UE) [S][!].gb");
+            //rom = new Rom("../../../../roms/games/Donkey Kong Land III (U) [S][!].gb");
             //rom = new Rom("../../../../roms/games/X - Xekkusu.gb");
             //rom = new Rom("../../../../roms/games/Wave race.gb");
+            //rom = new Rom("../../../../roms/games/F-1 Race.gb");
+            //rom = new Rom("../../../../roms/games/Pinball Deluxe (U).gb");
+            //rom = new Rom("../../../../roms/games/Prehistorik Man.gb");
+            //rom = new Rom("../../../../roms/games/Amazing Spider-Man 3, The - Invasion of the Spider-Slayers (U) [!].gb");
+            //rom = new Rom("../../../../roms/games/Tennis (JUE) [!].gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
             //rom = new Rom("../../../../roms/tellinglys.gb");                  //passes 
@@ -83,12 +94,13 @@ namespace DMG
             //rom = new Rom("../../../../roms/interrupt_time.gb");              // fails (GBC only)
             //rom = new Rom("../../../../roms/halt_bug.gb");
 
+            // Mooneye tests
+            //rom = new Rom("../../../../roms/bits_bank1.gb");                    // pass
+
             if (rom.Type == Rom.RomType.UnSupported)
             {
                 throw new InvalidDataException("Unsupported ROM type");
             }
-
-            //rom = new Rom("../../../../roms/bits_bank1.gb");
 
             interrupts = new Interrupts(this);
             ppu = new Ppu(this);
@@ -108,7 +120,7 @@ namespace DMG
             pad.Reset();
 
             // Peek the first instruction (done this way so we can always see the next instruction)
-            cpu.PeekNextInstruction();
+            //cpu.PeekNextInstruction();
 
             EmulatorTimer.Reset();
             EmulatorTimer.Start();

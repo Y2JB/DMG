@@ -146,7 +146,7 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x40;
-            dmg.cpu.PeekNextInstruction();
+            //dmg.cpu.PeekNextInstruction();
 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);           
@@ -159,7 +159,7 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x48;
-            dmg.cpu.PeekNextInstruction();
+            //dmg.cpu.PeekNextInstruction();
 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);
@@ -172,7 +172,7 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x50;
-            dmg.cpu.PeekNextInstruction();
+            //dmg.cpu.PeekNextInstruction();
 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);
@@ -185,7 +185,7 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x58;
-            dmg.cpu.PeekNextInstruction();
+            //dmg.cpu.PeekNextInstruction();
 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);
@@ -198,7 +198,7 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x60;
-            dmg.cpu.PeekNextInstruction();
+            //dmg.cpu.PeekNextInstruction();
 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);

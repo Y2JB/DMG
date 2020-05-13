@@ -408,11 +408,11 @@ namespace DMG
 
 
             // Debugger hooks
-            // This will get very expensive. Comment it out when not using
-            //if (dmg.OnOamSearchComplete != null)
-            //{
-            //    dmg.OnOamSearchComplete(frame, CurrentScanline, oamSearchResults);
-            //}
+            // This will get very expensive. Remember to disconnect the ppu profiler if you are not using it
+            if (dmg.OnOamSearchComplete != null)
+            {
+                dmg.OnOamSearchComplete(frame, CurrentScanline, oamSearchResults);
+            }
         }
 
 

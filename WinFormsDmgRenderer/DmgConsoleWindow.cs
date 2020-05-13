@@ -20,7 +20,8 @@ namespace WinFormsDmg
 {
     public partial class DmgConsoleWindow : Form
     {
-        RichTextBox console = new RichTextBox();     
+        RichTextBox console = new RichTextBox();
+        RichTextBox codeWnd = new RichTextBox();
         TextBox commandInput = new TextBox();
         TextBox dmgSnapshot = new TextBox();
         Button okButton = new Button();
@@ -31,6 +32,8 @@ namespace WinFormsDmg
         List<string> commandHistory = new List<string>();
         int historyIndex = -1;
 
+        int lastestConsoleLine;
+
         public DmgConsoleWindow(DmgSystem dmg, DmgDebugConsole dbgConsole)
         {
             this.dmg = dmg;
@@ -39,7 +42,7 @@ namespace WinFormsDmg
 
             InitializeComponent();
 
-            this.ClientSize = new System.Drawing.Size(880, 800);
+            this.ClientSize = new System.Drawing.Size(880, 775);
             this.Text = "DMG Console";
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -50,27 +53,37 @@ namespace WinFormsDmg
             okButton.Visible = false;
             this.AcceptButton = okButton;
 
-            console.Location = new System.Drawing.Point(10, 10);
+            codeWnd.Location = new System.Drawing.Point(10, 10);
+            codeWnd.Multiline = true;
+            codeWnd.ReadOnly = true;
+            codeWnd.Width = 500;
+            codeWnd.Height = 350;
+            codeWnd.Enabled = true;
+            codeWnd.Font = new Font(FontFamily.GenericMonospace, console.Font.Size);
+            this.Controls.Add(codeWnd);
+
+            console.Location = new System.Drawing.Point(10, 370);
             console.Multiline = true;
             console.ReadOnly = true;
             console.Width = 500;
-            console.Height = 730;            
-            console.Enabled = true;        
+            console.Height = 350;
+            console.Enabled = true;
+            console.Font = new Font(FontFamily.GenericMonospace, console.Font.Size);
             this.Controls.Add(console);
 
-            dmgSnapshot.Location = new System.Drawing.Point(console.Location.X + console.Width + 10, 10);
-            dmgSnapshot.Multiline = true;
-            dmgSnapshot.Width = 420;
-            dmgSnapshot.Height = 730;
-            dmgSnapshot.Enabled = false;
-            this.Controls.Add(dmgSnapshot);
-
             commandInput.Location = new System.Drawing.Point(10, console.Location.Y + console.Height + 10);
-            commandInput.Width = console.Width + dmgSnapshot.Width + 10;
+            commandInput.Width = ClientSize.Width - 20;
             commandInput.KeyUp += CommandInput_KeyUp;
             this.Controls.Add(commandInput);
             commandInput.Focus();
 
+            dmgSnapshot.Location = new System.Drawing.Point(console.Location.X + console.Width + 10, 10);
+            dmgSnapshot.Multiline = true;
+            dmgSnapshot.Width = 350;
+            dmgSnapshot.Height = 720;
+            dmgSnapshot.Enabled = false;
+            dmgSnapshot.Font = new Font(FontFamily.GenericMonospace, console.Font.Size);
+            this.Controls.Add(dmgSnapshot);
 
             // SB : b $64 if [IO_LY] == 2
             //breakpoints.Add(0x0);
@@ -81,10 +94,6 @@ namespace WinFormsDmg
             //breakpoints.Add(0x68);
             //breakpoints.Add(0x6a);
             //breakpoints.Add(new Breakpoint(0x70));
-
-
-
-            //BreakpointStepAvailable = false;
 
             RefreshDmgSnapshot();
         }
@@ -102,8 +111,8 @@ namespace WinFormsDmg
             dmgSnapshot.AppendText(Environment.NewLine);
             dmgSnapshot.AppendText(dmg.cpu.ToString());
 
-            dmgSnapshot.AppendText(Environment.NewLine);
-            dmgSnapshot.AppendText(dmg.cpu.NextInstruction.ToString());
+            //dmgSnapshot.AppendText(Environment.NewLine);
+            //dmgSnapshot.AppendText(dbgConsole.NextInstructions[0].ToString());
 
 
             dmgSnapshot.AppendText(Environment.NewLine);
@@ -135,20 +144,27 @@ namespace WinFormsDmg
 
             dmgSnapshot.AppendText(Environment.NewLine);
             dmgSnapshot.AppendText(String.Format("TIMA {0:X2} DIV {1:X2}", dmg.memory.ReadByte(0xFF05), dmg.memory.ReadByte(0xFF04)));
+
+            RefreshConsoleText();
         }
 
 
         public void RefreshConsoleText()
         {
-            console.Text = String.Empty;
-
-            foreach(var str in dbgConsole.consoleText)
+            for(; lastestConsoleLine < dbgConsole.ConsoleText.Count; lastestConsoleLine++)
             {
-                console.AppendText(str);
+                console.AppendText(dbgConsole.ConsoleText[lastestConsoleLine]);
                 console.AppendText(Environment.NewLine);
             }
             
             console.ScrollToCaret();
+
+            codeWnd.Text = String.Empty;
+            foreach(var str in dbgConsole.ConsoleCodeText)
+            {
+                codeWnd.AppendText(str);
+                codeWnd.AppendText(Environment.NewLine);
+            }
         }
 
 
@@ -167,6 +183,12 @@ namespace WinFormsDmg
                         commandHistory.Add(commandInput.Text);
 
                         dbgConsole.RunCommand(commandInput.Text);
+
+                        if (commandInput.Text.Equals("x") ||
+                            commandInput.Text.Equals("exit"))
+                        {
+                            Application.Exit();
+                        }
 
                         commandInput.Text = String.Empty;
                         historyIndex = -1;

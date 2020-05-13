@@ -272,7 +272,7 @@ namespace DMG
                     }
                 }
             }
-            catch(FileNotFoundException ex)
+            catch(FileNotFoundException)
             {
             }
         }

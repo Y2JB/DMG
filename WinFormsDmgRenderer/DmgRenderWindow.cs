@@ -174,10 +174,12 @@ namespace WinFormDmgRender
                 }
 
                 else if (dbgConsole.DmgMode == DmgDebugConsole.Mode.BreakPoint &&
-                            dbgConsole.BreakpointStepAvailable)
+                         dbgConsole.BreakpointStepAvailable)
                 {
+                    dbgConsole.OnPreBreakpointStep();
                     dmg.Step();
-                    dbgConsole.OnBreakpointStep();
+                    dbgConsole.PeekSequentialInstructions();
+                    dbgConsole.OnPostBreakpointStep();
                     consoleWindow.RefreshDmgSnapshot();
                     consoleWindow.RefreshConsoleText();
                 }
@@ -251,6 +253,7 @@ namespace WinFormDmgRender
 
         private void OnApplicationExit(object sender, EventArgs e)
         {
+            dmg.rom.SaveMbc1BatteryBackData();
             exitThread = true;
             Thread.Sleep(500);
         }

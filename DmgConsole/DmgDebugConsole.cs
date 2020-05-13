@@ -14,12 +14,19 @@ namespace DmgDebugger
         List<Breakpoint> breakpoints = new List<Breakpoint>();
         List<Breakpoint> oneTimeBreakpoints = new List<Breakpoint>();
 
-        // FIFO
-        Queue<Instruction> executionHistory = new Queue<Instruction>();
+        // Keep the previous / next x instructions cached 
+        const int Instruction_Depth = 6;
+
+        // FIFO - previously executed instructions
+        Queue<StoredInstruction> executionHistory = new Queue<StoredInstruction>();
+
+        // Next sequential instructions. Forst will be next to be executed
+        public List<StoredInstruction> NextInstructions { get; private set; }
 
         UInt32 lastTicks;
 
-        public List<string> consoleText { get; private set; }
+        public List<string> ConsoleText { get; private set; }
+        public List<string> ConsoleCodeText { get; private set; }
 
         public PpuProfiler ppuProfiler{ get; set; }
 
@@ -66,30 +73,28 @@ namespace DmgDebugger
             this.dmg = dmg;
             DmgMode = Mode.BreakPoint;
 
-            ppuProfiler = new PpuProfiler(dmg);
+            // PPU profiler is expensive! Remember to disconnect the ppu profiler if you are not using it
+            //ppuProfiler = new PpuProfiler(dmg);
 
-            consoleText = new List<string>();
+            ConsoleText = new List<string>();
+            ConsoleCodeText = new List<string>();
+
+            NextInstructions = new List<StoredInstruction>();
 
             // SB : b $64 if [IO_LY] == 2
-            //breakpoints.Add(0x0);
-            //breakpoints.Add(0x40);
-            //breakpoints.Add(0x50);
+            //breakpoints.Add(new Breakpoint(0x0));
+            //breakpoints.Add(new Breakpoint(0x40));
+            //breakpoints.Add(new Breakpoint(0x50));
+
+            //breakpoints.Add(new Breakpoint(0xFE));
 
             //breakpoints.Add(new Breakpoint(0x64, new ConditionalExpression(dmg.memory, 0xFF44, ConditionalExpression.EqualityCheck.Equal, 143)));
 
-            // Our DMG should transition from OAM to pixel transfer for the first time here
-            //breakpoints.Add(new Breakpoint(0x64));
-            
-            //lcd turn on
-            breakpoints.Add(new Breakpoint(0x5D));
-
-            breakpoints.Add(new Breakpoint(0x72));
-            //breakpoints.Add(new Breakpoint(0x64));      // loads scanline      
-            //breakpoints.Add(new Breakpoint(0x70));
-
-
 
             BreakpointStepAvailable = false;
+
+            PeekSequentialInstructions();
+            UpdateCodeSnapshot();
         }
 
 
@@ -155,6 +160,8 @@ namespace DmgDebugger
 
                 case ConsoleCommand.brk:
                     DmgMode = Mode.BreakPoint;
+                    PeekSequentialInstructions();
+                    UpdateCodeSnapshot();
                     return true;
 
                 case ConsoleCommand.breakpoint:
@@ -190,14 +197,13 @@ namespace DmgDebugger
                     ConsoleAddString(String.Format("ROM Info - {0}", dmg.rom.Type.ToString()));
                     return true;
 
-                case ConsoleCommand.exit:
-                    dmg.rom.SaveMbc1BatteryBackData();
+                case ConsoleCommand.exit:                    
                     dmg.DumpTty();
                     dmg.ppu.DumpFrameBufferToPng();
                     dmg.DumpTileSet();
                     dmg.ppu.TileMaps[0].DumpTileMap();
                     dmg.ppu.TileMaps[1].DumpTileMap();
-                    //Application.Exit();
+                    dmg.ppu.DumpFullCurrentBgToPng(true);
                     return true;
 
                 default:
@@ -209,7 +215,7 @@ namespace DmgDebugger
         // This is 'step over'
         bool NextCommand()
         {
-            oneTimeBreakpoints.Add(new Breakpoint((ushort)(dmg.cpu.PC + 1 + dmg.cpu.NextInstruction.OperandLength)));
+            oneTimeBreakpoints.Add(new Breakpoint((ushort)(dmg.cpu.PC + 1 + NextInstructions[0].OperandLength)));
             DmgMode = Mode.Running;
             return true;
         }
@@ -428,22 +434,27 @@ namespace DmgDebugger
                 {
                     DmgMode = Mode.BreakPoint;
 
+                    PeekSequentialInstructions();
+                    UpdateCodeSnapshot();
+
                     ConsoleAddString(String.Format("BREAK"));
                     ConsoleAddString(bp.ToString());
 
-                    //RefreshDmgSnapshot();
                     return true; ;
                 }
             }
 
-
+            // 'step over' breakpoints
             foreach (var bp in oneTimeBreakpoints)
             {
                 if (bp.ShouldBreak(dmg.cpu.PC))
                 {
                     DmgMode = Mode.BreakPoint;
-                    //RefreshDmgSnapshot();
                     oneTimeBreakpoints.Remove(bp);
+
+                    PeekSequentialInstructions();
+                    UpdateCodeSnapshot();
+
                     return true;
                 }
             }
@@ -451,29 +462,91 @@ namespace DmgDebugger
             return false;
         }
 
-
-        public void OnBreakpointStep()
+        public void UpdateCodeSnapshot()
         {
-            BreakpointStepAvailable = false;
-
-            // Take a copy of this instruction and store it in our history 
-            executionHistory.Enqueue(dmg.cpu.PreviousInstruction);
-
-            // Only show last 5 instructions
-            if (executionHistory.Count == 6) executionHistory.Dequeue();
-
-            foreach (var instruction in executionHistory.Reverse())
+            ConsoleCodeText.Clear();
+           
+            // Show previous instructions
+            foreach (var instruction in executionHistory)
             {
-                ConsoleAddString(instruction.ToString());
+                ConsoleCodeText.Add("--- " + instruction.ToString());
             }
 
-            //RefreshDmgSnapshot();
+            // Next instruction
+            ConsoleCodeText.Add(">>> " + NextInstructions[0].ToString());
+
+            // Future instructions
+            for (int i = 1; i < NextInstructions.Count; i++)
+            {
+                if (NextInstructions[i] != null)
+                {
+                    ConsoleCodeText.Add("+++ " + NextInstructions[i].ToString());
+                }
+            }
         }
 
 
         void ConsoleAddString(string str)
         {
-            consoleText.Add(str);
+            ConsoleText.Add(str);
+        }
+
+
+        // We are about to step
+        public void OnPreBreakpointStep()
+        {
+            // Pop the current instruction and store it in our history 
+            executionHistory.Enqueue(StoredInstruction.DeepCopy(NextInstructions[0]));
+            NextInstructions.RemoveAt(0);
+
+            // Only show last x instructions
+            if (executionHistory.Count == Instruction_Depth) executionHistory.Dequeue();
+        }
+
+
+        // We have just completed a step, PeekSequentialInstructions will have been called
+        public void OnPostBreakpointStep()
+        {
+            BreakpointStepAvailable = false;            
+
+            UpdateCodeSnapshot();
+        }     
+
+
+        public void PeekSequentialInstructions()
+        {
+            NextInstructions.Clear();
+
+            int lookAheadBytes = 0;
+            for (int i = 0; i < Instruction_Depth; i++)
+            {
+                ushort pc = (ushort)(dmg.cpu.PC + lookAheadBytes);
+                byte opCode = dmg.memory.ReadByte(pc);
+                lookAheadBytes++;
+
+                var newInstruction = StoredInstruction.DeepCopy(dmg.cpu.GetInstruction(opCode));
+                NextInstructions.Add(newInstruction);
+
+                ushort operandValue = 0;
+                if (newInstruction.OperandLength == 1)
+                {
+                    operandValue = dmg.memory.ReadByte((ushort)(dmg.cpu.PC + lookAheadBytes));
+                    lookAheadBytes++;
+                }
+                else if (newInstruction.OperandLength == 2)
+                {
+                    operandValue = dmg.memory.ReadShort((ushort)(dmg.cpu.PC + lookAheadBytes));
+                    lookAheadBytes += 2;
+                }
+
+                newInstruction.Operand = operandValue;
+                newInstruction.PC = pc;
+
+                if (opCode == 0xCB && dmg.cpu.GetExtendedInstruction((byte)operandValue) != null)
+                {
+                    newInstruction.extendedInstruction = dmg.cpu.GetExtendedInstruction((byte)operandValue).DeepCopy();
+                }
+            }
         }
     }
 

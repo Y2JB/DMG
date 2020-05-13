@@ -33,9 +33,6 @@ namespace DMG
         // Stack Pointer (16 bit)
         public ushort SP { get; set; }
 
-        public Instruction NextInstruction { get; private set; }
-        public Instruction PreviousInstruction { get; private set; }
-
         // How many clock cycles for each instuction. We use M Cycles
         byte[] instructionTicks = new byte[256] {
                                                     1, 3, 2, 2, 1, 1, 2, 1,  5, 2, 2, 2, 1, 1, 2, 1, // 0x0_
@@ -98,6 +95,9 @@ namespace DMG
         
         Instruction[] instructions = new Instruction[256];
         ExtendedInstruction[] extendedInstructions = new ExtendedInstruction[256];
+        
+        public Instruction GetInstruction(byte opcode) { return instructions[opcode];  }
+        public ExtendedInstruction GetExtendedInstruction(byte opcode) { return extendedInstructions[opcode]; }
 
         Interrupts interrupts;
 
@@ -132,30 +132,7 @@ namespace DMG
             //PC = 0x00;        // Boot ROM
             //SP = 0xFFFE;
         }
-
-        public void PeekNextInstruction()
-        {
-            byte opCode = memory.ReadByte(PC);
-
-            if(NextInstruction != null)
-            {
-                PreviousInstruction = NextInstruction.DeepCopy();
-            }
-
-            NextInstruction = instructions[opCode].DeepCopy();
-
-            ushort operandValue;
-            if (NextInstruction.OperandLength == 1) operandValue = memory.ReadByte((ushort)(PC+1));
-            else operandValue = memory.ReadShort((ushort) (PC + 1));
-            
-            NextInstruction.Operand = operandValue;
-
-            if (opCode == 0xCB && extendedInstructions[operandValue] != null)
-            {
-                NextInstruction.extendedInstruction = extendedInstructions[operandValue].DeepCopy();
-            }
-        }
-
+        
 
         public void Step()
         {
@@ -166,7 +143,6 @@ namespace DMG
                 CycleCpu(1);
                 return;
             }
-
 
             byte opCode = memory.ReadByteAndCycle(PC++);
 
@@ -204,7 +180,7 @@ namespace DMG
             }
 
             // Let's the debugger look ahead
-            PeekNextInstruction();
+            //PeekNextInstruction();
         }
 
 

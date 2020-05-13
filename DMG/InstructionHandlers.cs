@@ -1036,8 +1036,7 @@ namespace DMG
                 if (interrupts.IsAnInterruptPending())
                 {
                     // The CPU continues execution after the HALT, but the byte after it is read twice in a row (PC is not incremented, due to a hardware bug).
-                    PC += 1;
-                    PeekNextInstruction();              
+                    PC += 1;             
                 }
                 else
                 {
@@ -1698,7 +1697,6 @@ namespace DMG
 
             dmg.cpu.PC = dmg.cpu.StackPop();
             dmg.cpu.CycleCpu(1);
-            dmg.cpu.PeekNextInstruction();
         }
 
 
