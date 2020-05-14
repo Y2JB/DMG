@@ -44,12 +44,12 @@ namespace DMG
 
         public void PowerOn()
         {
-            bootstrapRom = new BootRom("../../../../DMG.bin");
+            bootstrapRom = new BootRom("../../../../DMG_BootRom.bin");
             //rom = new Rom("../../../../roms/games/tetris.gb");
             //rom = new Rom("../../../../roms/games/Dr. Mario.gb");
             //rom = new Rom("../../../../roms/games/Bubble Ghost (J).gb");
             //rom = new Rom("../../../../roms/games/Super Mario Land.gb");
-            rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
+            //rom = new Rom("../../../../roms/games/Super Mario Land 2 - 6 Golden Coins (UE) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Wario Land - Super Mario Land 3.gb");            
             //rom = new Rom("../../../../roms/games/Bootleg Marioland 4.gb");
             //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles - Back from the Sewers (E).gb");
@@ -69,7 +69,7 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/Pinball Deluxe (U).gb");
             //rom = new Rom("../../../../roms/games/Prehistorik Man.gb");
             //rom = new Rom("../../../../roms/games/Amazing Spider-Man 3, The - Invasion of the Spider-Slayers (U) [!].gb");
-            //rom = new Rom("../../../../roms/games/Tennis (JUE) [!].gb");
+            rom = new Rom("../../../../roms/games/Tennis (JUE) [!].gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
             //rom = new Rom("../../../../roms/tellinglys.gb");                  //passes 

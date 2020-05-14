@@ -30,6 +30,7 @@ namespace WinFormDmgRender
 
         Stopwatch timer = new Stopwatch();
         long elapsedMs;
+        long elapsedMsBgWin;
         int framesDrawn;
         int fps;
 
@@ -66,7 +67,7 @@ namespace WinFormDmgRender
             consoleWindow = new DmgConsoleWindow(dmg, dbgConsole);
             consoleWindow.Show();
 
-            bgWnd = new BgWindow();
+            bgWnd = new BgWindow(dmg);
             bgWnd.Show();
 
 
@@ -91,16 +92,11 @@ namespace WinFormDmgRender
             base.OnLoad(e);
 
             consoleWindow.Location = new Point(Location.X + Width + 20, Location.Y);
-
-
             
             // Gets a reference to the current BufferedGraphicsContext
             gfxBufferedContext = BufferedGraphicsManager.Current;
 
-
-            // TODO : window SIZE!!!
-            // Creates a BufferedGraphics instance associated with Form1, and with
-            // dimensions the same size as the drawing surface of Form1.
+            // Creates a BufferedGraphics instance associated with this form, and with dimensions the same size as the drawing surface of Form1.
             gfxBuffer = gfxBufferedContext.Allocate(this.CreateGraphics(), this.DisplayRectangle);
         }
 
@@ -110,7 +106,7 @@ namespace WinFormDmgRender
             base.OnSizeChanged(e);
 
             fpsRect = new Rectangle(ClientRectangle.Width - 75, 5, 55, 30);
-            fpsPt = new Point(ClientRectangle.Width - 75, 10); ;
+            fpsPt = new Point(ClientRectangle.Width - 75, 10); 
 
             if (gfxBufferedContext != null)
             {
@@ -164,7 +160,8 @@ namespace WinFormDmgRender
                     fps = framesDrawn;
                     framesDrawn = 0;
                 }
-                 
+
+
                 if (dbgConsole.DmgMode == DmgDebugConsole.Mode.Running)
                 {
                     dmg.Step();
@@ -231,12 +228,21 @@ namespace WinFormDmgRender
         }
 
         private void Draw()
-        {     
+        {
+
+            // If the Bg viewer is open, then update it at 5fps
+            if (bgWnd.Visible &&
+                timer.ElapsedMilliseconds - elapsedMsBgWin >= (200))
+            {
+                elapsedMsBgWin = timer.ElapsedMilliseconds;
+                bgWnd.RenderBg();
+            }
+
             // Wait for previous frame to finish drawing while also locking to 60fps
             while (drawFrame)
             {
             }
-            drawFrame = true;
+            drawFrame = true;           
         }
 
 #else

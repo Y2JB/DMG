@@ -434,13 +434,11 @@ namespace DMG
             }
             */
 
+            PpuAccessingVram = true;
+
             // Render the BG
             // Total BG size in VRam is 32x32 tiles
             // Viewport is 20x18 tiles
-
-            PpuAccessingVram = true;
-
-            // TODO: NOT SURE THIS FLAG IS BEING USED RIGHT HERE!!!
             if (MemoryRegisters.LCDC.BgWinDisplay == 1)
             {
                 TileMap tileMap = TileMaps[MemoryRegisters.LCDC.BgTileMapSelect];
@@ -676,21 +674,27 @@ namespace DMG
             Bitmap png = new Bitmap(256, 256);
 
             int bgSelect = 0;
-            DumpFullBgToPng(png, renderViewPortBox, bgSelect);
+            RenderFullBgToImage(png, renderViewPortBox, bgSelect);
             
             string tileMapLocation = bgSelect == 0 ? "9800" : "9C00";
             png.Save(string.Format("../../../../dump/BG_{0}.png", tileMapLocation));
 
             bgSelect = 1;
-            DumpFullBgToPng(png, renderViewPortBox, bgSelect);
+            RenderFullBgToImage(png, renderViewPortBox, bgSelect);
 
             tileMapLocation = bgSelect == 0 ? "9800" : "9C00";
             png.Save(string.Format("../../../../dump/BG_{0}.png", tileMapLocation));
         }
 
             
-        public void DumpFullBgToPng(Bitmap bmp, bool renderViewPortBox, int bgSelect)
-        {           
+        // Debug only
+        public void RenderFullBgToImage(Bitmap bmp, bool renderViewPortBox, int bgSelect)
+        {        
+            if(bgSelect == -1)
+            {
+                bgSelect = MemoryRegisters.LCDC.BgTileMapSelect;
+            }
+
             TileMap tileMap = TileMaps[bgSelect];
             for (int y = 0; y < 256; y++)
             {
