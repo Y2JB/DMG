@@ -673,46 +673,46 @@ namespace DMG
 
         public void DumpFullCurrentBgToPng(bool renderViewPortBox)
         {
-            DumpFullBgToPng(renderViewPortBox, 0, false);
-            DumpFullBgToPng(renderViewPortBox, 1, false);
+            Bitmap png = new Bitmap(256, 256);
+
+            int bgSelect = 0;
+            DumpFullBgToPng(png, renderViewPortBox, bgSelect);
+            
+            string tileMapLocation = bgSelect == 0 ? "9800" : "9C00";
+            png.Save(string.Format("../../../../dump/BG_{0}.png", tileMapLocation));
+
+            bgSelect = 1;
+            DumpFullBgToPng(png, renderViewPortBox, bgSelect);
+
+            tileMapLocation = bgSelect == 0 ? "9800" : "9C00";
+            png.Save(string.Format("../../../../dump/BG_{0}.png", tileMapLocation));
         }
 
             
-        public void DumpFullBgToPng(bool renderViewPortBox, int bgSelect, bool isWindow)
-        {
-            Bitmap png = new Bitmap(256, 256);
-
+        public void DumpFullBgToPng(Bitmap bmp, bool renderViewPortBox, int bgSelect)
+        {           
             TileMap tileMap = TileMaps[bgSelect];
-
-
             for (int y = 0; y < 256; y++)
             {
                 for (int x = 0; x < 256; x++)
                 {
                     Tile tile = tileMap.TileFromXY((byte)(x), (byte)(y));
                         
-                    png.SetPixel(x, y, Palettes.BackgroundPalette[tile.renderTile[x % 8, y % 8]]);
+                    bmp.SetPixel(x, y, Palettes.BackgroundPalette[tile.renderTile[x % 8, y % 8]]);
                 }
             }
-
 
             if (renderViewPortBox)
             {
                 byte viewPortX;
                 byte viewPortY;
-                if (isWindow)
-                {
-                    viewPortX = (byte) (MemoryRegisters.WindowX - 7);
-                    viewPortY = MemoryRegisters.WindowY;
-                }
-                else
-                {
-                    // Where are we viewing the logical 256x256 tile map?
-                    viewPortX = MemoryRegisters.BgScrollX;
-                    viewPortY = MemoryRegisters.BgScrollY;
-                }
+                
+                // Where are we viewing the logical 256x256 tile map?
+                viewPortX = MemoryRegisters.BgScrollX;
+                viewPortY = MemoryRegisters.BgScrollY;
+                
                 Pen pen = new Pen(Color.RoyalBlue, 1.0f);
-                using (var graphics = Graphics.FromImage(png))
+                using (var graphics = Graphics.FromImage(bmp))
                 {
                     int x1 = viewPortX;
                     int x2 = viewPortX + Screen_X_Resolution;
@@ -745,10 +745,6 @@ namespace DMG
                     if (y2 != adjustY2) graphics.DrawLine(pen, adjustX2, 0, adjustX2, adjustY2);
                 }
             }
-
-            string fn = isWindow ? "Window" : "BG";
-            string tileMapLocation = bgSelect == 0 ? "9800" : "9C00";
-            png.Save(string.Format("../../../../dump/{0}_{1}.png", fn, tileMapLocation));
         }
     }
 }

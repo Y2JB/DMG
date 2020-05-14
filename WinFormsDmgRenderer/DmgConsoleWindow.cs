@@ -1,6 +1,4 @@
-﻿using DMG;
-using DmgDebugger;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,12 +9,10 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Windows.Forms;
 
+using DMG;
+using DmgDebugger;
 
-// The console window also contains all the logic for controling the DMG debugging 
-// Yes i'm mixing UI and business logic. Do i care?
-
-
-namespace WinFormsDmg
+namespace WinFormDmgRender
 {
     public partial class DmgConsoleWindow : Form
     {

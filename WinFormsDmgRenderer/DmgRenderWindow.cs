@@ -14,9 +14,9 @@ using System.Diagnostics;
 using System.Windows.Input;
 
 using DMG;
-using WinFormsDmg;
 using System.Threading;
 using DmgDebugger;
+
 
 namespace WinFormDmgRender
 {
@@ -24,6 +24,7 @@ namespace WinFormDmgRender
     {
         DmgSystem dmg;
         DmgDebugConsole dbgConsole;
+        BgWindow bgWnd;
 
         DmgConsoleWindow consoleWindow;
 
@@ -58,19 +59,20 @@ namespace WinFormDmgRender
 
             dmg = new DmgSystem();
             dmg.PowerOn();
-
             dmg.OnFrame = () => this.Draw();
 
             dbgConsole = new DmgDebugConsole(dmg);
+            
+            consoleWindow = new DmgConsoleWindow(dmg, dbgConsole);
+            consoleWindow.Show();
+
+            bgWnd = new BgWindow();
+            bgWnd.Show();
+
 
             this.Text = dmg.rom.RomName;
-
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
-
-            consoleWindow = new DmgConsoleWindow(dmg, dbgConsole);
-
-            consoleWindow.Show();
 
             System.Windows.Forms.Application.Idle += new EventHandler(OnApplicationIdle);
 

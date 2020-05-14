@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DmgConsole\DmgDebugger.csproj" />
+    <ProjectReference Include="..\DmgDebugger\DmgDebugger.csproj" />
     <ProjectReference Include="..\DMG\DmgCore.csproj" />
   </ItemGroup>
 
