@@ -11,6 +11,11 @@ namespace DMG
         public const byte Screen_X_Resolution = 160;
         public const byte Screen_Y_Resolution = 144;
 
+        public const int BG_Width_Pixels = 256;
+        public const int BG_Height_Pixels = 256;
+        public const int BG_Width_Tiles = 32;
+        public const int BG_Height_Tiles = 32;
+
         public const UInt32 OAM_Length = 20;
         public const UInt32 Glitched_OAM_Length = 19;
         public const UInt32 PixelTransfer_Length = 43;
@@ -672,13 +677,6 @@ namespace DMG
             DumpFullBgToPng(renderViewPortBox, 1, false);
         }
 
-
-        public void DumpWindowToPng(bool renderViewPortBox)
-        {
-            DumpFullBgToPng(renderViewPortBox, 0, true);
-            DumpFullBgToPng(renderViewPortBox, 1, true);
-        }
-
             
         public void DumpFullBgToPng(bool renderViewPortBox, int bgSelect, bool isWindow)
         {
@@ -715,12 +713,36 @@ namespace DMG
                 }
                 Pen pen = new Pen(Color.RoyalBlue, 1.0f);
                 using (var graphics = Graphics.FromImage(png))
-                {                        
-                    graphics.DrawLine(pen, viewPortX, viewPortY, viewPortX + Screen_X_Resolution, viewPortY);
-                    graphics.DrawLine(pen, viewPortX, viewPortY + Screen_Y_Resolution, viewPortX + Screen_X_Resolution, viewPortY + Screen_Y_Resolution);
+                {
+                    int x1 = viewPortX;
+                    int x2 = viewPortX + Screen_X_Resolution;
+ 
+                    int y1 = viewPortY;
+                    int y2 = viewPortY + Screen_Y_Resolution;
+ 
+                    // Each side can take 2 lines to draw if it wraps
+                    
+                    int adjustX2 = x2;
+                    if (x2 >= BG_Width_Pixels) adjustX2 = x2 - BG_Width_Pixels;
 
-                    graphics.DrawLine(pen, viewPortX, viewPortY, viewPortX, viewPortY + Screen_Y_Resolution);
-                    graphics.DrawLine(pen, viewPortX + Screen_X_Resolution, viewPortY, viewPortX + Screen_X_Resolution, viewPortY + Screen_Y_Resolution);
+                    int adjustY2 = y2;
+                    if (y2 >= BG_Height_Pixels) adjustY2 = y2 - BG_Height_Pixels;
+
+                    // Top of rect (can go off end of image)
+                    graphics.DrawLine(pen, x1, y1, x2, y1);
+                    if (x2 != adjustX2) graphics.DrawLine(pen, 0, y1, adjustX2, y1);
+
+                    // Bottom of rect
+                    graphics.DrawLine(pen, x1, adjustY2, x2, adjustY2);
+                    if (x2 != adjustX2) graphics.DrawLine(pen, 0, adjustY2, adjustX2, adjustY2);
+
+                    // Left of rect (can go off end of image)
+                    graphics.DrawLine(pen, x1, y1, x1, y2);
+                    if (y2 != adjustY2) graphics.DrawLine(pen, x1, 0, x1, adjustY2);
+
+                    // Right
+                    graphics.DrawLine(pen, adjustX2, y1, adjustX2, y2);
+                    if (y2 != adjustY2) graphics.DrawLine(pen, adjustX2, 0, adjustX2, adjustY2);
                 }
             }
 

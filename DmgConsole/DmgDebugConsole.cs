@@ -47,7 +47,6 @@ namespace DmgDebugger
             dumptiles,                      // param = fn else dumpttiles.txt
             dumptilemaps,
             dumpbg,
-            dumpwin,
             dumpmemory,                     // Dumps a text file containing hex for 8K. EG: 10 2A FF ...
             loadmemory,                     // param must be a text file containing hex for 8K. EG: 10 2A FF ...
             loadregisters,
@@ -182,10 +181,6 @@ namespace DmgDebugger
 
                 case ConsoleCommand.dumpbg:
                     dmg.ppu.DumpFullCurrentBgToPng(true);
-                    return true;
-
-                case ConsoleCommand.dumpwin:
-                    dmg.ppu.DumpWindowToPng(true);
                     return true;
 
                 case ConsoleCommand.ticks:
