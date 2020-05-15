@@ -91,8 +91,8 @@ namespace Emux.GameBoy.Audio
 
         protected float Frequency
         {
-            get { return (float) (Cpu.ClockSpeedHz / (32 * (2048 - FrequencyRegister))); }
-            set { FrequencyRegister = (int) (2048 - Cpu.ClockSpeedHz / (32 * value)); }
+            get { return (float) (GameBoySpu.ClockSpeedHz / (32 * (2048 - FrequencyRegister))); }
+            set { FrequencyRegister = (int) (2048 - GameBoySpu.ClockSpeedHz / (32 * value)); }
         }
         
         public bool Active
@@ -158,7 +158,7 @@ namespace Emux.GameBoy.Audio
             double amplitude = ChannelVolume * (_volumeEnvelope.Volume / 15.0);
 
             // Obtain elapsed gameboy time. 
-            double timeDelta = (cycles / Cpu.ClockSpeedHz) / cpuSpeedFactor;
+            double timeDelta = (cycles / GameBoySpu.ClockSpeedHz) / cpuSpeedFactor;
            
             // Allocate sound buffer.
             int sampleRate = ChannelOutput.SampleRate;

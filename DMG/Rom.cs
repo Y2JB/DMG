@@ -262,7 +262,6 @@ namespace DMG
 
         public void LoadMbc1BatteryBackData()
         {
-            return;
             try
             {
                 using (FileStream fs = File.Open(Path.ChangeExtension(romFileName, "sav"), FileMode.Open))

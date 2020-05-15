@@ -199,9 +199,8 @@ namespace DMG
 
 		public byte ReadByteAndCycle(ushort address)
 		{			
-			byte b = ReadByte(address);
 			dmg.cpu.CycleCpu(1);
-			return b;
+			return ReadByte(address);
 		}
 
 		public ushort ReadShort(ushort address)
@@ -410,6 +409,7 @@ namespace DMG
 			WriteByte(address, value);
 			dmg.cpu.CycleCpu(1);
 		}
+
 
 		public void WriteShort(ushort address, ushort value)
 		{

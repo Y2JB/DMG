@@ -52,7 +52,7 @@ namespace Emux.GameBoy.Audio
         {
             if (SweepTime > 0 && _spu.Device.cpu.SpeedFactor > 0.5)
             {
-                double timeDelta = (cycles / Cpu.ClockSpeedHz) / _spu.Device.cpu.SpeedFactor;
+                double timeDelta = (cycles / GameBoySpu.ClockSpeedHz) / _spu.Device.cpu.SpeedFactor;
                 _frequencySweepClock += timeDelta;
 
                 while (_frequencySweepClock >= SweepTime)

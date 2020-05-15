@@ -114,7 +114,7 @@ namespace Emux.GameBoy.Audio
             get
             {
                 var value = _nr3 | (_nr4 & 0b111) << 8;
-                return (int) (Cpu.ClockSpeedHz / (64 * (2048 - value)));
+                return (int) (GameBoySpu.ClockSpeedHz / (64 * (2048 - value)));
             }
         }
 
@@ -141,7 +141,7 @@ namespace Emux.GameBoy.Audio
             }
 
             int sampleRate = ChannelOutput.SampleRate;
-            double timeDelta = (cycles / Cpu.ClockSpeedHz) / cpuSpeedFactor;
+            double timeDelta = (cycles / GameBoySpu.ClockSpeedHz) / cpuSpeedFactor;
             int sampleCount = (int) (timeDelta * sampleRate) * 2;
             float[] buffer = new float[sampleCount];
 

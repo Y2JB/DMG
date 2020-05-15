@@ -18,6 +18,7 @@ using System.Threading;
 using DmgDebugger;
 
 
+
 namespace WinFormDmgRender
 {
     public partial class DmgRenderWindow : Form
@@ -34,8 +35,11 @@ namespace WinFormDmgRender
         int framesDrawn;
         int fps;
 
+        Rectangle gameRect;
         Rectangle fpsRect;
         Point fpsPt;
+
+        MenuStrip menu;
 
 #if THREADED_RENDERER
         bool drawFrame = false;
@@ -53,11 +57,6 @@ namespace WinFormDmgRender
             
             Application.ApplicationExit += new EventHandler(this.OnApplicationExit);
 
-            // 4X gameboy resolution
-            Width = 640;
-            Height = 576;
-            DoubleBuffered = true;
-
             dmg = new DmgSystem();
             dmg.PowerOn();
             dmg.OnFrame = () => this.Draw();
@@ -68,12 +67,51 @@ namespace WinFormDmgRender
             consoleWindow.Show();
 
             bgWnd = new BgWindow(dmg);
-            bgWnd.Show();
+            bgWnd.Hide();
 
 
             this.Text = dmg.rom.RomName;
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
+
+            
+            Controls.Add(menu = new MenuStrip
+            {
+                Items =
+                {
+                    new ToolStripMenuItem("Emulator")
+                    {
+                        DropDownItems =
+                        {
+                            new ToolStripMenuItem("Load ROM", null, (sender, args) => { /*LoadRom();*/ }),
+                            new ToolStripMenuItem("Pause", null, (sender, args) => {  }),
+                            new ToolStripMenuItem("Quit", null, (sender, args) => { Application.Exit(); })
+                        }
+                    },
+                    new ToolStripMenuItem("Window")
+                    {
+                        DropDownItems =
+                        {
+                            new ToolStripMenuItem("Console", null, (sender, args) => { consoleWindow.Visible = !consoleWindow.Visible; }),
+                            new ToolStripMenuItem("Bg Viewer", null, (sender, args) => { bgWnd.Visible = !bgWnd.Visible; })
+                        }
+                    },
+                     new ToolStripMenuItem("Help")
+                    {
+                        DropDownItems =
+                        {
+                            new ToolStripMenuItem("About", null, (sender, args) => {  })
+                        }
+                    }
+                }
+            });
+
+
+            // 4X gameboy resolution
+            Width = 640;
+            Height = 576 + menu.Height;
+            DoubleBuffered = true;
+            
 
             System.Windows.Forms.Application.Idle += new EventHandler(OnApplicationIdle);
 
@@ -106,7 +144,16 @@ namespace WinFormDmgRender
             base.OnSizeChanged(e);
 
             fpsRect = new Rectangle(ClientRectangle.Width - 75, 5, 55, 30);
-            fpsPt = new Point(ClientRectangle.Width - 75, 10); 
+            fpsPt = new Point(ClientRectangle.Width - 75, 10);
+
+            gameRect = new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height);
+            if(menu != null)
+            {
+                fpsPt.Y = 10 + menu.Height; 
+                fpsRect.Y = 5 + menu.Height;
+                gameRect.Y = menu.Height;
+                gameRect.Height -= menu.Height;
+            }
 
             if (gfxBufferedContext != null)
             {
@@ -149,38 +196,48 @@ namespace WinFormDmgRender
             else if (a.KeyCode == Keys.Back) dmg.pad.UpdateKeyState(Joypad.GbKey.Select, false);
         }
 
+
+        uint ticksPerSecond;
         private void OnApplicationIdle(object sender, EventArgs e)
         {
 
             while (IsApplicationIdle())
             {
-                if (timer.ElapsedMilliseconds - elapsedMs >= 1000)
+                for (int i = 0; i < 1024; i++)
                 {
-                    elapsedMs = timer.ElapsedMilliseconds;
-                    fps = framesDrawn;
-                    framesDrawn = 0;
-                }
-
-
-                if (dbgConsole.DmgMode == DmgDebugConsole.Mode.Running)
-                {
-                    dmg.Step();
-
-                    if(dbgConsole.CheckForBreakpoints())
+                    if (timer.ElapsedMilliseconds - elapsedMs >= 1000)
                     {
-                        consoleWindow.RefreshDmgSnapshot();
-                    }
-                }
+                        elapsedMs = timer.ElapsedMilliseconds;
 
-                else if (dbgConsole.DmgMode == DmgDebugConsole.Mode.BreakPoint &&
-                         dbgConsole.BreakpointStepAvailable)
-                {
-                    dbgConsole.OnPreBreakpointStep();
-                    dmg.Step();
-                    dbgConsole.PeekSequentialInstructions();
-                    dbgConsole.OnPostBreakpointStep();
-                    consoleWindow.RefreshDmgSnapshot();
-                    consoleWindow.RefreshConsoleText();
+                        dmg.cpu.CyclesPerSecond = ((dmg.cpu.Ticks) - ticksPerSecond);
+                        ticksPerSecond = (dmg.cpu.Ticks);
+
+
+                        fps = framesDrawn;
+                        framesDrawn = 0;
+                    }
+
+
+                    if (dbgConsole.DmgMode == DmgDebugConsole.Mode.Running)
+                    {
+                        dmg.Step();
+
+                        if (dbgConsole.CheckForBreakpoints())
+                        {
+                            consoleWindow.RefreshDmgSnapshot();
+                        }
+                    }
+
+                    else if (dbgConsole.DmgMode == DmgDebugConsole.Mode.BreakPoint &&
+                             dbgConsole.BreakpointStepAvailable)
+                    {
+                        dbgConsole.OnPreBreakpointStep();
+                        dmg.Step();
+                        dbgConsole.PeekSequentialInstructions();
+                        dbgConsole.OnPostBreakpointStep();
+                        consoleWindow.RefreshDmgSnapshot();
+                        consoleWindow.RefreshConsoleText();
+                    }
                 }
                 
             }
@@ -194,9 +251,7 @@ namespace WinFormDmgRender
             var redBrush = new SolidBrush(Color.Red);
             var amberBrush = new SolidBrush(Color.Orange);
             var greenBrush = new SolidBrush(Color.Green);
-            var font = new Font("Verdana", 8);            
-            
-            //var clientRect = new Rectangle(0, 0, ClientRectangle.Width, ClientRectangle.Height);
+            var font = new Font("Verdana", 8);                                   
 
             while (exitThread == false)
             {
@@ -206,7 +261,8 @@ namespace WinFormDmgRender
 
                     lock (dmg.FrameBuffer)
                     {
-                        gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, ClientRectangle);
+                    
+                        gfxBuffer.Graphics.DrawImage(dmg.FrameBuffer, gameRect);
 
 
                         // Only show fps if we are dipping and then use a colour code
@@ -227,6 +283,7 @@ namespace WinFormDmgRender
             }
         }
 
+
         private void Draw()
         {
 
@@ -236,13 +293,13 @@ namespace WinFormDmgRender
             {
                 elapsedMsBgWin = timer.ElapsedMilliseconds;
                 bgWnd.RenderBg();
-            }
+            }             
 
             // Wait for previous frame to finish drawing while also locking to 60fps
             while (drawFrame)
             {
             }
-            drawFrame = true;           
+            drawFrame = true;
         }
 
 #else

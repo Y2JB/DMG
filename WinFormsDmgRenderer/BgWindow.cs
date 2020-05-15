@@ -29,7 +29,7 @@ namespace WinFormDmgRender
             this.Text = "DMG Bg Viewer";
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;          
 
             bgBmp = new Bitmap(256, 256);
 
@@ -55,6 +55,16 @@ namespace WinFormDmgRender
             if (gfxBufferedContext != null)
             {
                 gfxBuffer = gfxBufferedContext.Allocate(this.CreateGraphics(), this.DisplayRectangle);
+            }
+        }
+
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                Hide();
             }
         }
 

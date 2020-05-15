@@ -24,11 +24,6 @@ namespace DMG
         public byte L { get; set; }
         public ushort HL { get { return (ushort)((H << 8) | L); } set { H = (byte)(value >> 8); L = (byte)(value & 0x00FF); } }
 
-
-        // ERRRRRRRR why is this here?
-        public byte ScrollX { get { return memory.ReadByte(0xFF43); } }
-        public byte ScrollY { get { return memory.ReadByte(0xFF42); } }
-
         // Progrtam counter (16 bit)
         public ushort PC { get; set; }
 
@@ -88,9 +83,8 @@ namespace DMG
             get { return CyclesPerSecond / ClockSpeedHz; }
         }
 
-        // Ticks per second
-        public static readonly double ClockSpeedHz = 4194304;
-        //public static readonly double ClockSpeedHz = 1048576;
+        // Ticks per second     
+        public static readonly double ClockSpeedHz = 1048576;
 
         public enum Flags
         {

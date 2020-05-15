@@ -14,7 +14,7 @@ namespace Emux.GameBoy.Audio
 
         private int _clock = 0;
         private double _length = 0;
-        private double _currentValue = 0;
+        //private double _currentValue = 0;
 
         private byte _nr1;
         private byte _nr2;
@@ -116,7 +116,7 @@ namespace Emux.GameBoy.Audio
             get
             {
                 double ratio = DividingRatio == 0 ? 0.5 : DividingRatio;
-                return (float) (Cpu.ClockSpeedHz / 8 / ratio / Math.Pow(2, ShiftClockFrequency + 1));
+                return (float) (GameBoySpu.ClockSpeedHz / 8 / ratio / Math.Pow(2, ShiftClockFrequency + 1));
             }
         }
         
@@ -142,7 +142,7 @@ namespace Emux.GameBoy.Audio
             float amplitude = ChannelVolume * _volumeEnvelope.Volume / 15.0f;
             
             // Get elapsed gameboy time.
-            double timeDelta = (cycles / Cpu.ClockSpeedHz) / cpuSpeedFactor;
+            double timeDelta = (cycles / GameBoySpu.ClockSpeedHz) / cpuSpeedFactor;
             
             // Allocate buffer.
             int sampleRate = ChannelOutput.SampleRate;

@@ -93,8 +93,6 @@ namespace WinFormDmgRender
 
             RefreshDmgSnapshot();
         }
-
-
         
 
         public void RefreshDmgSnapshot()
@@ -213,5 +211,16 @@ namespace WinFormDmgRender
             
             }
         }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (e.CloseReason == CloseReason.UserClosing)
+            {
+                e.Cancel = true;
+                Hide();
+            }
+        }
+
+
     }
 }

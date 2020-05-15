@@ -48,7 +48,7 @@ namespace Emux.GameBoy.Audio
         {
             if (EnvelopeSweepCount > 0)
             {
-                double timeDelta = (cycles / Cpu.ClockSpeedHz) / _channel.Spu.Device.cpu.SpeedFactor;
+                double timeDelta = (cycles / GameBoySpu.ClockSpeedHz) / _channel.Spu.Device.cpu.SpeedFactor;
                 _timer += timeDelta;
 
                 double stepInterval = EnvelopeSweepCount / 64.0;

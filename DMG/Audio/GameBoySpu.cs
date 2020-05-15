@@ -8,6 +8,8 @@ namespace Emux.GameBoy.Audio
 {
     public class GameBoySpu //: IGameBoyComponent
     {
+        public static readonly double ClockSpeedHz = 4194304;
+
         private readonly byte[] _unused = new byte[9];
 
         public GameBoySpu(DmgSystem device)
@@ -211,11 +213,11 @@ namespace Emux.GameBoy.Audio
 
         uint lastCpuTickCount;
         uint elapsedTicks;
-        public void SpuStep(/*int cycles*/)
+        public void SpuStep()
         {
             UInt32 tickCount = ((Device.cpu.Ticks * 4) - lastCpuTickCount);
 
-            // Track how many cycles the CPU has done since we last changed states
+            // Track how many T cycles the CPU (note t cycles NOT M cycles like everywhere else!)
             elapsedTicks += tickCount;
             lastCpuTickCount = (Device.cpu.Ticks * 4);
 
@@ -225,7 +227,6 @@ namespace Emux.GameBoy.Audio
             }
 
             
-
             if ((NR52 & (1 << 7)) != 0)
             {
                 foreach (var channel in Channels)
