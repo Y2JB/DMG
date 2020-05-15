@@ -29,6 +29,9 @@ namespace DMG
         // Tile Data is stored in VRAM at addresses $8000-97FF; with one tile being 16 bytes large, this area defines data for 384 Tiles
         public const ushort Max_Tiles = 384;
 
+        //public const int Clocks_Per_Screen = 17556;
+        public const int Clocks_Per_Screen = 70224;
+
         public Bitmap FrameBuffer { get; private set; }
         Bitmap drawBuffer;
         Bitmap frameBuffer0;

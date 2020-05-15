@@ -6,7 +6,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DmgCore", "DMG\DmgCore.cspr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinFormsDmgRenderer", "WinFormsDmgRenderer\WinFormsDmgRenderer.csproj", "{C37AB5A1-74B9-413C-8283-3D2277EA945D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmgDebugger", "DmgDebugger\DmgDebugger.csproj", "{9A2E9694-6D80-4AF2-A71F-5A5EEC9C3474}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DmgDebugger", "DmgDebugger\DmgDebugger.csproj", "{9A2E9694-6D80-4AF2-A71F-5A5EEC9C3474}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

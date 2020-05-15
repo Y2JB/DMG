@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Emux.GameBoy.Audio;
+using Emux.NAudio;
+using NAudio.Wave;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -17,6 +20,10 @@ namespace DMG
         public Cpu cpu { get; private set; }
         public Ppu ppu { get; private set; }
         public Interrupts interrupts { get; private set; }
+
+        public GameBoySpu spu { get; private set; }
+        GameBoyNAudioMixer mixer;
+        DirectSoundOut player;
 
         public Joypad pad { get; private set; }
 
@@ -55,7 +62,7 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles - Back from the Sewers (E).gb");
             //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles - Fall of the Foot Clan (E).gb");
             //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles III - Radical Rescue (E) [!].gb");
-            //rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
+            rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
             //rom = new Rom("../../../../roms/games/Gargoyle's Quest - Ghosts'n Goblins.gb");
             //rom = new Rom("../../../../roms/games/Mega Man V.gb");
@@ -69,7 +76,7 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/Pinball Deluxe (U).gb");
             //rom = new Rom("../../../../roms/games/Prehistorik Man.gb");
             //rom = new Rom("../../../../roms/games/Amazing Spider-Man 3, The - Invasion of the Spider-Slayers (U) [!].gb");
-            rom = new Rom("../../../../roms/games/Tennis (JUE) [!].gb");
+            //rom = new Rom("../../../../roms/games/Tennis (JUE) [!].gb");
 
             //rom = new Rom("../../../../roms/bgbtest.gb");
             //rom = new Rom("../../../../roms/tellinglys.gb");                  //passes 
@@ -108,6 +115,14 @@ namespace DMG
             cpu = new Cpu(memory, interrupts, this);
             timer = new DmgTimer(this);
             pad = new Joypad(interrupts, this);
+            spu = new GameBoySpu(this);
+            spu.Initialize();
+
+            mixer = new GameBoyNAudioMixer();
+            mixer.Connect(spu);
+            player = new DirectSoundOut();
+            player.Init(mixer);
+            player.Play();
 
 
             // yuck
@@ -118,6 +133,7 @@ namespace DMG
             interrupts.Reset();
             timer.Reset();
             pad.Reset();
+            
 
             // Peek the first instruction (done this way so we can always see the next instruction)
             //cpu.PeekNextInstruction();
@@ -232,6 +248,7 @@ namespace DMG
             */
         }
 
+
         public void Step()
         {
             cpu.Step();
@@ -239,6 +256,7 @@ namespace DMG
             timer.Step();
             pad.Step();
             interrupts.Step();
+            spu.SpuStep();
         }
 
 

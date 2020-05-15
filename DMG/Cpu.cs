@@ -24,6 +24,8 @@ namespace DMG
         public byte L { get; set; }
         public ushort HL { get { return (ushort)((H << 8) | L); } set { H = (byte)(value >> 8); L = (byte)(value & 0x00FF); } }
 
+
+        // ERRRRRRRR why is this here?
         public byte ScrollX { get { return memory.ReadByte(0xFF43); } }
         public byte ScrollY { get { return memory.ReadByte(0xFF42); } }
 
@@ -75,9 +77,20 @@ namespace DMG
         public UInt32 Ticks { get; private set; }
         int cyclesThisInstruction;
 
+        public double CyclesPerSecond
+        {
+            get;
+            set;
+        }
+
+        public double SpeedFactor
+        {
+            get { return CyclesPerSecond / ClockSpeedHz; }
+        }
+
         // Ticks per second
-        //public readonly UInt32 ClockSpeedHz = 4194304;
-        public readonly UInt32 ClockSpeedHz = 1048576;
+        public static readonly double ClockSpeedHz = 4194304;
+        //public static readonly double ClockSpeedHz = 1048576;
 
         public enum Flags
         {
@@ -179,8 +192,7 @@ namespace DMG
                 enableInterruptsNextCycle = false;
             }
 
-            // Let's the debugger look ahead
-            //PeekNextInstruction();
+            
         }
 
 

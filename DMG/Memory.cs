@@ -185,6 +185,10 @@ namespace DMG
 			{
 				return interrupts.InterruptEnableRegister;
 			}
+			else if (address >= 0xFF10 && address < 0xFF40)
+			{
+				return dmg.spu.ReadRegister(address);
+			}
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{
 				return Io[address - 0xFF00];
@@ -381,6 +385,10 @@ namespace DMG
 			else if (address == 0xFFFF)
 			{
 				interrupts.InterruptEnableRegister = value;
+			}
+			else if (address >= 0xFF10 && address < 0xFF40)
+			{
+				dmg.spu.WriteRegister(address, value);
 			}
 			else if (address >= 0xFF00 && address <= 0xFF7F)
 			{				
