@@ -242,7 +242,7 @@ namespace DMG
 		{
 			if (address < 0x8000)
 			{
-				// Rom Banking is triigered by 'writing' to the Rom
+				// Rom Banking is triggered by 'writing' to the Rom
 				GameRom.BankSwitch(address, value);
 			}
 			else if ((address >= 0xA000) && (address < 0xC000))

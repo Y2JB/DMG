@@ -203,12 +203,14 @@ namespace WinFormDmgRender
 
             while (IsApplicationIdle())
             {
-                for (int i = 0; i < 1024; i++)
+                // The call to IsAppication Idle is actually quite exoensive. Let's execute a few instructions between calls to it.
+                for (int i = 0; i < 256; i++)
                 {
                     if (timer.ElapsedMilliseconds - elapsedMs >= 1000)
                     {
                         elapsedMs = timer.ElapsedMilliseconds;
 
+                        // TODO: This does not belong here, the DmgSystem or CPU needs to manage it.
                         dmg.cpu.CyclesPerSecond = ((dmg.cpu.Ticks) - ticksPerSecond);
                         ticksPerSecond = (dmg.cpu.Ticks);
 

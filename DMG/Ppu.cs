@@ -39,8 +39,6 @@ namespace DMG
  
 
         public PpuMode Mode { get; private set; }
-
-        public IMemoryReaderWriter Memory { get; set; }
    
         public PpuMemoryRegisters MemoryRegisters { get; private set; }
 
@@ -87,8 +85,8 @@ namespace DMG
             MemoryRegisters.Reset();
 
             TileMaps = new TileMap[2];
-            TileMaps[0] = new TileMap(this, Memory, 0x9800);
-            TileMaps[1] = new TileMap(this, Memory, 0x9C00);
+            TileMaps[0] = new TileMap(this, dmg.memory, 0x9800);
+            TileMaps[1] = new TileMap(this, dmg.memory, 0x9C00);
             Tiles = new Dictionary<int, Tile>();
             for (int i = 0; i < Max_Tiles; i++)
             {
@@ -99,7 +97,7 @@ namespace DMG
             Sprites = new OamEntry[Max_Sprites];
             for(int i = 0; i < Max_Sprites; i++)
             {
-                Sprites[i] = new OamEntry((ushort)(0xFE00 + (i * 4)), Memory);
+                Sprites[i] = new OamEntry((ushort)(0xFE00 + (i * 4)), dmg.memory);
             }
 
             lastCpuTickCount = 0;

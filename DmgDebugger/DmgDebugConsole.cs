@@ -56,6 +56,7 @@ namespace DmgDebugger
             set,                            // set (register) n/nn
             ticks,
             rom,
+            screenshot,
             exit
 
         }
@@ -190,6 +191,10 @@ namespace DmgDebugger
 
                 case ConsoleCommand.rom:
                     ConsoleAddString(String.Format("ROM Info - {0}", dmg.rom.Type.ToString()));
+                    return true;
+
+                case ConsoleCommand.screenshot:
+                    dmg.ppu.DumpFrameBufferToPng();
                     return true;
 
                 case ConsoleCommand.exit:                    

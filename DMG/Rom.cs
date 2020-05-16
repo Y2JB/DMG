@@ -10,6 +10,7 @@ namespace DMG
         private byte[] romData;
         private readonly int RomNameOffset = 0x134;
         private readonly int RomBankingOffset = 0x147;
+        private readonly int RamSizeOffset = 0x149;
 
         public string RomName { get; private set; }
 
@@ -60,6 +61,8 @@ namespace DMG
         bool ramBankingEnabled;
         byte[] ramBanks;
 
+        byte ramSize;
+
         public Rom(string fn)
         {
             romFileName = fn;
@@ -68,9 +71,17 @@ namespace DMG
 
             RomName = Encoding.UTF8.GetString(romData, RomNameOffset, 16).TrimEnd((Char)0);
 
+            // 00h - None
+            // 01h - 2 KBytes
+            // 02h - 8 Kbytes
+            // 03h - 32 KBytes(4 banks of 8KBytes each)
+            // 04h - 128 KBytes(16 banks of 8KBytes each)
+            // 05h - 64 KBytes(8 banks of 8KBytes each)
+            ramSize = romData[RamSizeOffset];
+
             // RomBank 0 is classed as the first 16K of the ROM which is always available. Therefore the current ROM bank is always 1 or more.
             CurrentRomBank = 1;
-            IsRomBanking = false;
+            IsRomBanking = true;
 
             // Enough to cover the max ram they ever added to a cart (4 * 8K)
             ramBanks = new byte[MaxRamSize];
@@ -149,7 +160,7 @@ namespace DMG
             }
             
 
-            // do ROM bank change
+            // ROM bank change
             if ((address >= 0x200) && (address < 0x4000))
             {
                 if (IsMBC1Rom() || IsMBC2Rom())
@@ -158,7 +169,7 @@ namespace DMG
                 }
             }
 
-            // do ROM or RAM bank change
+            // ROM or RAM bank change
             else if ((address >= 0x4000) && (address < 0x6000))
             {
                 // there is no rambank in mbc2 so always use rambank 0
