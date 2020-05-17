@@ -476,37 +476,40 @@ namespace DMG
                 MemoryRegisters.WindowX < Screen_X_Resolution &&
                 MemoryRegisters.WindowY < Screen_Y_Resolution)
             {
-                byte y = CurrentScanline;
-
-                if (y >= MemoryRegisters.WindowY)
+                if (CurrentScanline >= MemoryRegisters.WindowY)
                 {
                     TileMap tileMap = TileMaps[MemoryRegisters.LCDC.WindowTileMapSelect];
 
                     // Window X, Y tell you where on screen to start drawing the tiles found at 0,0 in the tilemap.
                     // The Window DOES NOT WRAP
-                    // WindowX should always be used -7
-                    byte windowXPosAdjusted = (byte) (MemoryRegisters.WindowX - 7);
-                    byte windowYPos = (byte)(y - MemoryRegisters.WindowY);
+                    // WindowX draws -7 pixels from its actual value                    
+                    byte windowScreenSpaceX = MemoryRegisters.WindowX;
+                    byte windowScreenSpaceY = MemoryRegisters.WindowY;
+                    int windowScreenSpaceXAdjusted = windowScreenSpaceX - 7;              
 
-                    int tilePixelY = (windowYPos % 8);
-                    
-                    for (byte x = 0; x < Screen_X_Resolution; x++)
+                    // These track the X&Y in the tile map;
+                    byte windowDataX = 0;
+                    byte windowDataY = (byte) (CurrentScanline - windowScreenSpaceY);
+
+                    int tilePixelY = (windowDataY % 8);
+
+                    for (int x = windowScreenSpaceXAdjusted; x < Screen_X_Resolution; x++)
                     {
                         // Remember, this is window X adjusted by 7, so this is not wrapping
-                        if(windowXPosAdjusted >= Screen_X_Resolution)
+                        if(windowScreenSpaceXAdjusted < 0)
                         {
-                            windowXPosAdjusted++;
-                           // continue = zelda works
-                           // break = donkey kong kinda works ?!?!?!?
+                            // Because of -7, the window can be offscreen for a few pixels
+                            windowScreenSpaceXAdjusted++;                     
                             continue;
                         }
                         // What column are we rendering within a tile?
-                        byte tilePixelX = (byte)(windowXPosAdjusted % 8);             
+                        byte tilePixelX = (byte)(windowDataX % 8);             
 
-                        Tile tile = tileMap.TileFromXY(windowXPosAdjusted, windowYPos);
-                        drawBuffer.SetPixel(x, y, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
+                        Tile tile = tileMap.TileFromXY(windowDataX, windowDataY);
+                        drawBuffer.SetPixel(x, CurrentScanline, Palettes.BackgroundPalette[tile.renderTile[tilePixelX, tilePixelY]]);
 
-                        windowXPosAdjusted++;
+                        windowScreenSpaceXAdjusted++;
+                        windowDataX++;
                     }
                 }
             }
