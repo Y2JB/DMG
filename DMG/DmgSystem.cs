@@ -43,6 +43,8 @@ namespace DMG
         public Action<UInt32, bool> OnFrameEnd { get; set; }
         public Action<UInt32, UInt32, List<OamEntry>> OnOamSearchComplete { get; set; }
 
+        int secondsSinceLastSave;
+
         public DmgSystem()
         {
             Tty = new StringBuilder(1024 * 256);
@@ -156,8 +158,14 @@ namespace DMG
             {
                 oneSecondTimer = EmulatorTimer.ElapsedMilliseconds;
 
+                secondsSinceLastSave++;
+            }
+
+            if(secondsSinceLastSave >= 120)
+            {
                 // Save the game every minute
-                //rom.SaveMbc1BatteryBackData();
+                rom.SaveMbc1BatteryBackData();
+                secondsSinceLastSave = 0;
             }
         }
 

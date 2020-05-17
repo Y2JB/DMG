@@ -53,6 +53,8 @@ namespace DMG
 
         string romFileName;
 
+        uint RomBankCount { get; set; }
+
         public byte CurrentRomBank { get; private set;  }
         bool IsRomBanking { get; set; }
 
@@ -60,7 +62,7 @@ namespace DMG
         public byte CurrentRamBank { get; private set; }
         bool ramBankingEnabled;
         byte[] ramBanks;
-
+  
         byte ramSize;
 
         public Rom(string fn)
@@ -78,6 +80,8 @@ namespace DMG
             // 04h - 128 KBytes(16 banks of 8KBytes each)
             // 05h - 64 KBytes(8 banks of 8KBytes each)
             ramSize = romData[RamSizeOffset];
+
+            RomBankCount = Math.Max(Pow2Ceil((uint) (romData.Length / 0x4000)), 2u);
 
             // RomBank 0 is classed as the first 16K of the ROM which is always available. Therefore the current ROM bank is always 1 or more.
             CurrentRomBank = 1;
@@ -210,7 +214,7 @@ namespace DMG
             {
                 ramBankingEnabled = true;
             }
-            else if (testData == 0x00)
+            else //if (testData == 0x00)
             {
                 ramBankingEnabled = false;
             }
@@ -242,7 +246,13 @@ namespace DMG
 
             CurrentRomBank |= lower5;
 
-            if (CurrentRomBank == 0) CurrentRomBank++;
+            if (CurrentRomBank == 0x00 || CurrentRomBank == 0x20 || CurrentRomBank == 0x40 || CurrentRomBank == 0x60)
+            {
+                CurrentRomBank++;
+            }
+
+            // I think this is because unused bits are set to 1
+            CurrentRomBank &= (byte) (RomBankCount - 1);
         }
 
 
@@ -255,7 +265,14 @@ namespace DMG
             data &= 0xE0;
 
             CurrentRomBank |= data;
-            if (CurrentRomBank == 0) CurrentRomBank++;
+
+            if (CurrentRomBank == 0x00 || CurrentRomBank == 0x20 || CurrentRomBank == 0x40 || CurrentRomBank == 0x60)
+            {
+                CurrentRomBank++;
+            }
+
+            // I think this is because unused bits are set to 1
+            CurrentRomBank &= (byte) (RomBankCount - 1);
         }
 
 
@@ -298,6 +315,18 @@ namespace DMG
                     bw.Write(ramBanks, 0, MaxRamSize);
                 }
             }
+        }
+
+
+        uint Pow2Ceil(uint n)
+        {
+            --n;
+            n |= n >> 1;
+            n |= n >> 2;
+            n |= n >> 4;
+            n |= n >> 8;
+            ++n;
+            return n;
         }
     }
 }
