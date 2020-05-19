@@ -196,8 +196,7 @@ namespace WinFormDmgRender
             else if (a.KeyCode == Keys.Back) dmg.pad.UpdateKeyState(Joypad.GbKey.Select, false);
         }
 
-
-        uint ticksPerSecond;
+        
         private void OnApplicationIdle(object sender, EventArgs e)
         {
 
@@ -209,11 +208,6 @@ namespace WinFormDmgRender
                     if (timer.ElapsedMilliseconds - elapsedMs >= 1000)
                     {
                         elapsedMs = timer.ElapsedMilliseconds;
-
-                        // TODO: This does not belong here, the DmgSystem or CPU needs to manage it.
-                        dmg.cpu.CyclesPerSecond = ((dmg.cpu.Ticks) - ticksPerSecond);
-                        ticksPerSecond = (dmg.cpu.Ticks);
-
 
                         fps = framesDrawn;
                         framesDrawn = 0;
@@ -272,7 +266,7 @@ namespace WinFormDmgRender
                         {
                             var brush = redBrush;
                             if (fps >= 50) brush = greenBrush;
-                            else if (fps >= 35) brush = amberBrush;
+                            else if (fps >= 40) brush = amberBrush;
 
                             gfxBuffer.Graphics.FillRectangle(brush, fpsRect);
                             gfxBuffer.Graphics.DrawString(String.Format("{0:D2} fps", fps), font, whiteBrush, fpsPt);

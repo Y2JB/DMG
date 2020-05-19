@@ -44,6 +44,7 @@ namespace DMG
         public Action<UInt32, UInt32, List<OamEntry>> OnOamSearchComplete { get; set; }
 
         int secondsSinceLastSave;
+        uint ticksPerSecond;
 
         public DmgSystem()
         {
@@ -139,7 +140,10 @@ namespace DMG
             if(rom.Type == Rom.RomType.MBC1_Ram_Battery)
             {
                 rom.LoadMbc1BatteryBackData();
-            }        
+            }
+
+            ticksPerSecond = 0;
+            secondsSinceLastSave = 0;
         }
 
 
@@ -157,8 +161,11 @@ namespace DMG
             if(EmulatorTimer.ElapsedMilliseconds - oneSecondTimer > 1000)
             {
                 oneSecondTimer = EmulatorTimer.ElapsedMilliseconds;
-
                 secondsSinceLastSave++;
+
+                // Keep track of how many ticks per second the cpu has executed. The cpu itself has no concept of time beyond ticks so we calculate this here. 
+                cpu.CyclesPerSecond = ((cpu.Ticks) - ticksPerSecond);
+                ticksPerSecond = cpu.Ticks;
             }
 
             if(secondsSinceLastSave >= 120)
