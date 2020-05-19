@@ -149,8 +149,6 @@ namespace DMG
 
         public void Step()
         {
-            // TODO: Calculate the cycles per second here
-            // TODO: Save the sram every minute here to capture save games accurately 
             cpu.Step();
             ppu.Step();
             timer.Step();
@@ -158,7 +156,7 @@ namespace DMG
             interrupts.Step();
             spu.SpuStep();
 
-            if(EmulatorTimer.ElapsedMilliseconds - oneSecondTimer > 1000)
+            if(EmulatorTimer.ElapsedMilliseconds - oneSecondTimer >= 1000)
             {
                 oneSecondTimer = EmulatorTimer.ElapsedMilliseconds;
                 secondsSinceLastSave++;
@@ -170,21 +168,10 @@ namespace DMG
 
             if(secondsSinceLastSave >= 120)
             {
-                // Save the game every minute
+                // Save the game every couple of minutes
                 rom.SaveMbc1BatteryBackData();
                 secondsSinceLastSave = 0;
             }
-        }
-
-
-        void Dump()
-        {
-            ppu.DumpFrameBufferToPng();
-
-            DumpTty();
-
-            //TileDumpTxt(memory.VRam, 0x190, 16);
-            DumpTileSet();
         }
 
 
@@ -199,6 +186,8 @@ namespace DMG
             }
         }
 
+
+        // TODO: Hook up a global exception handler to write this out in if we crash
         void DumpSystemState(Exception ex)
         {
             using (FileStream fs = File.Open("../../../../dump/crashdump.txt", FileMode.Create))
@@ -236,11 +225,8 @@ namespace DMG
             foreach (var t in ppu.Tiles)
             {
                 t.Value.Parse(memory.VRam);
-
-                // 16 bytes per tile
-                //offset += 16;            
-
-                // Add one tiles pixels
+      
+                // Add one tiles' pixels
                 for (int y = 0; y < 8; y++)
                 {
                     for (int x = 0; x < 8; x++)

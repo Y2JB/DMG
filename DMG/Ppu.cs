@@ -407,7 +407,7 @@ namespace DMG
             }
 
             // order the list by X decending (we will draw right to left so that lowest X sprite wins)
-            oamSearchResults.OrderByDescending(o => o.X).ToList();
+            oamSearchResults = oamSearchResults.OrderByDescending(o => o.X).ToList();
 
             PpuAccessingVram = false;
             OamDirty = false;
