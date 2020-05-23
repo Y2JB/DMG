@@ -61,7 +61,7 @@ namespace DmgDebugger
 
         }
 
-        public Mode DmgMode { get; private set; }
+        public Mode DmgMode { get; set; }
 
         public bool BreakpointStepAvailable { get; set; }
 
@@ -92,9 +92,6 @@ namespace DmgDebugger
 
 
             BreakpointStepAvailable = false;
-
-            PeekSequentialInstructions();
-            UpdateCodeSnapshot();
         }
 
 
@@ -515,6 +512,11 @@ namespace DmgDebugger
 
         public void PeekSequentialInstructions()
         {
+            if(dmg.PoweredOn == false)
+            {
+                return;
+            }
+
             NextInstructions.Clear();
 
             int lookAheadBytes = 0;

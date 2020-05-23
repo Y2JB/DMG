@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace DMG
 {
@@ -33,7 +34,6 @@ namespace DMG
 
         public Bitmap FrameBuffer { get { return ppu.FrameBuffer; } }
 
-
         long oneSecondTimer;
         public Stopwatch EmulatorTimer { get; private set; }
         public Action OnFrame{ get; set;  }
@@ -46,16 +46,22 @@ namespace DMG
         int secondsSinceLastSave;
         uint ticksPerSecond;
 
+        public bool PoweredOn { get; private set; }
+
         public DmgSystem()
         {
             Tty = new StringBuilder(1024 * 256);
             EmulatorTimer = new Stopwatch();
+            PoweredOn = false;
         }
 
 
-        public void PowerOn()
+        public void PowerOn(string romName)
         {
+            PoweredOn = true;
+
             bootstrapRom = new BootRom("../../../../DMG_BootRom.bin");
+            rom = new Rom(romName); 
             //rom = new Rom("../../../../roms/games/tetris.gb");
             //rom = new Rom("../../../../roms/games/Dr. Mario.gb");
             //rom = new Rom("../../../../roms/games/Bubble Ghost (J).gb");
@@ -66,7 +72,7 @@ namespace DMG
             //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles - Back from the Sewers (E).gb");
             //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles - Fall of the Foot Clan (E).gb");
             //rom = new Rom("../../../../roms/games/Teenage Mutant Hero Turtles III - Radical Rescue (E) [!].gb");
-            rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
+            //rom = new Rom("../../../../roms/games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
             //rom = new Rom("../../../../roms/games/Pokemon - Blue.gb");
             //rom = new Rom("../../../../roms/games/Gargoyle's Quest - Ghosts'n Goblins.gb");
             //rom = new Rom("../../../../roms/games/Mega Man V.gb");
@@ -149,6 +155,12 @@ namespace DMG
 
         public void Step()
         {
+            if (PoweredOn == false)
+            {
+                Thread.Sleep(10);
+                return;           
+            }
+
             cpu.Step();
             ppu.Step();
             timer.Step();

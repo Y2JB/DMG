@@ -57,8 +57,7 @@ namespace WinFormDmgRender
             
             Application.ApplicationExit += new EventHandler(this.OnApplicationExit);
 
-            dmg = new DmgSystem();
-            dmg.PowerOn();
+            dmg = new DmgSystem();            
             dmg.OnFrame = () => this.Draw();
 
             dbgConsole = new DmgDebugConsole(dmg);
@@ -70,7 +69,10 @@ namespace WinFormDmgRender
             bgWnd.Hide();
 
 
-            this.Text = dmg.rom.RomName;
+            if (dmg.PoweredOn)
+            {
+                this.Text = dmg.rom.RomName;
+            }
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
 
@@ -83,7 +85,7 @@ namespace WinFormDmgRender
                     {
                         DropDownItems =
                         {
-                            new ToolStripMenuItem("Load ROM", null, (sender, args) => { /*LoadRom();*/ }),
+                            new ToolStripMenuItem("Load ROM", null, (sender, args) => { LoadRom(); }),
                             new ToolStripMenuItem("Pause", null, (sender, args) => {  }),
                             new ToolStripMenuItem("Quit", null, (sender, args) => { Application.Exit(); })
                         }
@@ -122,6 +124,21 @@ namespace WinFormDmgRender
             renderThread = new Thread(new ThreadStart(RenderThread));
             renderThread.Start();
 #endif
+        }
+
+
+        void LoadRom()
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "GB files (*.gb)|*.gb|All files (*.*)|*.*";
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                dmg.PowerOn(openFileDialog.FileName);
+
+                this.Text = dmg.rom.RomName;
+                dbgConsole.PeekSequentialInstructions();
+                dbgConsole.DmgMode = DmgDebugConsole.Mode.Running;
+            }
         }
 
 
@@ -314,7 +331,10 @@ namespace WinFormDmgRender
 
         private void OnApplicationExit(object sender, EventArgs e)
         {
-            dmg.rom.SaveMbc1BatteryBackData();
+            if (dmg.PoweredOn)
+            {
+                dmg.rom.SaveMbc1BatteryBackData();
+            }
             exitThread = true;
             Thread.Sleep(500);
         }

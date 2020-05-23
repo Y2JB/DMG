@@ -34,7 +34,6 @@ namespace WinFormDmgRender
         {
             this.dmg = dmg;
             this.dbgConsole = dbgConsole;
-            //DmgMode = Mode.BreakPoint;
 
             InitializeComponent();
 
@@ -81,22 +80,17 @@ namespace WinFormDmgRender
             dmgSnapshot.Font = new Font(FontFamily.GenericMonospace, console.Font.Size);
             this.Controls.Add(dmgSnapshot);
 
-            // SB : b $64 if [IO_LY] == 2
-            //breakpoints.Add(0x0);
-            //breakpoints.Add(0x40);
-            //breakpoints.Add(0x50);
-
-            //breakpoints.Add(new Breakpoint(0x64));      // loads scanline      
-            //breakpoints.Add(0x68);
-            //breakpoints.Add(0x6a);
-            //breakpoints.Add(new Breakpoint(0x70));
-
             RefreshDmgSnapshot();
         }
         
 
         public void RefreshDmgSnapshot()
         {
+            if(dmg.PoweredOn == false)
+            {
+                return;
+            }
+
             dmgSnapshot.Text = String.Format("CPU State");
 
             dmgSnapshot.AppendText(Environment.NewLine);
