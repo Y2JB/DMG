@@ -308,6 +308,12 @@ namespace WinFormDmgRender
                 bgWnd.RenderBg();
             }             
 
+            // Frameskip
+            //if(drawFrame == true)
+            //{
+            //    return;
+            //}
+                             
             // Wait for previous frame to finish drawing while also locking to 60fps
             while (drawFrame)
             {

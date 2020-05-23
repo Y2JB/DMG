@@ -21,7 +21,6 @@ namespace DMG
         // 0xFF4B
         public byte WindowX { get; set; }
 
-
         IPpu ppu;
 
         public PpuMemoryRegisters(IPpu ppu)
@@ -30,6 +29,7 @@ namespace DMG
             LCDC = new LcdControlRegister(ppu);
             STAT = new LcdStatusRegister(ppu);
         }
+
 
         public void Reset()
         {
@@ -163,12 +163,6 @@ namespace DMG
                 
                 // Set the unused bit
                 register |= 0x80;
-
-
-                //if (lcdStat.OamInterruptEnable)
-                //{
-                //    dmg.interrupts.RequestInterrupt(Interrupts.Interrupt.INTERRUPTS_LCDSTAT);
-                //}
             }
 
         }

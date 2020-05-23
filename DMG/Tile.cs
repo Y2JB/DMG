@@ -8,10 +8,7 @@ using System.Linq;
 namespace DMG
 {
     public class Tile
-    {
-        const int size = 150;
-        const int quality = 75;
-       
+    {       
         public byte[,] renderTile { get; private set; }
 
         public ushort VRamAddress { get; private set; }
