@@ -57,22 +57,6 @@ namespace WinFormDmgRender
             
             Application.ApplicationExit += new EventHandler(this.OnApplicationExit);
 
-            dmg = new DmgSystem();            
-            dmg.OnFrame = () => this.Draw();
-
-            dbgConsole = new DmgDebugConsole(dmg);
-            
-            consoleWindow = new DmgConsoleWindow(dmg, dbgConsole);
-            consoleWindow.Show();
-
-            bgWnd = new BgWindow(dmg);
-            bgWnd.Hide();
-
-
-            if (dmg.PoweredOn)
-            {
-                this.Text = dmg.rom.RomName;
-            }
             KeyDown += OnKeyDown;
             KeyUp += OnKeyUp;
 
@@ -86,7 +70,7 @@ namespace WinFormDmgRender
                         DropDownItems =
                         {
                             new ToolStripMenuItem("Load ROM", null, (sender, args) => { LoadRom(); }),
-                            new ToolStripMenuItem("Pause", null, (sender, args) => {  }),
+                            new ToolStripMenuItem("Reset", null, (sender, args) => { Reset(dmg.rom.RomFileName); }),
                             new ToolStripMenuItem("Quit", null, (sender, args) => { Application.Exit(); })
                         }
                     },
@@ -96,13 +80,6 @@ namespace WinFormDmgRender
                         {
                             new ToolStripMenuItem("Console", null, (sender, args) => { consoleWindow.Visible = !consoleWindow.Visible; }),
                             new ToolStripMenuItem("Bg Viewer", null, (sender, args) => { bgWnd.Visible = !bgWnd.Visible; })
-                        }
-                    },
-                     new ToolStripMenuItem("Help")
-                    {
-                        DropDownItems =
-                        {
-                            new ToolStripMenuItem("About", null, (sender, args) => {  })
                         }
                     }
                 }
@@ -133,20 +110,54 @@ namespace WinFormDmgRender
             openFileDialog.Filter = "GB files (*.gb)|*.gb|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                dmg.PowerOn(openFileDialog.FileName);
-
-                this.Text = dmg.rom.RomName;
-                dbgConsole.PeekSequentialInstructions();
-                dbgConsole.DmgMode = DmgDebugConsole.Mode.Running;
+                Reset(openFileDialog.FileName);                
             }
+        }
+
+
+        void Reset(string romFilename)
+        {
+            // Gameboy itself doesn't support reset so i see no reason to contrive one. Just create a fresh one 
+
+            // Wait for previous frame to finish drawing
+            while (drawFrame)
+            {
+            }
+            drawFrame = false;
+
+            bool consoleWndVisibile = (consoleWindow != null) ? consoleWindow.Visible : false;
+            bool bgWndVisibile = (bgWnd != null) ? bgWnd.Visible : false;
+
+            string rom = romFilename;
+            dmg = new DmgSystem();
+            dmg.OnFrame = () => this.Draw();
+
+            // Bit hacky, maintain breakpoints between reset
+            List<Breakpoint> breakpoints = null;
+            if(dbgConsole != null) breakpoints = dbgConsole.Breakpoints;          
+            dbgConsole = new DmgDebugConsole(dmg);
+            if (breakpoints != null) dbgConsole.Breakpoints = breakpoints;
+
+            if (consoleWindow != null) consoleWindow.Dispose();
+            consoleWindow = new DmgConsoleWindow(dmg, dbgConsole);
+            consoleWindow.Visible = consoleWndVisibile;
+            consoleWindow.Location = new Point(Location.X + Width + 20, Location.Y);
+
+            if (bgWnd != null) bgWnd.Dispose();
+            bgWnd = new BgWindow(dmg);
+            bgWnd.Visible = bgWndVisibile;
+
+            dmg.PowerOn(rom);
+
+            this.Text = dmg.rom.RomName;
+            dbgConsole.PeekSequentialInstructions();
+            dbgConsole.DmgMode = DmgDebugConsole.Mode.Running;
         }
 
 
         protected override void OnLoad(EventArgs e)
         {
-            base.OnLoad(e);
-
-            consoleWindow.Location = new Point(Location.X + Width + 20, Location.Y);
+            base.OnLoad(e);            
             
             // Gets a reference to the current BufferedGraphicsContext
             gfxBufferedContext = BufferedGraphicsManager.Current;
@@ -177,6 +188,7 @@ namespace WinFormDmgRender
                 gfxBuffer = gfxBufferedContext.Allocate(this.CreateGraphics(), this.DisplayRectangle);
             }
         }
+
 
         private void OnKeyDown(Object o, KeyEventArgs a)
         {
@@ -219,6 +231,12 @@ namespace WinFormDmgRender
 
             while (IsApplicationIdle())
             {
+                if(dmg == null || dmg.PoweredOn == false)
+                {
+                    Thread.Sleep(10);
+                    continue;
+                }
+
                 // The call to IsAppication Idle is actually quite exoensive. Let's execute a few instructions between calls to it.
                 for (int i = 0; i < 256; i++)
                 {

@@ -11,7 +11,7 @@ namespace DmgDebugger
 {
     public class DmgDebugConsole
     {
-        List<Breakpoint> breakpoints = new List<Breakpoint>();
+        public List<Breakpoint> Breakpoints { get; set; }
         List<Breakpoint> oneTimeBreakpoints = new List<Breakpoint>();
 
         // Keep the previous / next x instructions cached 
@@ -28,7 +28,7 @@ namespace DmgDebugger
         public List<string> ConsoleText { get; private set; }
         public List<string> ConsoleCodeText { get; private set; }
 
-        public PpuProfiler ppuProfiler{ get; set; }
+        public PpuProfiler ppuProfiler { get; set; }
 
         public enum Mode
         {
@@ -72,6 +72,8 @@ namespace DmgDebugger
         {
             this.dmg = dmg;
             DmgMode = Mode.BreakPoint;
+
+            Breakpoints = new List<Breakpoint>();
 
             // PPU profiler is expensive! Remember to disconnect the ppu profiler if you are not using it
             //ppuProfiler = new PpuProfiler(dmg);
@@ -165,7 +167,7 @@ namespace DmgDebugger
                     return BreakpointCommand(parameters);
 
                 case ConsoleCommand.delete:
-                    breakpoints.Clear();
+                    Breakpoints.Clear();
                     return true;
 
                 case ConsoleCommand.dumptiles:
@@ -300,7 +302,7 @@ namespace DmgDebugger
                 }
             }
 
-            breakpoints.Add(new Breakpoint(p1, expression));
+            Breakpoints.Add(new Breakpoint(p1, expression));
 
             ConsoleAddString(String.Format("breakpoint added at 0x{0:X4}", p1));
             return true;
@@ -425,7 +427,7 @@ namespace DmgDebugger
 
         public bool CheckForBreakpoints()
         {
-            foreach (var bp in breakpoints)
+            foreach (var bp in Breakpoints)
             {
                 if (bp.ShouldBreak(dmg.cpu.PC))
                 {

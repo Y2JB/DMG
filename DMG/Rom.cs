@@ -51,7 +51,7 @@ namespace DMG
             } 
         }
 
-        string romFileName;
+        public string RomFileName { get; private set; }
 
         uint RomBankCount { get; set; }
 
@@ -67,7 +67,7 @@ namespace DMG
 
         public Rom(string fn)
         {
-            romFileName = fn;
+            RomFileName = fn;
 
             romData = new MemoryStream(File.ReadAllBytes(fn)).ToArray();
 
@@ -292,7 +292,7 @@ namespace DMG
         {
             try
             {
-                using (FileStream fs = File.Open(Path.ChangeExtension(romFileName, "sav"), FileMode.Open))
+                using (FileStream fs = File.Open(Path.ChangeExtension(RomFileName, "sav"), FileMode.Open))
                 {
                     using (BinaryReader bw = new BinaryReader(fs))
                     {
@@ -308,7 +308,7 @@ namespace DMG
 
         public void SaveMbc1BatteryBackData()
         {          
-            using (FileStream fs = File.Open(Path.ChangeExtension(romFileName, "sav"), FileMode.Create))
+            using (FileStream fs = File.Open(Path.ChangeExtension(RomFileName, "sav"), FileMode.Create))
             {
                 using (BinaryWriter bw = new BinaryWriter(fs))
                 {
