@@ -14,11 +14,6 @@ namespace DMG
             INTERRUPTS_JOYPAD = (1 << 4)
         }
 
-        //public readonly byte INTERRUPTS_VBLANK =  (1 << 0);
-        //public readonly byte INTERRUPTS_LCDSTAT = (1 << 1);
-        //public readonly byte INTERRUPTS_TIMER =   (1 << 2);
-        //public readonly byte INTERRUPTS_SERIAL =  (1 << 3);
-        //public readonly byte INTERRUPTS_JOYPAD =  (1 << 4);
 
         public bool InterruptsMasterEnable { get; set; }
 
@@ -48,16 +43,6 @@ namespace DMG
 
         public bool RequestInterrupt(Interrupt interrupt)
         {
-            /*
-             * SAMEBOY...
-    m_pMemory->Load(0xFF0F, m_pMemory->Retrieve(0xFF0F) | interrupt);
-
-    if ((interrupt == VBlank_Interrupt) && !m_bCGBSpeed)
-    {
-        m_iInterruptDelayCycles = 4;
-    }
-    */
-
             InterruptFlags |= (byte) interrupt;
             
             // This is set by the HALT instruction
@@ -75,23 +60,12 @@ namespace DMG
             return ((InterruptEnableRegister & InterruptFlags) != 0);
         }
 
-
-        /*
-         !!!!!!!!!!!!!!!!!!!XXXXXXXXXXXXXXXXXXXXXXXXXX
-         It takes 20 clocks to dispatch an interrupt. If CPU is in HALT mode, another extra 4 clocks are
-needed. This timings are the same in every Game Boy model or in double/single speeds in
-CGB/AGB/AGS.
-         * */
            
         public void Step()
         {
             if (InterruptsMasterEnable && InterruptEnableRegister != 0 && InterruptFlags != 0)
             {
                 byte fire = (byte) (InterruptEnableRegister & InterruptFlags);
-
-
-                // TODO: check the priority order below
-
 
                 byte inter = (byte)(Interrupt.INTERRUPTS_VBLANK);
                 if ((fire & inter) != 0)
@@ -146,7 +120,6 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x40;
-            //dmg.cpu.PeekNextInstruction();
 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);           
@@ -159,8 +132,7 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x48;
-            //dmg.cpu.PeekNextInstruction();
-
+ 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);
         }
@@ -172,7 +144,6 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x50;
-            //dmg.cpu.PeekNextInstruction();
 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);
@@ -185,7 +156,6 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x58;
-            //dmg.cpu.PeekNextInstruction();
 
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);
@@ -198,8 +168,7 @@ CGB/AGB/AGS.
             dmg.cpu.IsHalted = false;
             dmg.cpu.StackPush(dmg.cpu.PC);
             dmg.cpu.PC = 0x60;
-            //dmg.cpu.PeekNextInstruction();
-
+   
             // 2 Cycles will happen on the stack push above, add the other 3
             dmg.cpu.CycleCpu(3);
         }
