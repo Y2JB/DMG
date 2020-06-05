@@ -32,7 +32,7 @@ namespace DMG
 
         public StringBuilder Tty { get; private set; }
 
-        public Bitmap FrameBuffer { get { return ppu.FrameBuffer; } }
+        public Bitmap FrameBuffer { get { return ppu.FrameBuffer.Bitmap; } }
 
         long oneSecondTimer;
         public Stopwatch EmulatorTimer { get; private set; }

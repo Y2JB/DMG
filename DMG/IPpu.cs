@@ -28,7 +28,7 @@ namespace DMG
 
         public byte CurrentScanline { get; }
 
-        public Bitmap FrameBuffer { get; }
+        public DirectBitmap FrameBuffer { get; }
 
         public TileMap[] TileMaps { get; }
         public Dictionary<int, Tile> Tiles { get; }

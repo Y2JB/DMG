@@ -32,10 +32,10 @@ namespace DMG
         //public const int Clocks_Per_Screen = 17556;
         public const int Clocks_Per_Screen = 70224;
 
-        public Bitmap FrameBuffer { get; private set; }
-        Bitmap drawBuffer;
-        Bitmap frameBuffer0;
-        Bitmap frameBuffer1;
+        public DirectBitmap FrameBuffer { get; private set; }
+        DirectBitmap drawBuffer;
+        DirectBitmap frameBuffer0;
+        DirectBitmap frameBuffer1;
  
 
         public PpuMode Mode { get; private set; }
@@ -76,8 +76,8 @@ namespace DMG
 
         public void Reset()
         {
-            frameBuffer0 = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution); 
-            frameBuffer1 = new Bitmap(Screen_X_Resolution, Screen_Y_Resolution); 
+            frameBuffer0 = new DirectBitmap(Screen_X_Resolution, Screen_Y_Resolution); 
+            frameBuffer1 = new DirectBitmap(Screen_X_Resolution, Screen_Y_Resolution); 
             FrameBuffer = frameBuffer0;
             drawBuffer = frameBuffer1;
 
@@ -668,7 +668,7 @@ namespace DMG
             string fn = string.Format("../../../../dump/screen.png");
             lock (FrameBuffer)
             {
-                FrameBuffer.Save(fn);
+                FrameBuffer.Bitmap.Save(fn);
             }
         }
 
