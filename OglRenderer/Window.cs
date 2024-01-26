@@ -89,7 +89,7 @@ namespace OglRenderer
             _texture.Use(TextureUnit.Texture0);
 
 
-            Reset("../../../../Tetris.gb");
+            Reset("../../../../Roms/Games/Legend of Zelda, The - Link's Awakening (U) (V1.2).gb");
         }
 
         
@@ -123,8 +123,26 @@ namespace OglRenderer
                 Close();
             }
 
-            
-            
+            if (input.IsKeyDown(Keys.Up)) dmg.pad.UpdateKeyState(Joypad.GbKey.Up, true);
+            else if (input.IsKeyDown(Keys.Down)) dmg.pad.UpdateKeyState(Joypad.GbKey.Down, true);
+            else if (input.IsKeyDown(Keys.Left)) dmg.pad.UpdateKeyState(Joypad.GbKey.Left, true);
+            else if (input.IsKeyDown(Keys.Right)) dmg.pad.UpdateKeyState(Joypad.GbKey.Right, true);
+            else if (input.IsKeyDown(Keys.Z)) dmg.pad.UpdateKeyState(Joypad.GbKey.B, true);
+            else if (input.IsKeyDown(Keys.X)) dmg.pad.UpdateKeyState(Joypad.GbKey.A, true);
+            else if (input.IsKeyDown(Keys.Enter)) dmg.pad.UpdateKeyState(Joypad.GbKey.Start, true);
+            else if (input.IsKeyDown(Keys.Backspace)) dmg.pad.UpdateKeyState(Joypad.GbKey.Select, true);
+
+
+            if (input.IsKeyReleased(Keys.Up)) dmg.pad.UpdateKeyState(Joypad.GbKey.Up, false);
+            else if (input.IsKeyReleased(Keys.Down)) dmg.pad.UpdateKeyState(Joypad.GbKey.Down, false);
+            else if (input.IsKeyReleased(Keys.Left)) dmg.pad.UpdateKeyState(Joypad.GbKey.Left, false);
+            else if (input.IsKeyReleased(Keys.Right)) dmg.pad.UpdateKeyState(Joypad.GbKey.Right, false);
+            else if (input.IsKeyReleased(Keys.Z)) dmg.pad.UpdateKeyState(Joypad.GbKey.B, false);
+            else if (input.IsKeyReleased(Keys.X)) dmg.pad.UpdateKeyState(Joypad.GbKey.A, false);
+            else if (input.IsKeyReleased(Keys.Enter)) dmg.pad.UpdateKeyState(Joypad.GbKey.Start, false);
+            else if (input.IsKeyReleased(Keys.Backspace)) dmg.pad.UpdateKeyState(Joypad.GbKey.Select, false);
+
+
             if (dmg != null && dmg.PoweredOn)
             {
                 // Step the emulator for an entire frame 
