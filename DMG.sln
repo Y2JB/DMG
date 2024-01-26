@@ -1,12 +1,15 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DmgCore", "DMG\DmgCore.csproj", "{7B689F12-C554-4AEC-B806-E3D1D3F7BCE1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinFormsDmgRenderer", "WinFormsDmgRenderer\WinFormsDmgRenderer.csproj", "{C37AB5A1-74B9-413C-8283-3D2277EA945D}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DmgDebugger", "DmgDebugger\DmgDebugger.csproj", "{9A2E9694-6D80-4AF2-A71F-5A5EEC9C3474}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OglRenderer", "OglRenderer\OglRenderer.csproj", "{CA036D22-A679-456B-8BF4-0BC9DB86F191}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WinFormsDmgRenderer", "WinFormsDmgRenderer\WinFormsDmgRenderer.csproj", "{E0F9EA4F-6001-4921-9B3C-1F8B006B4DC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,14 +21,18 @@ Global
 		{7B689F12-C554-4AEC-B806-E3D1D3F7BCE1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B689F12-C554-4AEC-B806-E3D1D3F7BCE1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B689F12-C554-4AEC-B806-E3D1D3F7BCE1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C37AB5A1-74B9-413C-8283-3D2277EA945D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C37AB5A1-74B9-413C-8283-3D2277EA945D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C37AB5A1-74B9-413C-8283-3D2277EA945D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C37AB5A1-74B9-413C-8283-3D2277EA945D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9A2E9694-6D80-4AF2-A71F-5A5EEC9C3474}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9A2E9694-6D80-4AF2-A71F-5A5EEC9C3474}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A2E9694-6D80-4AF2-A71F-5A5EEC9C3474}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A2E9694-6D80-4AF2-A71F-5A5EEC9C3474}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CA036D22-A679-456B-8BF4-0BC9DB86F191}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CA036D22-A679-456B-8BF4-0BC9DB86F191}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CA036D22-A679-456B-8BF4-0BC9DB86F191}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CA036D22-A679-456B-8BF4-0BC9DB86F191}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0F9EA4F-6001-4921-9B3C-1F8B006B4DC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0F9EA4F-6001-4921-9B3C-1F8B006B4DC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0F9EA4F-6001-4921-9B3C-1F8B006B4DC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0F9EA4F-6001-4921-9B3C-1F8B006B4DC9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
