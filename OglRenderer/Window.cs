@@ -9,6 +9,8 @@ using DMG;
 
 namespace OglRenderer
 {
+    // Uses OpenTK to create a window and OpenGL based rendering. This is a more basic window (no debug window functionality) than the WinFormsDmgRenderer but it is cross platform and has been tested on Windows and Mac.
+
     public class Window : GameWindow
     {
         DmgSystem dmg;
